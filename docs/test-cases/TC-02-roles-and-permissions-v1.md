@@ -11,6 +11,7 @@
 | Architecture read | SA-001 §3, §4.2, §8.1, §8.3, §10 and ADR-004, both **Draft** on branch `docs/sa-001-architecture`. Every case that depends on them is marked **(provisional)** |
 | Mock-up screens | [req-001-004-access-mockup.html](../mockups/req-001-004-access-mockup.html) screens 2A (menus per role), 2B (treasurer who is also a homeowner), 2C (no access, phone), 2D (Settings → Staff and roles, Option B) |
 | Environment | Firebase Emulator Suite (local, `demo-` project id) and `hoa-portal-staging` only. **Never a `-prod` project.** The one case about the script's production guard (H8) uses an emulator project id that ends in `-prod`; it never touches a real project |
+| Status | **Approved** by the owner, 2026-11-28 ("push it to main directly"). QE may start triage. Cases tied to the 13 BA gaps wait for the BA's answers |
 | Author / date | QA, 2026-11-28 |
 
 ---
