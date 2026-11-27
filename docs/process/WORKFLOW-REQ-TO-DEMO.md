@@ -27,13 +27,17 @@ REQ approved (owner)
                                                 7. Deploy to TEST (rules first, then hosting)
                                                                │
                                                                ▼
-                                                8. QE: smoke → change's plan ──► defects loop to Dev (back to 4)
+                                                8. QE: smoke → ACCEPTANCE tests (per story) ──► defects loop to Dev (back to 4)
+                                                               │
+                                                     all ACs pass → story CLOSED
+                                                               │
+                                     (repeat 4–8 for every story in the release batch)
                                                                │
                                                                ▼
-                                                9. QE: full regression → "Ready" / "Not ready"
+                                                9. QE: targeted REGRESSION, once, for the whole batch → "Ready" / "Not ready"
                                                                │
                                                                ▼
-                                               10. Owner approves promotion → Dev deploys same commit to DEMO → QE smoke on demo
+                                               10. Owner approves promotion → Dev deploys the batch to DEMO → QE smoke on demo
                                                                │
                                                                ▼
                                                11. Release plan + chart updated: "On demo"
@@ -98,24 +102,42 @@ All must pass, or the branch does not merge:
 - Record every rules and functions deploy: project, command, commit, ruleset / function revision before and after.
 - Confirm the target project by its role, never by its name.
 
-### 8. Smoke, then the change's plan — QE
+Testing is split into two separate activities with different purposes, scope and timing:
+
+| | Acceptance testing (stage 8) | Regression testing (stage 9) |
+|---|---|---|
+| **Question it answers** | Does this story do what its acceptance criteria say? | Did the changes break anything that used to work? |
+| **Scope** | One user story: every Gherkin scenario of its REQ, unhappy paths included | Only the features the code changes touched, plus the areas they could affect |
+| **When** | As soon as the story is on the test environment | Once, after every story in the release batch has passed acceptance, before deploying to demo |
+| **Gate for** | **Closing the user story** | **Deploying the batch to demo** |
+| **Unit of work** | Per story | Per release batch (all stories going to demo together) |
+
+### 8. Smoke, then acceptance tests — QE, per user story
 
 - **Smoke** (read-only): every screen loads for Homeowner, each Admin sub-role, and Guard; sign-in works; no blank screen or halting console error; footer shows the expected `APP_VERSION`. **If smoke fails, stop** — show-stopper back to Dev.
-- **The change's plan:** this TC's cases plus the adjacent specs QA named.
+- **Acceptance tests:** the cases in the story's `TC-NN` that trace to its acceptance criteria — at least one per Gherkin scenario, unhappy paths included. Nothing else; regression comes later.
 - **Failures:** triage list first (re-render, modal, pagination, test data, drifting value, silent rules refusal); only then file `docs/defects/DEF-NNN-*.md` and hand to Dev.
 - **Defect loop:** Dev fixes on a new `fix/` branch → stages 4–7 again → Dev marks **Resolved** → QE re-verifies on the deployed build and marks **Closed**.
+- **Gate — closing the user story:** a story is **Closed** only when every acceptance criterion has a passing case (or the owner explicitly accepts an exception in writing), and every defect raised against it is Closed or accepted by the owner. QE reports per AC: pass / fail / accepted exception.
+- **Release plan stage:** *Accepted* (story closed).
+- Repeat stages 4–8 for each story in the release batch.
 
-### 9. Full regression — QE
+### 9. Regression — QE, once per release batch
 
-- Everything, plus the manual cases, against the version deployed on test.
-- Answer from evidence: run counts; every planned case executed or explicitly deferred; every defect fixed-and-retested or accepted by the owner; the environment serving the tested version.
+- **When:** after **every** story in the batch has passed acceptance and is Closed, and the batch is all on the test environment together. Run it once for the whole batch, not per story.
+- **Building the scope:** consolidate across all stories in the batch:
+  1. **Touched features** — every screen, collection, rule, Function and shared component the batch's code changes modified (from the merge diffs and each `CIA-NNN`).
+  2. **Potentially affected areas** — what reads or writes the same collections or fields, totals derived from touched data, shared components used elsewhere, roles whose access the rules changes alter, open defects in those areas, and known failure patterns that apply (from each `TC-NN`'s regression lens).
+  3. Remove duplicates across stories; one consolidated regression list, written into the batch's release entry before the run.
+- **Out of scope:** features no change touched and nothing touched can affect. They are not re-run.
+- **Answer from evidence:** run counts; every case in the consolidated list executed or explicitly deferred; every defect fixed-and-retested or accepted by the owner; the environment serving the tested version.
 - **Out:** **Ready** — or **Not ready, and here's what's outstanding**. Never a maybe.
 - **Release plan stage:** *Tested*.
 
-### 10. Promote to demo
+### 10. Promote the batch to demo
 
-- **Gate:** QE said **Ready**, and the owner approves this specific promotion in chat (a relayed approval counts only as a verbatim quote).
-- **Dev:** deploys **the same commit** QE tested — no rebuild from a newer `main`. Same order as stage 7. Records the deploy.
+- **Gate:** every story in the batch is Closed (stage 8), QE said **Ready** on regression (stage 9), and the owner approves this specific promotion in chat (a relayed approval counts only as a verbatim quote).
+- **Dev:** deploys **the same commit** QE regression-tested — no rebuild from a newer `main`, and no story that skipped acceptance or regression. Same order as stage 7. Records the deploy.
 - **QE:** smoke on demo; confirm the footer `APP_VERSION` matches what was tested.
 - **Data:** demo carries invented households only (e.g. "ZZ Test Household A"); no real homeowner data.
 
@@ -135,7 +157,9 @@ All must pass, or the branch does not merge:
 | QE | Dev | Locator contract + Unit scenarios | Triage done |
 | Dev | QE | Merged commit + `APP_VERSION` on test | Stage 7 done |
 | QE | Dev | `DEF-NNN` | A real app bug |
-| QE | Owner | Ready / Not ready | Full regression done |
+| QE | Owner | Per-AC result; story Closed | Acceptance tests done |
+| QE | Owner | Consolidated regression list | All batch stories Closed |
+| QE | Owner | Ready / Not ready | Regression done |
 | Owner | Dev | Promotion approval | Ready accepted |
 | QE | Sol Arch, QA | New failure shape | Any defect that reveals one |
 
@@ -155,5 +179,13 @@ These are prerequisites the workflow assumes but the repo doesn't have yet (as o
 
 1. **Does a demo promotion need your approval each time?** The agent files require it only for production. This draft asks for it on demo too, because clients see demo. Alternative: QE's "Ready" alone promotes to demo.
 2. **One approval phrase or two?** Sol Arch accepts only `APPROVED — FINAL`; REQs and TCs have been approved with "approve it". Suggest one rule for all three.
-3. **Batching:** promote each REQ on its own, or a whole sprint (e.g. S1 = REQ-001–004) together after one full regression? Suggest per sprint, to match the release plan.
-4. **New release-plan stage "On demo"** between *Tested* and *Released*?
+3. **What is a release batch?** Regression runs once per batch. Suggest one sprint (e.g. S1 = REQ-001–004), to match the release plan.
+4. **New release-plan stages** *Accepted* (story closed) after *Built*, and *On demo* between *Tested* and *Released*?
+5. **The QE agent file disagrees with this draft.** `qe.md` says "Before any promotion (demo or production): Full regression" (everything). This draft runs targeted regression instead. If you approve, `qe.md` (and the QA regression lens in `qa.md`) need updating to match.
+
+## Revision history
+
+| Rev | Date | Change |
+|---|---|---|
+| r1 | 2026-11-28 | First draft |
+| r2 | 2026-11-28 | Testing split in two, per the owner: acceptance tests per story (gate to close the story) and targeted regression once per release batch (gate to deploy to demo) |
