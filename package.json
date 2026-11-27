@@ -8,7 +8,8 @@
     "test:ui": "playwright test",
     "test:smoke": "playwright test --grep @smoke",
     "test:list": "playwright test --list",
-    "test:report": "playwright show-report"
+    "test:report": "playwright show-report",
+    "status": "node scripts/work-status.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"
