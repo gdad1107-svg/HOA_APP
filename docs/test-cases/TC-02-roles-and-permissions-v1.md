@@ -175,65 +175,83 @@ All scenarios, before steps. Each states one behaviour.
 
 ---
 
+## Layer legend (QE)
+
+QE filled in each case's **Layer** at triage on 2026-11-28. Nothing else in a case was changed. The reasoning, locator contract, spec list, automation order and findings are in **QE triage** at the end. Rows are in [COVERAGE-MAP.md](COVERAGE-MAP.md).
+
+| Layer | Meaning here | Owner |
+|---|---|---|
+| **Unit** | Vitest on a plain module (no DOM, no Firebase, no network): the menu model per role and view, route access per role, the view-switch decision, refusal copy, source scans, and the `setRole` script's argument and safety checks behind injected ports | Dev writes, QE reviews |
+| **API** | The Firestore, Storage, Functions and Auth emulators, called directly: `@firebase/rules-unit-testing` with crafted auth contexts for the rules matrix and stale tokens, the client SDK for callables, and the real `setRole` script run as a child process against the emulator. No browser | QE |
+| **UI** | Playwright against the emulator-backed app: what only a browser shows (menus, switch, no-access page, focus, layout) and live role changes reaching an open page | QE |
+| **UI (forced refresh)** | A UI case whose outcome depends on the sign-in token refreshing. On the emulator the test forces it (`getIdToken(true)`); the natural refresh about an hour later is not modelled. *Assumption:* the Auth emulator refuses a refresh after `revokeRefreshTokens` as production does | QE |
+| **Manual** | A real screen reader, or an exploratory charter | QE |
+
+**Everything runs on the emulator; no case needs `hoa-portal-staging`.** The "at once" promise (REQ-002 decision 1, ADR-004 `staff/{uid}` check) doesn't depend on token expiry: the rules tests build the stale state directly (a token that still carries the claim, with `staff/{uid}` deleted or different), so B44–B48 and B51 prove it without waiting an hour. Where this document says **Special staging** (B44 note, H8, I7, I8, J5), it means special *setup* on the emulator, not the staging project. No TC-02 case depends on a Firebase console setting, so the Auth emulator not copying console settings doesn't affect any case here.
+
+No **Journey** row is added for REQ-002. Role changes are a developer-script task, not a homeowner journey; H1 and I3 already cross the script, the rules and the screen.
+
+---
+
 ## A. Menus per role
 
 Setup for the block: R1 build, emulator or staging, fixtures signed in fresh. **Don't assert** menu order beyond what is listed, icon art, or badge counts.
 
 ### TC-02-A1 Homeowner sees exactly the R1 homeowner menu
-**Priority** P1 · **Type** Happy path / navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Happy path / navigation · **Layer** UI · **Writes** No
 - **Role:** ZZ Homeowner A1.
 - **Action:** sign in.
 - **Expected:** the menu shows Dashboard, Dues & Payments, Announcements, and nothing else.
 - **Don't assert:** the dashboard's content.
 
 ### TC-02-A2 Homeowner's menu does not show Homeowners
-**Priority** P1 · **Type** Security / role · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security / role · **Layer** Unit · **Writes** No
 - **Role:** ZZ Homeowner A1. Gherkin row "member of Blk 4 Lot 12 | Dues & Payments | Homeowners".
 - **Expected:** "Dues & Payments" is shown; "Homeowners" is not, at desktop width and inside the phone drawer.
 
 ### TC-02-A3 Admin office staff see the R1 admin menu, without Approvals
-**Priority** P1 · **Type** Happy path / security · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Happy path / security · **Layer** UI · **Writes** No
 - **Role:** ZZ Admin S1.
 - **Expected:** Dashboard, Homeowners, Announcements, Settings; **no Approvals**. *(D4-dependent: if the owner lets the admin office approve payments, Approvals appears.)*
 
 ### TC-02-A4 Admin's menu does not show Accounting
-**Priority** P1 · **Type** Security / role · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security / role · **Layer** Unit · **Writes** No
 - **Role:** ZZ Admin S1. Gherkin row "the admin role | Homeowners | Accounting".
 - **Expected:** "Homeowners" shown, "Accounting" absent.
 
 ### TC-02-A5 Treasurer sees the R1 treasurer menu
-**Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Happy path · **Layer** UI · **Writes** No
 - **Role:** ZZ Treasurer T2 (single role, so no switch interferes).
 - **Expected:** Dashboard, Approvals, Homeowners, Announcements, Settings (mock-up 2A).
 
 ### TC-02-A6 Treasurer's menu does not show Scan Pass
-**Priority** P1 · **Type** Security / role · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security / role · **Layer** Unit · **Writes** No
 - **Role:** ZZ Treasurer T2. Gherkin row "the treasurer role | Approvals | Scan Pass".
 - **Expected:** "Approvals" shown, "Scan Pass" absent.
 
 ### TC-02-A7 Board member sees only Dashboard in R1
-**Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Happy path · **Layer** UI · **Writes** No
 - **Role:** ZZ Board D1.
 - **Expected:** the menu shows Dashboard only (Reports and Accounting arrive in R2).
 
 ### TC-02-A8 Board member's menu does not show Homeowners
-**Priority** P1 · **Type** Security / role · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security / role · **Layer** Unit · **Writes** No
 - **Role:** ZZ Board D1. Gherkin row "the board role | Dashboard | Homeowners".
 - **Expected:** "Homeowners" absent (matches REQ-003's board refusal).
 
 ### TC-02-A9 A guard-role account sees no household, money or staff pages in R1
-**Priority** P2 · **Type** Security / role · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Security / role · **Layer** Unit · **Writes** No
 - **Role:** ZZ Guard G1 (R1 build, gate features not released).
 - **Expected:** no Homeowners, Approvals, Dues & Payments, Accounting or Settings menu item. **What the guard does see in R1 is not stated (BA gap 5)**; until it is, assert only the absences.
 - **R4 follow-up:** once the gate ships, the menu is Scan Pass, Visitors Inside, Today's Log.
 
 ### TC-02-A10 Menus for unreleased features appear for no role
-**Priority** P2 · **Type** Negative / navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Negative / navigation · **Layer** Unit · **Writes** No
 - **Roles:** each of A1, S1, T2, D1, G1 in turn.
 - **Expected:** none of Book Amenities, My Vehicles, Requests & Complaints, Guest Passes, Request a Report, Accounting, Collections & Notices, Report Requests, Visitor Log, Reports, Scan Pass appears in R1.
 
 ### TC-02-A11 Role names use the same word on every screen
-**Priority** P3 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** UI/UX · **Layer** Unit · **Writes** No
 - **Roles:** ZZ Admin S2 and ZZ Treasurer T1.
 - **Action:** compare the role word on the role switch, Settings → Staff "Role" column, the menu heading, and the no-access page.
 - **Expected:** each role has one word everywhere. **Today the copy uses "Admin" (switch) and "Admin office" (mock-up 2D staff list): BA gap 7.**
@@ -249,57 +267,57 @@ Setup for the block: R1 build, emulator or staging, fixtures signed in fresh. **
 
 | Id | Role | Request | Expected | Priority | Type | Layer | Writes |
 |---|---|---|---|---|---|---|---|
-| TC-02-B1 | ZZ Homeowner A1 | Read Household A | Allowed | P1 | Security / happy | TBD — QE | No |
-| TC-02-B2 | ZZ Homeowner A1 | Read Household B | Refused | P1 | Security / negative | TBD — QE | No |
-| TC-02-B3 | ZZ Homeowner A1 | List all households (no filter) | Refused | P1 | Security / negative | TBD — QE | No |
-| TC-02-B4 | ZZ Homeowner A1 | Read `members` of Household B | Refused | P1 | Security / negative | TBD — QE | No |
-| TC-02-B5 | ZZ Homeowner A1 | Read or list `staff` | Refused | P1 | Security / negative | TBD — QE | No |
-| TC-02-B6 | ZZ Homeowner A1 | Read `auditLog` | Refused | P1 | Security / negative | TBD — QE | No |
-| TC-02-B7 | ZZ Homeowner A1 | Create `staff/{own uid}` with `role: treasurer` | Refused; no `staff` document exists afterwards | P1 | Security / negative | TBD — QE | Yes |
-| TC-02-B8 | ZZ Homeowner A1 | Update `users/{own uid}` adding `role` or `staffRole` | Refused (closed field list); and even if a field were present, the next staff read is still refused | P1 | Security / negative | TBD — QE | Yes |
-| TC-02-B9 | ZZ Homeowner A1 | Read announcements | Allowed | P2 | Happy path | TBD — QE | No |
-| TC-02-B10 | ZZ Homeowner A1 | Create an announcement | Refused | P1 | Security / negative | TBD — QE | Yes |
-| TC-02-B11 | ZZ Homeowner A1 | Write settings (any field) | Refused | P1 | Security / negative | TBD — QE | Yes |
-| TC-02-B12 | ZZ Homeowner A1 | Write `householdContacts` of Household A | Refused (households are function-only, REQ-003) | P2 | Security / negative | TBD — QE | Yes |
-| TC-02-B13 | ZZ Admin S1 | List households | Allowed | P1 | Happy path | TBD — QE | No |
-| TC-02-B14 | ZZ Admin S1 | Read `householdContacts` | Allowed | P2 | Happy path | TBD — QE | No |
-| TC-02-B15 | ZZ Admin S1 | List `staff` (for Settings → Staff) | Allowed | P2 | Happy path | TBD — QE | No |
-| TC-02-B16 | ZZ Admin S1 | Write `staff/{any uid}` | Refused (only `setRole` writes it) | P1 | Security / negative | TBD — QE | Yes |
-| TC-02-B17 | ZZ Admin S1 | Create an `auditLog` entry | Refused | P1 | Security / negative | TBD — QE | Yes |
-| TC-02-B18 | ZZ Admin S1 | Write a financial setting (dues amount, payment QR details) | Refused (treasurer only) | P1 | Security / negative | TBD — QE | Yes |
-| TC-02-B19 | ZZ Admin S1 | Write a non-financial setting | Allowed *(which fields count as non-financial in R1 is BA gap 12)* | P2 | Happy path | TBD — QE | Yes |
-| TC-02-B20 | ZZ Admin S1 | Create an announcement | Allowed | P2 | Happy path | TBD — QE | Yes |
-| TC-02-B21 | ZZ Admin S1 | Update a payment's `status` directly | Refused | P1 | Security / negative | TBD — QE | Yes |
-| TC-02-B22 | ZZ Admin S1 | Upload a payment QR image to Storage | Refused (dues and QR settings are treasurer only) | P1 | Security / negative | TBD — QE | Yes |
-| TC-02-B23 | ZZ Treasurer T2 | List households | Allowed (treasurer has everything admin has) | P1 | Happy path | TBD — QE | No |
-| TC-02-B24 | ZZ Treasurer T2 | Write a financial setting | Allowed | P1 | Happy path | TBD — QE | Yes |
-| TC-02-B25 | ZZ Treasurer T2 | Upload a payment QR image to Storage | Allowed | P2 | Happy path | TBD — QE | Yes |
-| TC-02-B26 | ZZ Treasurer T2 | Update a payment's `status` directly, bypassing `decidePayment` | Refused | P1 | Security / negative | TBD — QE | Yes |
-| TC-02-B27 | ZZ Treasurer T2 | Write `staff/{own uid}` (e.g. change own role) | Refused | P1 | Security / negative | TBD — QE | Yes |
-| TC-02-B28 | ZZ Treasurer T2 | Write a receipt's number | Refused (no one can) | P1 | Security / negative | TBD — QE | Yes |
-| TC-02-B29 | ZZ Treasurer T2 | Read `auditLog` | Allowed | P3 | Happy path | TBD — QE | No |
-| TC-02-B30 | ZZ Board D1 | List households | Refused (REQ-003; board directory access is an open board question, default deny) | P1 | Security / negative | TBD — QE | No |
-| TC-02-B31 | ZZ Board D1 | Read `householdContacts` | Refused | P1 | Security / negative | TBD — QE | No |
-| TC-02-B32 | ZZ Board D1 | Read `auditLog` | Allowed | P3 | Happy path | TBD — QE | No |
-| TC-02-B33 | ZZ Board D1 | Create an announcement | Refused (board is read-only) | P1 | Security / negative | TBD — QE | Yes |
-| TC-02-B34 | ZZ Board D1 | Write any setting | Refused | P1 | Security / negative | TBD — QE | Yes |
-| TC-02-B35 | ZZ Board D1 | Upload to any Storage path | Refused | P2 | Security / negative | TBD — QE | Yes |
-| TC-02-B36 | ZZ Board D1 | Update a payment's `status` directly | Refused | P1 | Security / negative | TBD — QE | Yes |
-| TC-02-B37 | ZZ Guard G1 | Read or list households | Refused | P1 | Security / negative | TBD — QE | No |
-| TC-02-B38 | ZZ Guard G1 | Read bills or payments of any household | Refused (a guard never sees balances) | P1 | Security / negative | TBD — QE | No |
-| TC-02-B39 | ZZ Guard G1 | Read `staff` or `auditLog` | Refused | P2 | Security / negative | TBD — QE | No |
-| TC-02-B40 | ZZ Guard G1 | Create an announcement or write settings | Refused | P2 | Security / negative | TBD — QE | Yes |
-| TC-02-B41 | ZZ Guard G1 | Read a payment proof in Storage | Refused | P1 | Security / negative | TBD — QE | No |
-| TC-02-B42 | ZZ No Role N1 | Read any household, bill or payment | Refused | P1 | Security / negative | TBD — QE | No |
-| TC-02-B43 | ZZ No Role N1 | Read `staff` | Refused | P2 | Security / negative | TBD — QE | No |
-| TC-02-B44 | Stale token: ZZ Admin S1 after removal, token still carries `role: admin`, `staff/{uid}` deleted | List households | **Refused** (Sol Arch's added rules test) | P1 | Security / boundary | TBD — QE | No |
-| TC-02-B45 | Stale token: ZZ Treasurer T2 after removal (with T1 still treasurer), claim still `treasurer` | Write a financial setting | **Refused** | P1 | Security / boundary | TBD — QE | Yes |
-| TC-02-B46 | Claim missing, `staff/{uid}` says `treasurer` (a document without a claim) | Write a financial setting | Refused (both must match) | P1 | Security / negative | TBD — QE | Yes |
-| TC-02-B47 | Claim `admin`, `staff/{uid}` says `treasurer` (upgrade before token refresh) | Write a financial setting | Refused until the token refreshes | P2 | Security / boundary | TBD — QE | Yes |
-| TC-02-B48 | Claim `treasurer`, `staff/{uid}` says `admin` (downgrade before token refresh) | Write a financial setting | Refused at once | P1 | Security / boundary | TBD — QE | Yes |
-| TC-02-B49 | ZZ Homeowner A1 | Read a payment proof file of Household B in Storage | Refused | P1 | Security / negative | TBD — QE | No |
-| TC-02-B50 | Signed out (no auth) | Read any R1 collection, including announcements | Refused | P1 | Security / negative | TBD — QE | No |
-| TC-02-B51 | Claim hand-set to `treasurer` with no `staff` document (the "nobody edits claims by hand" condition) | Read `auditLog` | Refused | P2 | Security / negative | TBD — QE | No |
+| TC-02-B1 | ZZ Homeowner A1 | Read Household A | Allowed | P1 | Security / happy | API | No |
+| TC-02-B2 | ZZ Homeowner A1 | Read Household B | Refused | P1 | Security / negative | API | No |
+| TC-02-B3 | ZZ Homeowner A1 | List all households (no filter) | Refused | P1 | Security / negative | API | No |
+| TC-02-B4 | ZZ Homeowner A1 | Read `members` of Household B | Refused | P1 | Security / negative | API | No |
+| TC-02-B5 | ZZ Homeowner A1 | Read or list `staff` | Refused | P1 | Security / negative | API | No |
+| TC-02-B6 | ZZ Homeowner A1 | Read `auditLog` | Refused | P1 | Security / negative | API | No |
+| TC-02-B7 | ZZ Homeowner A1 | Create `staff/{own uid}` with `role: treasurer` | Refused; no `staff` document exists afterwards | P1 | Security / negative | API | Yes |
+| TC-02-B8 | ZZ Homeowner A1 | Update `users/{own uid}` adding `role` or `staffRole` | Refused (closed field list); and even if a field were present, the next staff read is still refused | P1 | Security / negative | API | Yes |
+| TC-02-B9 | ZZ Homeowner A1 | Read announcements | Allowed | P2 | Happy path | API | No |
+| TC-02-B10 | ZZ Homeowner A1 | Create an announcement | Refused | P1 | Security / negative | API | Yes |
+| TC-02-B11 | ZZ Homeowner A1 | Write settings (any field) | Refused | P1 | Security / negative | API | Yes |
+| TC-02-B12 | ZZ Homeowner A1 | Write `householdContacts` of Household A | Refused (households are function-only, REQ-003) | P2 | Security / negative | API | Yes |
+| TC-02-B13 | ZZ Admin S1 | List households | Allowed | P1 | Happy path | API | No |
+| TC-02-B14 | ZZ Admin S1 | Read `householdContacts` | Allowed | P2 | Happy path | API | No |
+| TC-02-B15 | ZZ Admin S1 | List `staff` (for Settings → Staff) | Allowed | P2 | Happy path | API | No |
+| TC-02-B16 | ZZ Admin S1 | Write `staff/{any uid}` | Refused (only `setRole` writes it) | P1 | Security / negative | API | Yes |
+| TC-02-B17 | ZZ Admin S1 | Create an `auditLog` entry | Refused | P1 | Security / negative | API | Yes |
+| TC-02-B18 | ZZ Admin S1 | Write a financial setting (dues amount, payment QR details) | Refused (treasurer only) | P1 | Security / negative | API | Yes |
+| TC-02-B19 | ZZ Admin S1 | Write a non-financial setting | Allowed *(which fields count as non-financial in R1 is BA gap 12)* | P2 | Happy path | API | Yes |
+| TC-02-B20 | ZZ Admin S1 | Create an announcement | Allowed | P2 | Happy path | API | Yes |
+| TC-02-B21 | ZZ Admin S1 | Update a payment's `status` directly | Refused | P1 | Security / negative | API | Yes |
+| TC-02-B22 | ZZ Admin S1 | Upload a payment QR image to Storage | Refused (dues and QR settings are treasurer only) | P1 | Security / negative | API | Yes |
+| TC-02-B23 | ZZ Treasurer T2 | List households | Allowed (treasurer has everything admin has) | P1 | Happy path | API | No |
+| TC-02-B24 | ZZ Treasurer T2 | Write a financial setting | Allowed | P1 | Happy path | API | Yes |
+| TC-02-B25 | ZZ Treasurer T2 | Upload a payment QR image to Storage | Allowed | P2 | Happy path | API | Yes |
+| TC-02-B26 | ZZ Treasurer T2 | Update a payment's `status` directly, bypassing `decidePayment` | Refused | P1 | Security / negative | API | Yes |
+| TC-02-B27 | ZZ Treasurer T2 | Write `staff/{own uid}` (e.g. change own role) | Refused | P1 | Security / negative | API | Yes |
+| TC-02-B28 | ZZ Treasurer T2 | Write a receipt's number | Refused (no one can) | P1 | Security / negative | API | Yes |
+| TC-02-B29 | ZZ Treasurer T2 | Read `auditLog` | Allowed | P3 | Happy path | API | No |
+| TC-02-B30 | ZZ Board D1 | List households | Refused (REQ-003; board directory access is an open board question, default deny) | P1 | Security / negative | API | No |
+| TC-02-B31 | ZZ Board D1 | Read `householdContacts` | Refused | P1 | Security / negative | API | No |
+| TC-02-B32 | ZZ Board D1 | Read `auditLog` | Allowed | P3 | Happy path | API | No |
+| TC-02-B33 | ZZ Board D1 | Create an announcement | Refused (board is read-only) | P1 | Security / negative | API | Yes |
+| TC-02-B34 | ZZ Board D1 | Write any setting | Refused | P1 | Security / negative | API | Yes |
+| TC-02-B35 | ZZ Board D1 | Upload to any Storage path | Refused | P2 | Security / negative | API | Yes |
+| TC-02-B36 | ZZ Board D1 | Update a payment's `status` directly | Refused | P1 | Security / negative | API | Yes |
+| TC-02-B37 | ZZ Guard G1 | Read or list households | Refused | P1 | Security / negative | API | No |
+| TC-02-B38 | ZZ Guard G1 | Read bills or payments of any household | Refused (a guard never sees balances) | P1 | Security / negative | API | No |
+| TC-02-B39 | ZZ Guard G1 | Read `staff` or `auditLog` | Refused | P2 | Security / negative | API | No |
+| TC-02-B40 | ZZ Guard G1 | Create an announcement or write settings | Refused | P2 | Security / negative | API | Yes |
+| TC-02-B41 | ZZ Guard G1 | Read a payment proof in Storage | Refused | P1 | Security / negative | API | No |
+| TC-02-B42 | ZZ No Role N1 | Read any household, bill or payment | Refused | P1 | Security / negative | API | No |
+| TC-02-B43 | ZZ No Role N1 | Read `staff` | Refused | P2 | Security / negative | API | No |
+| TC-02-B44 | Stale token: ZZ Admin S1 after removal, token still carries `role: admin`, `staff/{uid}` deleted | List households | **Refused** (Sol Arch's added rules test) | P1 | Security / boundary | API | No |
+| TC-02-B45 | Stale token: ZZ Treasurer T2 after removal (with T1 still treasurer), claim still `treasurer` | Write a financial setting | **Refused** | P1 | Security / boundary | API | Yes |
+| TC-02-B46 | Claim missing, `staff/{uid}` says `treasurer` (a document without a claim) | Write a financial setting | Refused (both must match) | P1 | Security / negative | API | Yes |
+| TC-02-B47 | Claim `admin`, `staff/{uid}` says `treasurer` (upgrade before token refresh) | Write a financial setting | Refused until the token refreshes | P2 | Security / boundary | API | Yes |
+| TC-02-B48 | Claim `treasurer`, `staff/{uid}` says `admin` (downgrade before token refresh) | Write a financial setting | Refused at once | P1 | Security / boundary | API | Yes |
+| TC-02-B49 | ZZ Homeowner A1 | Read a payment proof file of Household B in Storage | Refused | P1 | Security / negative | API | No |
+| TC-02-B50 | Signed out (no auth) | Read any R1 collection, including announcements | Refused | P1 | Security / negative | API | No |
+| TC-02-B51 | Claim hand-set to `treasurer` with no `staff` document (the "nobody edits claims by hand" condition) | Read `auditLog` | Refused | P2 | Security / negative | API | No |
 
 *B44–B48 and B51 need the token and `staff` document set up independently of `setRole` (emulator admin access to craft the state). That is special staging, not a layer decision.*
 
@@ -308,76 +326,76 @@ Setup for the block: R1 build, emulator or staging, fixtures signed in fresh. **
 ## C. Server-side refusal of privileged actions (callable functions) *(provisional: function names from SA-001 §3)*
 
 ### TC-02-C1 A board member's request to approve a pending payment is refused, and the payment still reads "Pending approval"
-**Priority** P1 · **Type** Security / negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security / negative · **Layer** API · **Writes** Yes
 - **Role:** ZZ Board D1. **Setup:** ZZ Payment P-pending on Household B.
 - **Action:** the board member's device calls `decidePayment` (approve) for P-pending directly; there is no button to press.
 - **Expected:** the call is refused with a permission error, asserted explicitly. Re-read as ZZ Treasurer T2: P-pending is still pending, and the treasurer's Approvals list and Household B's Dues & Payments both still say "Pending approval".
 - **Don't assert:** the error's exact wording.
 
 ### TC-02-C2 Board's decide request on an approved payment is refused and changes nothing
-**Priority** P2 · **Type** Security / status enumeration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Security / status enumeration · **Layer** API · **Writes** Yes
 - **Role:** ZZ Board D1. **Setup:** ZZ Payment P-approved. **Action:** call `decidePayment` (reject).
 - **Expected:** refused; status still approved; receipt unchanged.
 
 ### TC-02-C3 Board's decide request on a rejected payment is refused and changes nothing
-**Priority** P2 · **Type** Security / status enumeration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Security / status enumeration · **Layer** API · **Writes** Yes
 - **Role:** ZZ Board D1. **Setup:** ZZ Payment P-rejected. **Action:** call `decidePayment` (approve).
 - **Expected:** refused; status still rejected; no receipt created.
 
 ### TC-02-C4 Board's void request on a receipt is refused
-**Priority** P2 · **Type** Security / status enumeration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Security / status enumeration · **Layer** API · **Writes** Yes
 - **Role:** ZZ Board D1. **Setup:** ZZ Payment P-approved with its receipt. **Action:** call `voidReceipt`.
 - **Expected:** refused; receipt still valid.
 
 ### TC-02-C5 Board's decide request on a voided payment is refused
-**Priority** P3 · **Type** Security / status enumeration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Security / status enumeration · **Layer** API · **Writes** Yes
 - **Role:** ZZ Board D1. **Setup:** ZZ Payment P-voided. **Action:** call `decidePayment` (approve).
 - **Expected:** refused; status unchanged.
 
 ### TC-02-C6 A homeowner cannot approve their own household's payment
-**Priority** P1 · **Type** Security / negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security / negative · **Layer** API · **Writes** Yes
 - **Role:** ZZ Homeowner B1. **Setup:** P-pending belongs to Household B. **Action:** call `decidePayment` (approve).
 - **Expected:** refused; still pending.
 
 ### TC-02-C7 Admin office staff cannot approve a payment in R1
-**Priority** P1 · **Type** Security / negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security / negative · **Layer** API · **Writes** Yes
 - **Role:** ZZ Admin S1. **Setup:** P-pending. **Action:** call `decidePayment` (approve).
 - **Expected:** refused; still pending. *(D4-dependent: flips to allowed if the owner lets the office approve payments.)*
 
 ### TC-02-C8 A guard cannot approve a payment
-**Priority** P2 · **Type** Security / negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Security / negative · **Layer** API · **Writes** Yes
 - **Role:** ZZ Guard G1. **Setup:** P-pending. **Expected:** refused; still pending.
 
 ### TC-02-C9 A removed treasurer's stale token cannot approve a payment
-**Priority** P1 · **Type** Security / boundary · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security / boundary · **Layer** API · **Writes** Yes
 - **Role:** ZZ Treasurer T2, signed in; the developer then removes T2's role (T1 stays treasurer). T2's token still carries `treasurer`.
 - **Action:** T2's device calls `decidePayment` (approve) on P-pending within the token's hour.
 - **Expected:** refused (callables read `staff/{uid}`, not the token); still pending.
 
 ### TC-02-C10 A treasurer can approve a pending payment (control)
-**Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Happy path · **Layer** API · **Writes** Yes
 - **Role:** ZZ Treasurer T2. **Setup:** a fresh pending payment. **Action:** approve.
 - **Expected:** approved. Proves the C-block refusals are about role, not a broken function.
 - **Don't assert:** the receipt number's value.
 
 ### TC-02-C11 No client can run `setRole`, whatever its role
-**Priority** P1 · **Type** Security / negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security / negative · **Layer** API · **Writes** Yes
 - **Roles:** ZZ Treasurer T2, ZZ Admin S1, ZZ Homeowner A1.
 - **Action:** if `setRole` is deployed as a callable, call it to grant the caller `treasurer`; otherwise confirm no client-callable endpoint exists for it.
 - **Expected:** refused (or absent); no `staff` document or claim changes. In R1 (Option B) role changes come only from the developer script.
 
 ### TC-02-C12 A board member cannot call a household-changing function
-**Priority** P2 · **Type** Security / negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Security / negative · **Layer** API · **Writes** Yes
 - **Role:** ZZ Board D1. **Action:** call `createHousehold` / `updateHousehold`.
 - **Expected:** refused (REQ-003). Detailed cases live in TC-03; this one checks the shared `hasRole` check.
 
 ### TC-02-C13 Homeowner, board and guard cannot create invitations
-**Priority** P2 · **Type** Security / negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Security / negative · **Layer** API · **Writes** Yes
 - **Roles:** ZZ Homeowner A1, ZZ Board D1, ZZ Guard G1, each in turn. **Action:** call `createInvites` for Household B.
 - **Expected:** refused; no invite created. Detailed cases in TC-04.
 
 ### TC-02-C14 A refused decision consumes no receipt number
-**Priority** P2 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Data integrity · **Layer** API · **Writes** Yes
 - **Setup:** note the receipt counter. **Action:** run C1 and C7, then approve one payment as ZZ Treasurer T2.
 - **Expected:** the treasurer's receipt number is the next one after the noted value: no gap from the refused calls.
 - **Lane:** exclusive — asserts the receipt counter.
@@ -387,31 +405,31 @@ Setup for the block: R1 build, emulator or staging, fixtures signed in fresh. **
 ## D. Household isolation
 
 ### TC-02-D1 A homeowner's device cannot read another household's bills
-**Priority** P1 · **Type** Security / negative · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security / negative · **Layer** API · **Writes** No
 - **Role:** ZZ Homeowner A1 (Juan, Blk 4 Lot 12 only). **Setup:** Household B has bills *(provisional: bills are EPIC-002)*.
 - **Action:** the device requests Household B's (Blk 1 Lot 3) bills directly.
 - **Expected:** refused, asserted explicitly; no bill data returned.
 
 ### TC-02-D2 A query mixing own and another household's id is refused
-**Priority** P1 · **Type** Security / negative · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security / negative · **Layer** API · **Writes** No
 - **Role:** ZZ Homeowner A1. **Action:** query bills where household is in [A, B].
 - **Expected:** the whole query is refused, not filtered down to A's rows.
 
 ### TC-02-D3 A query for bills with no household filter is refused
-**Priority** P1 · **Type** Security / negative · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security / negative · **Layer** API · **Writes** No
 - **Role:** ZZ Homeowner A1. **Expected:** refused.
 
 ### TC-02-D4 A homeowner can read their own household's bills (control)
-**Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Happy path · **Layer** API · **Writes** No
 - **Role:** ZZ Homeowner A1. **Expected:** Household A's bills are returned, and only those.
 
 ### TC-02-D5 A homeowner removed from a household is refused on their next read
-**Priority** P2 · **Type** Security / boundary · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Security / boundary · **Layer** API · **Writes** Yes
 - **Role:** ZZ Homeowner B1, signed in. **Action:** admin removes B1 from Household B (REQ-004 `removeMember`); B1's device then reads Household B.
 - **Expected:** refused at once (rules check the `members` document, not the token). Full journey in TC-04.
 
 ### TC-02-D6 A homeowner's notifications never show staff notifications
-**Priority** P2 · **Type** Security / data leak · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Security / data leak · **Layer** API · **Writes** No
 - **Role:** ZZ Homeowner A1; staff notifications exist (e.g. "payment submitted" for the treasurer).
 - **Expected:** A1's bell shows only A1's own notifications. *(The mock-up addresses all staff notifications to one shared `admin` key, `index.html` line 545; the real app must not carry that over.)*
 
@@ -420,28 +438,28 @@ Setup for the block: R1 build, emulator or staging, fixtures signed in fresh. **
 ## E. Board: figures without controls
 
 ### TC-02-E1 The board's R1 dashboard shows the view-only note
-**Priority** P2 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** UI/UX · **Layer** UI · **Writes** No
 - **Role:** ZZ Board D1. **Expected:** "View only. Board members can't change records." is shown. *(Which R1 page carries the note is not stated; BA gap 2.)*
 
 ### TC-02-E2 The board's R1 dashboard has no control that changes a record
-**Priority** P1 · **Type** Security / role · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security / role · **Layer** UI · **Writes** No
 - **Role:** ZZ Board D1. **Expected:** no Approve, Reject, Save, Delete, Edit, Post or Reset control anywhere on the page.
 
 ### TC-02-E3 (R2) A board member opening Accounting sees collections and expenses
-**Priority** P2 · **Type** Happy path · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Happy path · **Layer** UI · **Writes** No
 - **Role:** ZZ Board D1, once Accounting ships (R2). **Expected:** collections and expenses are listed. **Not runnable in R1** (board's R1 menu is Dashboard only; BA gap 2).
 - **Don't assert:** totals.
 
 ### TC-02-E4 (R2) Accounting has no "Save expense", "Delete" or "Approve" control for the board
-**Priority** P1 · **Type** Security / role · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security / role · **Layer** UI · **Writes** No
 - **Role:** ZZ Board D1, R2. **Expected:** none of the three controls exists on the page (absent, not disabled-but-present).
 
 ### TC-02-E5 (R2) A board member's direct request to save an expense is refused
-**Priority** P1 · **Type** Security / negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security / negative · **Layer** API · **Writes** Yes
 - **Role:** ZZ Board D1, R2. **Expected:** refused, asserted; no expense written.
 
 ### TC-02-E6 A board member opening the Settings address sees the no-access page
-**Priority** P2 · **Type** Navigation / security · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Navigation / security · **Layer** Unit · **Writes** No
 - **Role:** ZZ Board D1. **Expected:** "You don't have access to this page"; no settings data loaded.
 
 ---
@@ -449,54 +467,54 @@ Setup for the block: R1 build, emulator or staging, fixtures signed in fresh. **
 ## F. A staff member who is also a homeowner
 
 ### TC-02-F1 The top bar shows a "Treasurer" / "My household" switch
-**Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Happy path · **Layer** UI · **Writes** No
 - **Role:** ZZ Treasurer T1 (treasurer and member of Household C, Blk 2 Lot 10). **Action:** sign in.
 - **Expected:** two buttons, "Treasurer" and "My household", in the place of the mock-up's role switch (mock-up 2B).
 
 ### TC-02-F2 Choosing "My household" shows only Blk 2 Lot 10's homeowner pages
-**Priority** P1 · **Type** Security / role · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security / role · **Layer** UI · **Writes** No
 - **Role:** ZZ Treasurer T1. **Action:** choose "My household", open Dashboard and Dues & Payments.
 - **Expected:** only Household C's data; lands on the household dashboard.
 
 ### TC-02-F3 The household view's menu has no staff items
-**Priority** P1 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Navigation · **Layer** Unit · **Writes** No
 - **Role:** ZZ Treasurer T1 in "My household". **Expected:** the homeowner R1 menu only (as A1); no Approvals, Homeowners or Settings.
 
 ### TC-02-F4 Switching back to "Treasurer" restores the staff menu
-**Priority** P2 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Navigation · **Layer** UI · **Writes** No
 - **Role:** ZZ Treasurer T1. **Expected:** the treasurer menu (as A5), landing on the staff dashboard.
 
 ### TC-02-F5 The switch reports its state with `aria-pressed`
-**Priority** P2 · **Type** Usability / accessibility · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Usability / accessibility · **Layer** UI · **Writes** No
 - **Role:** ZZ Treasurer T1. **Expected:** a labelled button group; the chosen button has `aria-pressed="true"`, the other `false`, after each switch.
 
 ### TC-02-F6 People with only one kind of access see no switch
-**Priority** P2 · **Type** Negative / UI · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Negative / UI · **Layer** Unit · **Writes** No
 - **Roles:** ZZ Homeowner A1, ZZ Treasurer T2, ZZ Admin S1, ZZ Board D1. **Expected:** no switch in the top bar.
 
 ### TC-02-F7 An admin who is also a homeowner sees "Admin" / "My household"
-**Priority** P2 · **Type** Happy path · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Happy path · **Layer** UI · **Writes** No
 - **Role:** ZZ Admin S2. **Expected:** the switch reads "Admin" and "My household"; "My household" shows only Household B.
 
 ### TC-02-F8 A board member who is also a homeowner sees "Board" / "My household"
-**Priority** P2 · **Type** Happy path · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Happy path · **Layer** UI · **Writes** No
 - **Role:** ZZ Board D2. **Expected:** the switch reads "Board" and "My household"; "My household" shows only Household A.
 
 ### TC-02-F9 The household view has no picker for other households
-**Priority** P1 · **Type** Security / data leak · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security / data leak · **Layer** UI · **Writes** No
 - **Role:** ZZ Treasurer T1 in "My household". **Expected:** no "Viewing as" household picker (mock-up line 556); Dues & Payments shows Household C's balance, not any other.
 
 ### TC-02-F10 The switch fits the top bar at 375 px
-**Priority** P3 · **Type** Responsive · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Responsive · **Layer** UI · **Writes** No
 - **Role:** ZZ Treasurer T1 on a 375 px phone. **Expected:** both buttons visible and tappable without horizontal page scroll. *(Real-phone layout depends on DEF-001.)*
 
 ### TC-02-F11 After a reload, the dual-role person lands in a defined view, never mixing the two
-**Priority** P2 · **Type** Navigation / boundary · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Navigation / boundary · **Layer** UI · **Writes** No
 - **Role:** ZZ Treasurer T1. **Action:** choose "My household", reload.
 - **Expected:** the page shows one consistent view: menu, data and the pressed switch button all agree. **Which view it should be is BA gap 13**; don't assert which until it is decided.
 
 ### TC-02-F12 Switching to "My household" doesn't let an announcement pop-up block the switch
-**Priority** P3 · **Type** Regression (modal mid-flow) · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Regression (modal mid-flow) · **Layer** UI · **Writes** No
 - **Role:** ZZ Treasurer T1, with an unread important announcement. **Action:** switch to "My household".
 - **Expected:** if the pop-up opens (mock-up `signInPopup` opens one on entering the homeowner role), it can be closed and the switch and menu then work; the pop-up doesn't reopen on every switch.
 
@@ -505,53 +523,53 @@ Setup for the block: R1 build, emulator or staging, fixtures signed in fresh. **
 ## G. No-access page and navigation
 
 ### TC-02-G1 A homeowner opening the Approvals address sees "You don't have access to this page"
-**Priority** P1 · **Type** Navigation / security · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Navigation / security · **Layer** UI · **Writes** No
 - **Role:** ZZ Homeowner A1. **Action:** type the Approvals page address.
 - **Expected:** heading "You don't have access to this page", text "If you think you should, contact the admin office.", button "Go to my dashboard" (mock-up 2C).
 
 ### TC-02-G2 No Approvals data is loaded behind the no-access page
-**Priority** P1 · **Type** Security / data leak · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security / data leak · **Layer** UI · **Writes** No
 - **Role:** ZZ Homeowner A1, as G1. **Expected:** no payment or household data reaches the device (network shows refused reads or none); nothing flashes on screen before the no-access page.
 
 ### TC-02-G3 "Go to my dashboard" opens the homeowner dashboard
-**Priority** P2 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Navigation · **Layer** UI · **Writes** No
 - **Role:** ZZ Homeowner A1. **Expected:** Household A's dashboard, Dashboard highlighted in the menu. *(For dual-role and staff-only people the target isn't stated: BA gap 8.)*
 
 ### TC-02-G4 Back from the no-access page returns to the previous page, not into the staff page
-**Priority** P3 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Navigation · **Layer** UI · **Writes** No
 - **Role:** ZZ Homeowner A1, arrived at G1 from the dashboard. **Expected:** Back shows the dashboard; Forward shows the no-access page again, never Approvals content.
 
 ### TC-02-G5 Refreshing the no-access page keeps it
-**Priority** P3 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Navigation · **Layer** UI · **Writes** No
 - **Role:** ZZ Homeowner A1. **Expected:** still the no-access page after reload.
 
 ### TC-02-G6 Admin office staff opening the Approvals address see the no-access page
-**Priority** P1 · **Type** Navigation / security · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Navigation / security · **Layer** Unit · **Writes** No
 - **Role:** ZZ Admin S1. **Expected:** no-access page. *(D4-dependent.)*
 
 ### TC-02-G7 A board member opening the Homeowners address sees the no-access page
-**Priority** P1 · **Type** Navigation / security · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Navigation / security · **Layer** Unit · **Writes** No
 - **Role:** ZZ Board D1. **Expected:** no-access page; the household-list request is refused (same as REQ-003's scenario).
 
 ### TC-02-G8 A guard opening the Settings or Homeowners address sees the no-access page
-**Priority** P2 · **Type** Navigation / security · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Navigation / security · **Layer** Unit · **Writes** No
 - **Role:** ZZ Guard G1. **Expected:** no-access page for each.
 
 ### TC-02-G9 A treasurer's deep link to Approvals opens Approvals after signing in
-**Priority** P3 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Navigation · **Layer** UI · **Writes** No
 - **Role:** ZZ Treasurer T2, signed out. **Action:** open the Approvals address, sign in.
 - **Expected:** lands on Approvals (or on the dashboard, if REQ-001 says sign-in always lands there; don't assert which beyond "not the no-access page").
 
 ### TC-02-G10 A signed-out visitor opening a staff address sees the sign-in page, not the no-access page
-**Priority** P2 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Navigation · **Layer** UI · **Writes** No
 - **Role:** signed out. **Expected:** sign-in page; no staff data loaded. After signing in as ZZ Homeowner A1: the no-access page.
 
 ### TC-02-G11 No staff menu item is highlighted on the no-access page
-**Priority** P3 · **Type** Navigation / usability · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Navigation / usability · **Layer** UI · **Writes** No
 - **Role:** ZZ Homeowner A1 on the no-access page. **Expected:** no menu item marked `aria-current` for a page the person can't open.
 
 ### TC-02-G12 The no-access page has a real heading and the copy of record
-**Priority** P2 · **Type** UI/UX / accessibility · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** UI/UX / accessibility · **Layer** UI · **Writes** No
 - **Role:** ZZ Homeowner A1. **Expected:** the title is a level-1 heading with the exact copy of record; the button is a button, reachable by keyboard.
 
 ---
@@ -559,83 +577,83 @@ Setup for the block: R1 build, emulator or staging, fixtures signed in fresh. **
 ## H. Granting a role (Option B: developer script)
 
 ### TC-02-H1 After a grant, Settings → Staff lists "ZZ Treasurer T1 · Treasurer"
-**Priority** P1 · **Type** Happy path / integration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Happy path / integration · **Layer** UI · **Writes** Yes
 - **Setup:** ZZ Treasurer T1 starts as a homeowner of Household C with no role; another treasurer (T2) exists. **Role reading:** ZZ Admin S1.
 - **Action:** the developer runs the script granting T1 `treasurer`, citing REF-TEST-001.
 - **Expected:** Settings → Staff (heading "Staff and roles") lists T1's name with role Treasurer and a "Since" date.
 - **Don't assert:** the date's exact value or list order.
 
 ### TC-02-H2 The grant writes one `staff` record with who granted it and the request it cites *(provisional)*
-**Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Data integrity · **Layer** API · **Writes** Yes
 - **After H1, read on the emulator:** `staff/{T1 uid}` holds role `treasurer`, grantedBy = the developer's identity (not a service account), requestRef = REF-TEST-001, grantedAt set.
 
 ### TC-02-H3 The grant writes an activity log entry with ids only
-**Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Data integrity · **Layer** API · **Writes** Yes
 - **After H1, read on the emulator:** one `auditLog` entry `role.set`: actor = developer, target = T1's uid, before = none, after = treasurer, requestRef = REF-TEST-001, a time. No names or emails in free text (SA-001 §8.2).
 
 ### TC-02-H4 The newly granted treasurer sees the treasurer menu next time, without signing out
-**Priority** P1 · **Type** Happy path / boundary · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Happy path / boundary · **Layer** UI · **Writes** Yes
 - **Role:** ZZ Treasurer T1, signed in on a device before H1.
 - **Action:** after the grant, close and reopen the portal on the same device.
 - **Expected:** T1 is still signed in (no revocation on a grant) and sees the "Treasurer" / "My household" switch and the treasurer menu.
 
 ### TC-02-H5 A grant while the person has the portal open updates their menu without a reload
-**Priority** P3 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Integration · **Layer** UI · **Writes** Yes
 - **Role:** ZZ Treasurer T1, portal open and online during H1.
 - **Expected:** the treasurer menu appears within a minute (the app listens to its own `staff` record, SA-001 §8.1). *(Assumption: not promised by the REQ, which promises only "the next time"; a fail here is a finding, not a REQ breach.)*
 
 ### TC-02-H6 The script refuses a grant with no board request reference
-**Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Negative · **Layer** Unit · **Writes** Yes
 - **Action:** run the grant without a request reference. **Expected:** refused before any write; no `staff`, claim or audit change.
 
 ### TC-02-H7 The script prints the target project before writing
-**Priority** P2 · **Type** Usability / safety · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Usability / safety · **Layer** Unit · **Writes** Yes
 - **Expected:** the first output names the target project id; the write happens after it.
 
 ### TC-02-H8 Against a `-prod` project id, the script asks for typed confirmation and aborts on anything else
-**Priority** P1 · **Type** Negative / safety · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Negative / safety · **Layer** API · **Writes** Yes
 - **Special staging:** an emulator whose project id ends in `-prod` (e.g. `demo-hoa-test-prod`). **Never a real project.**
 - **Action:** run a grant; answer the confirmation with wrong text, then run again and give the exact text.
 - **Expected:** wrong text: aborts, nothing written. Exact text: proceeds.
 
 ### TC-02-H9 No service-account key file is in the repository
-**Priority** P2 · **Type** Security · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Security · **Layer** Unit · **Writes** No
 - **Expected:** the repository holds no service-account key; the script uses the developer's own credentials (Sol Arch condition 2).
 
 ### TC-02-H10 Running the same grant twice leaves one `staff` record and the same role
-**Priority** P2 · **Type** Data integrity / double-run · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Data integrity / double-run · **Layer** API · **Writes** Yes
 - **Action:** run H1 twice.
 - **Expected:** one `staff/{uid}`, role unchanged; no revocation; Settings → Staff lists T1 once.
 - **Don't assert:** whether the second run writes a second audit entry.
 
 ### TC-02-H11 Granting a role to an email with no account is refused clearly
-**Priority** P3 · **Type** Negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Negative · **Layer** API · **Writes** Yes
 - **Action:** grant `admin` to `nobody@example.test`. **Expected:** refused with a message naming the problem; nothing written.
 
 ### TC-02-H12 Granting an unknown role is refused
-**Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Negative · **Layer** Unit · **Writes** Yes
 - **Action:** grant role `superadmin` (or an empty role). **Expected:** refused; nothing written.
 
 ### TC-02-H13 The first treasurer can be created when there is none
-**Priority** P1 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Boundary · **Layer** API · **Writes** Yes
 - **Setup:** empty `staff` collection. **Action:** grant `treasurer` to ZZ Treasurer T2.
 - **Expected:** succeeds (Option B is the only way to create the first treasurer).
 
 ### TC-02-H14 A person holds one staff role at a time
-**Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Boundary · **Layer** API · **Writes** Yes
 - **Setup:** ZZ Admin S1 is admin. **Action:** grant S1 `board`.
 - **Expected:** S1 now has only `board` (claim, `staff` record and Settings → Staff all say Board); admin writes are refused. Revocation behaviour: see I14.
 
 ### TC-02-H15 Settings → Staff is read-only and shows the Option B note
-**Priority** P1 · **Type** UI/UX / security · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** UI/UX / security · **Layer** UI · **Writes** No
 - **Role:** ZZ Treasurer T2. **Expected:** no add, edit or remove control; the note "To add, change or remove a staff role, the board president asks the developer in writing." is shown.
 
 ### TC-02-H16 Settings → Staff carries the heading "Staff and roles"
-**Priority** P3 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** UI/UX · **Layer** UI · **Writes** No
 - **Role:** ZZ Admin S1. **Expected:** the heading reads exactly "Staff and roles".
 
 ### TC-02-H17 Every `setRole` run alerts the owner *(provisional: SA-001 §8.3, not in REQ-002)*
-**Priority** P3 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Integration · **Layer** API · **Writes** Yes
 - **Expected:** one owner alert per run (H1). **BA gap 9:** not an acceptance criterion yet.
 
 ---
@@ -643,78 +661,78 @@ Setup for the block: R1 build, emulator or staging, fixtures signed in fresh. **
 ## I. Removing, downgrading and changing a role; stale sessions
 
 ### TC-02-I1 After removal, the next staff read from the removed person's device is refused
-**Priority** P1 · **Type** Security / boundary · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security / boundary · **Layer** API · **Writes** Yes
 - **Role:** ZZ Admin S1, signed in on the Homeowners page; token fresh (well within its hour).
 - **Action:** the developer removes S1's admin role; S1's device then lists households.
 - **Expected:** refused on that first request, not after the token expires.
 
 ### TC-02-I2 After removal, the next staff write from the removed person's device is refused
-**Priority** P1 · **Type** Security / boundary · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security / boundary · **Layer** API · **Writes** Yes
 - **Role:** ZZ Admin S1, as I1. **Action:** create an announcement.
 - **Expected:** refused; no announcement exists.
 
 ### TC-02-I3 While online, the open Homeowners page changes to the no-access page within a minute
-**Priority** P1 · **Type** Integration / boundary · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Integration / boundary · **Layer** UI · **Writes** Yes
 - **Role:** ZZ Admin S1, Homeowners page open, online, no interaction.
 - **Expected:** within 60 seconds of the removal the page shows "You don't have access to this page", and the household rows are gone from the screen.
 - **Don't assert:** a time shorter than a minute.
 
 ### TC-02-I4 Settings → Staff no longer lists the removed person
-**Priority** P1 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Integration · **Layer** UI · **Writes** Yes
 - **Role reading:** ZZ Treasurer T2. **Expected:** S1 is gone from the list.
 
 ### TC-02-I5 Removal deletes the `staff` record and logs before and after *(provisional)*
-**Priority** P2 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Data integrity · **Layer** API · **Writes** Yes
 - **Expected, on the emulator:** `staff/{S1 uid}` no longer exists; one `auditLog` `role.set` with before = admin, after = none, requestRef set.
 
 ### TC-02-I6 Removal signs the person's device out when its token next refreshes
-**Priority** P2 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Security · **Layer** UI (forced refresh) · **Writes** Yes
 - **Role:** ZZ Admin S1. **Expected:** on the next token refresh (forced, or up to about an hour later) the device shows the sign-in page. *(Assumption: Firebase revocation behaviour as cited by Sol Arch.)*
 
 ### TC-02-I7 A device that was offline at removal is refused on reconnect, and staff data on screen is cleared
-**Priority** P1 · **Type** Security / stale reference · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security / stale reference · **Layer** UI · **Writes** Yes
 - **Special staging:** take S1's device offline, remove the role, reconnect.
 - **Expected:** the first staff request after reconnect is refused and the page changes to the no-access page. While offline the page may still show what it already loaded *(the REQ promises the change only "while online")*; don't assert offline behaviour.
 
 ### TC-02-I8 Removal is refused on every device the person is signed in on
-**Priority** P2 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Concurrency · **Layer** UI · **Writes** Yes
 - **Special staging:** ZZ Admin S1 signed in on two devices. **Expected:** both devices' next staff reads are refused; both change to the no-access page within a minute.
 
 ### TC-02-I9 A removed staff member who is also a homeowner keeps household access
-**Priority** P1 · **Type** Security / boundary · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security / boundary · **Layer** API · **Writes** Yes
 - **Role:** ZZ Admin S2 (admin and member of Household B). **Action:** remove the admin role; S2 signs in again if signed out.
 - **Expected:** S2's household reads for Household B still succeed; the switch disappears; staff reads are refused. **Whether S2 should be signed out at all is BA gap 4** (revocation signs out the whole account).
 
 ### TC-02-I10 A downgraded treasurer's treasurer actions are refused at once
-**Priority** P1 · **Type** Security / status enumeration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security / status enumeration · **Layer** API · **Writes** Yes
 - **Role:** ZZ Treasurer T2 (T1 also treasurer). **Action:** downgrade T2 to admin; T2's device then writes a financial setting and calls `decidePayment`.
 - **Expected:** both refused on the first try.
 
 ### TC-02-I11 After the token refreshes, the downgraded person has the admin menu and admin access
-**Priority** P2 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Integration · **Layer** UI · **Writes** Yes
 - **Role:** ZZ Treasurer T2 after I10, signed in again. **Expected:** admin menu (as A3); listing households succeeds.
 
 ### TC-02-I12 A downgrade revokes the person's tokens
-**Priority** P2 · **Type** Security / status enumeration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Security / status enumeration · **Layer** UI (forced refresh) · **Writes** Yes
 - **Expected:** as I6, for the downgrade.
 
 ### TC-02-I13 An upgrade (admin → treasurer) does not sign the person out, and treasurer access works after the app refreshes the token
-**Priority** P2 · **Type** Status enumeration / boundary · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Status enumeration / boundary · **Layer** UI · **Writes** Yes
 - **Role:** ZZ Admin S1, signed in and online. **Action:** upgrade to treasurer.
 - **Expected:** S1 stays signed in; within a minute the treasurer menu appears and a financial-setting write succeeds. A write sent before the refresh may be refused (B47); don't assert either way for that window.
 
 ### TC-02-I14 A lateral change (admin → board) refuses admin writes at once
-**Priority** P1 · **Type** Status enumeration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Status enumeration · **Layer** API · **Writes** Yes
 - **Role:** ZZ Admin S1. **Action:** change to board; S1's device creates an announcement.
 - **Expected:** refused. **Whether a lateral change revokes tokens is BA gap 3**; don't assert sign-out.
 
 ### TC-02-I15 A staff action submitted just after removal is refused with a message, not silently
-**Priority** P1 · **Type** Stale reference / usability · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Stale reference / usability · **Layer** UI · **Writes** Yes
 - **Role:** ZZ Admin S1 with a form open (e.g. new announcement). **Action:** remove S1's role, then press the form's save button.
 - **Expected:** a visible message that the action wasn't allowed (or the no-access page); no partial record; the screen does not claim success.
 
 ### TC-02-I16 Re-granting a removed role restores access
-**Priority** P3 · **Type** Happy path · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Happy path · **Layer** API · **Writes** Yes
 - **Role:** ZZ Admin S1 after I1. **Action:** grant admin again. **Expected:** after signing in, admin menu and admin reads work; one `staff` record.
 
 ---
@@ -722,30 +740,30 @@ Setup for the block: R1 build, emulator or staging, fixtures signed in fresh. **
 ## J. The last treasurer
 
 ### TC-02-J1 Removing the only treasurer is refused with the copy of record
-**Priority** P1 · **Type** Negative / boundary · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Negative / boundary · **Layer** API · **Writes** Yes
 - **Setup:** ZZ Treasurer T1 is the only treasurer. **Action:** the developer removes T1's role.
 - **Expected:** the script shows "ZZ Treasurer T1 is the only treasurer. Make someone else treasurer first." (the `{name}` copy filled in).
 
 ### TC-02-J2 After the refusal, nothing about the treasurer changed
-**Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Data integrity · **Layer** API · **Writes** Yes
 - **After J1:** Settings → Staff still lists "ZZ Treasurer T1 · Treasurer"; `staff/{T1}` unchanged; claim unchanged; T1 not signed out; a T1 treasurer action still succeeds.
 
 ### TC-02-J3 Downgrading the only treasurer is refused too
-**Priority** P1 · **Type** Negative / status enumeration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Negative / status enumeration · **Layer** API · **Writes** Yes
 - **Setup:** T1 only treasurer. **Action:** change T1 to admin, then to board.
 - **Expected:** both refused (the result would be no treasurer). **REQ-002 says only "remove"; BA gap 3.**
 
 ### TC-02-J4 With two treasurers, removing one is allowed
-**Priority** P1 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Boundary · **Layer** API · **Writes** Yes
 - **Setup:** T1 and T2 are treasurers. **Action:** remove T2. **Expected:** succeeds; T1 remains.
 
 ### TC-02-J5 Two removals at the same moment leave at least one treasurer
-**Priority** P1 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Concurrency · **Layer** API · **Writes** Yes
 - **Special staging:** two script runs started together, one removing T1 and one removing T2.
 - **Expected:** exactly one succeeds, the other is refused with the only-treasurer message; one treasurer remains (Sol Arch: counted in a transaction).
 
 ### TC-02-J6 A refused removal records no completed role change
-**Priority** P3 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Data integrity · **Layer** API · **Writes** Yes
 - **After J1:** no `auditLog` `role.set` entry with after = none for T1.
 - **Don't assert:** whether a refusal is logged.
 
@@ -754,47 +772,47 @@ Setup for the block: R1 build, emulator or staging, fixtures signed in fresh. **
 ## K. Usability, states and responsive
 
 ### TC-02-K1 While roles load, a homeowner sees a skeleton menu, never a staff menu that then disappears
-**Priority** P1 · **Type** Usability / data leak · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Usability / data leak · **Layer** UI · **Writes** No
 - **Role:** ZZ Homeowner A1 on a throttled network. **Expected:** a skeleton until the role is known; no staff menu item appears at any frame.
 
 ### TC-02-K2 While roles load, a staff member never sees the homeowner or not-linked screen first
-**Priority** P2 · **Type** Usability · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Usability · **Layer** UI · **Writes** No
 - **Role:** ZZ Treasurer T2, throttled. **Expected:** skeleton, then the treasurer menu; never REQ-001's "not linked" screen or a no-access page in between.
 
 ### TC-02-K3 The no-access page works at 375 px
-**Priority** P2 · **Type** Responsive · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Responsive · **Layer** UI · **Writes** No
 - **Role:** ZZ Homeowner A1, 375 px. **Expected:** heading, text and button fit with no horizontal scroll; the button is at least 24 × 24 CSS px (WCAG 2.2 target size). *(Real phones depend on DEF-001.)*
 
 ### TC-02-K4 The role switch works by keyboard
-**Priority** P2 · **Type** Usability / accessibility · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Usability / accessibility · **Layer** UI · **Writes** No
 - **Role:** ZZ Treasurer T1. **Expected:** Tab reaches both buttons, focus is visible, Enter and Space switch view.
 
 ### TC-02-K5 A screen reader announces the switch's group name and pressed state
-**Priority** P3 · **Type** Accessibility · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Accessibility · **Layer** Manual · **Writes** No
 - **Role:** ZZ Treasurer T1. **Expected:** the group's label and each button's pressed or not-pressed state are announced.
 
 ### TC-02-K6 Arriving on the no-access page moves focus to its content
-**Priority** P3 · **Type** Accessibility · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Accessibility · **Layer** UI · **Writes** No
 - **Role:** ZZ Homeowner A1. **Expected:** focus lands on the page heading or main region, not left on a stale element.
 
 ### TC-02-K7 At phone width each role's menu is inside the side drawer
-**Priority** P2 · **Type** Responsive / navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Responsive / navigation · **Layer** UI · **Writes** No
 - **Roles:** ZZ Homeowner A1, ZZ Treasurer T2. **Expected:** the role's R1 menu (A1 / A5) opens from the menu button. **Blocked on real phones by DEF-001.**
 
 ### TC-02-K8 The switch and the no-access page meet AA contrast
-**Priority** P3 · **Type** Accessibility · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Accessibility · **Layer** UI · **Writes** No
 - **Expected:** text 4.5:1, the pressed / not-pressed difference not by colour alone.
 
 ### TC-02-K9 Settings → Staff is readable on a phone
-**Priority** P3 · **Type** Responsive · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Responsive · **Layer** UI · **Writes** No
 - **Role:** ZZ Treasurer T2, 375 px. **Expected:** names and roles readable; the page doesn't scroll sideways (a table that scrolls inside its own box is fine).
 
 ### TC-02-K10 A refused staff action tells the person what to do
-**Priority** P2 · **Type** Usability · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Usability · **Layer** Unit · **Writes** Yes
 - **Role:** ZZ Admin S1 after removal, as I15. **Expected:** the message or page tells them to contact the admin office (copy of record), not a raw error code.
 
 ### TC-02-K11 The no-access page reflows at 320 px and 200 % zoom
-**Priority** P3 · **Type** Accessibility · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Accessibility · **Layer** UI · **Writes** No
 - **Expected:** no lost content, no two-way scrolling.
 
 ---
@@ -802,32 +820,32 @@ Setup for the block: R1 build, emulator or staging, fixtures signed in fresh. **
 ## L. Back-compat: mock-up behaviours that must be gone
 
 ### TC-02-L1 Nobody sees the open "Homeowner | Admin | Guard" switch
-**Priority** P1 · **Type** Back-compat / security · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Back-compat / security · **Layer** UI · **Writes** No
 - **Roles:** every fixture. **Expected:** the mock-up's three-way role switch (`index.html` line 554) exists for no one.
 
 ### TC-02-L2 A homeowner has no "Viewing as" picker
-**Priority** P1 · **Type** Back-compat / data leak · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Back-compat / data leak · **Layer** UI · **Writes** No
 - **Role:** ZZ Homeowner A1. **Expected:** no control that switches to another household.
 
 ### TC-02-L3 Editing browser storage grants no role
-**Priority** P1 · **Type** Security / back-compat · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security / back-compat · **Layer** UI · **Writes** No
 - **Role:** ZZ Homeowner A1. **Action:** set any role or view value in local or session storage to `admin` / `treasurer` (the mock-up keeps `UI.role` in `localStorage`, line 539), reload.
 - **Expected:** still the homeowner menu; a staff address still shows the no-access page. Replaces the mock-up's NAV-04 behaviour.
 
 ### TC-02-L4 "Reset demo data" exists for no role
-**Priority** P1 · **Type** Back-compat / security · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Back-compat / security · **Layer** Unit · **Writes** No
 - **Roles:** ZZ Treasurer T2, ZZ Admin S1. **Expected:** Settings has no "Reset demo data" control (mock-up line 888).
 
 ### TC-02-L5 The top bar shows the signed-in person's name, not "HOA Treasurer"
-**Priority** P3 · **Type** Back-compat / UI · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Back-compat / UI · **Layer** UI · **Writes** No
 - **Role:** ZZ Treasurer T1. **Expected:** "Signed in as ZZ Treasurer T1" (mock-up 2B), not the mock-up's fixed "HOA Treasurer".
 
 ### TC-02-L6 Both brand builds show the same role menus
-**Priority** P3 · **Type** Regression · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Regression · **Layer** UI · **Writes** No
 - **Roles:** A1, S1, T2, D1 on both brand configurations (Greenfield and Gentri Heights). **Expected:** identical menus; only branding differs.
 
 ### TC-02-L7 An existing homeowner who is later made staff keeps their household access
-**Priority** P2 · **Type** Back-compat / integration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Back-compat / integration · **Layer** UI · **Writes** Yes
 - **Role:** ZZ Treasurer T1 (household member first, granted treasurer in H1). **Expected:** "My household" still shows Household C's existing data unchanged.
 
 ---
@@ -835,15 +853,15 @@ Setup for the block: R1 build, emulator or staging, fixtures signed in fresh. **
 ## M. Exploratory charters
 
 ### TC-02-M1 30 minutes trying to read or write past the rules as each role
-**Priority** P2 · **Type** Exploratory · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Exploratory · **Layer** Manual · **Writes** Yes
 - **Charter:** using the browser console and the client SDK, signed in as each fixture role in turn, try reads and writes the B-matrix doesn't list (sub-collections, Storage paths, queries with odd filters, fields outside the closed list). Record any success that isn't in the matrix.
 
 ### TC-02-M2 20 minutes changing roles rapidly across two devices
-**Priority** P2 · **Type** Exploratory · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Exploratory · **Layer** Manual · **Writes** Yes
 - **Charter:** grant, upgrade, downgrade, remove and re-grant ZZ Admin S1 in quick succession while S1 uses the portal on two devices. Look for a moment when a removed role still works, a menu that disagrees with what the server allows, or a duplicate `staff` record.
 
 ### TC-02-M3 15 minutes as a dual-role person mixing the two views
-**Priority** P3 · **Type** Exploratory · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Exploratory · **Layer** Manual · **Writes** No
 - **Charter:** as ZZ Treasurer T1, switch views mid-task, use Back across the switch, open notifications in each view, open staff addresses from the household view. Look for staff data shown in the household view or household data from another lot.
 
 ---
@@ -892,3 +910,151 @@ Setup for the block: R1 build, emulator or staging, fixtures signed in fresh. **
 ---
 
 *Top regression risk: the rules helpers (`isStaff` / `hasRole` with the `staff/{uid}` double check) are shared by every collection, now and in every later REQ. One wrong helper either lets a removed or stale-token staff member keep approving money, or locks every staff member out of everything. Block B plus the stale-token rows must be re-run on every rules change.*
+
+---
+
+## QE triage
+
+*QE-owned. Written at triage, 2026-11-28, against TC-02 v1 (owner-approved, on `main` at `494c827`). QA owns everything above this line; QE changed only each case's **Layer** field and added the layer legend.*
+
+### Shape
+
+| Layer | Cases | Of the 168 automated | Notes |
+|---|---|---|---|
+| Unit | 19 | 11% | 1 blocked: A11 (BA gap 7) |
+| API | 93 | 55% | All on the emulator. 28 blocked: 22 on BA gap 10 (payments and bills) and I10 partly; B19 (gap 12); E5 (gap 2, R2); H17 (gap 9); I9 partly (gap 4); J3 (gap 3) |
+| UI | 56 | 33% | 2 of them *forced refresh* (I6, I12). 4 blocked: E1, E3, E4 (gap 2), F11 (gap 13) |
+| Manual | 4 | — | K5 (real screen reader), M1–M3 (exploratory) |
+| **Total** | **172** | | **33 blocked**. Staging-only: **0** |
+
+**API is the largest layer, as it should be for this requirement.** REQ-002's point is that the server refuses, so the 51-row rules matrix, the callables and the script all sit below the browser. UI is above the 10% target because menus, the dual-role switch and the no-access page are screens; it is far lower than TC-01's 59%.
+
+### Where each case went, and why
+
+- **Unit (19).** Rules about what a role gets, kept in plain modules:
+  - **The menu model** (`menuFor`): the Gherkin example rows A2, A4, A6, A8, the guard absences A9, unreleased features A10, and the household view's menu F3.
+  - **Route access** (`routeAccess`): which addresses open the no-access page per role (E6, G6, G7, G8). G7's "household-list request is refused" half is B30's job, at API.
+  - **The view switch** (F6): shown only when a person has a staff role and a household.
+  - **Refusal copy** (K10): permission errors map to the copy of record, never a raw code.
+  - **Source scans** (A11, H9, L4): one word per role in the copy module (blocked on gap 7), no service-account key in the repository, no "Reset demo data" anywhere in `web/src/`.
+  - **The `setRole` script's own checks** (H6, H7, H12): no request reference, target project printed before any write, unknown role. Each is tested behind injected ports, asserting that no write is called.
+- **API (93).** Every B row is a rules test with a crafted auth context and seeded documents. Refusals are asserted with `assertFails`, and the target is re-read with rules disabled to prove it's unchanged (QA's "nothing visibly changed is not a pass"). The C block calls the Functions emulator from each role's client. D is household isolation. In H, I and J, the **real script** runs as a child process against the emulator, and its effects are read back: `staff`, the claim, `auditLog`, revocation, and the transaction in J5. Three placements to note:
+  - **H8 is API, not Unit, on purpose.** The production guard only helps if the entry point that ships can't skip it. So the test runs the real script against an emulator whose project id ends in `-prod` (`demo-hoa-test-prod`) and pipes wrong, then exact, confirmation text.
+  - **I1, I2, I10, I14 (removal, downgrade, lateral change "at once")** run the real script, then use the **un-refreshed** ID token the device already had. The emulator doesn't expire it early, so a refusal can only come from the `staff/{uid}` check, which is what decision 1 promises.
+  - **H14, J2, I16** include a Settings → Staff or menu read-back. QE proves the data at API and relies on H1 / I4 (UI) and the menu model (Unit) for how it's shown.
+- **UI (56).** The rendered menu per role (A1, A3, A5, A7, `@smoke`), the board page, the dual-role switch, the no-access page and its navigation, Settings → Staff, live role changes reaching an open page (H4, H5, I3, I7, I8, I11, I13, I15, L7), loading skeletons, keyboard, contrast, phone width, and the mock-up behaviours that must be gone (L1–L3, L5, L6). **F7, F8 and F9 stay UI** even though rules exist: an admin or treasurer *may* read every household, so only the app can keep their "My household" view to their own lot.
+- **UI (forced refresh) (2): I6, I12.** Sign-out after revocation happens when the token next refreshes. The test forces the refresh; see the legend's *Assumption*.
+- **Manual (4).** **K5** needs a real screen reader (VoiceOver on iOS, TalkBack on Android); F5 already proves `aria-pressed` in the accessibility tree, so K5 covers only what the speech output adds. **M1–M3** are exploratory charters. M1 uses the client SDK in the browser console, against the emulator only.
+
+### The emulator and stale roles
+
+- **No TC-02 case is staging-only.** The stale-role states QA lists (claim with no `staff` doc, claim and doc disagreeing, removal within the token's hour) are built directly in rules tests. They don't wait for real token expiry, which the Auth emulator doesn't model realistically.
+- **Firestore and Storage rules are tested only here.** SonarQube can't read `firestore.rules` or `storage.rules`. The emulator's rules coverage report (`/emulator/v1/projects/<id>:ruleCoverage.html`) is kept as an artefact of every API run. Every branch of `isStaff()`, `hasRole()` and `isMember()` must be hit (see *For Sol Arch*).
+- **Seeding roles:** fixtures get their claim with the Admin SDK's `setCustomUserClaims` and their `staff/{uid}` document with rules disabled. Grant and removal cases use the real script instead, so the seed never stands in for what's under test.
+- **If the emulator turns out not to match production** on revocation (I6, I12) or claim propagation after `setCustomUserClaims` (H4, I11, I13), QE reports it and the case moves to a manual staging run.
+
+### Unit scenarios for Dev
+
+Dev writes these with the roles feature; QE reviews them against this list. Each needs a seam the code must have:
+
+| Module (anticipated, SA-001 §9) | Cases | Seam it needs |
+|---|---|---|
+| `web/src/app/menu.js` | A2, A4, A6, A8, A9, A10, F3 | `menuFor({ role, view, release })` → ordered list of menu ids. Unreleased features are off by a release flag, not by a missing role |
+| `web/src/app/view-switch.js` | F6 | `viewSwitchFor({ staffRole, memberships })` → `null` or the two labels |
+| `web/src/app/route-access.js` | E6, G6, G7, G8 | `routeAccess(route, { role, view })` → `'open'`, `'no-access'` or `'sign-in'`; the router renders from it before any data read |
+| `web/src/app/access-messages.js` | K10 | `accessErrorMessage(code)`: `permission-denied` and `functions/permission-denied` → the copy of record |
+| `web/src/features/auth/source-checks.test.js` (shared with TC-01) | A11, H9, L4 | Scans the repo for key files and `web/src/` for "Reset demo data". A11 also needs one copy module for role words (waits on gap 7) |
+| `scripts/set-role/set-role.js` | H6, H7, H12 | `runSetRole(args, { projectId, admin, prompt, out })`: validation and the target-project line before any `admin` call |
+
+### Locator contract (asked of Dev)
+
+TC-01's hooks still apply (`screen-<view>`, `screen-no-access`, `go-my-dashboard`, `nav-skeleton`, `nav-staff`, `account-menu`, `sign-out`). Add:
+
+| Screen | Element | Hook |
+|---|---|---|
+| Signed-in shell | Main menu; each item | `data-testid="nav-main"`; `data-testid="nav-<view>"` (for example `nav-approvals`), with `aria-current="page"` on the open one |
+| | Phone menu button; drawer | `data-action="open-drawer"`; `data-testid="nav-drawer"` |
+| | View switch group; its buttons | `data-testid="view-switch"` (labelled group); `data-action="view-staff"`, `data-action="view-household"` |
+| | "Signed in as {name}" | `data-testid="topbar-signed-in-as"` |
+| No access (2C) | Heading, body text | `data-testid="screen-no-access"` on the `<h1>`; `data-testid="no-access-text"` |
+| Settings → Staff (2D) | Screen; each row; its cells | `data-testid="screen-staff-roles"`; `data-testid="staff-row"` with `data-uid`; `staff-name`, `staff-role`, `staff-since` |
+| | Option B note | `data-testid="staff-option-b-note"` |
+| Board dashboard | View-only note | `data-testid="view-only-note"` |
+| Homeowners (staff) | Household rows | `data-testid="household-row"` |
+| Announcements (staff) | New announcement; Save | `data-action="new-announcement"`; `data-action="save-announcement"` |
+| Any staff action | Refused-action message | `data-testid="action-error"` (`role="alert"`) |
+| Routes | Approvals, Homeowners, Settings, Settings → Staff | Stable paths, named by Dev (for G1, G6–G10, E6) |
+
+### Spec files
+
+**New (planned, none written yet):**
+
+| File | Layer | Cases |
+|---|---|---|
+| `tests/specs/api/rules-roles.spec.js` | API | B1–B21, B23, B24, B26–B34, B36–B40, B42, B43, B50, E5 |
+| `tests/specs/api/storage-roles.spec.js` | API | B22, B25, B35, B41, B49 |
+| `tests/specs/api/rules-stale-role.spec.js` | API | B44–B48, B51 |
+| `tests/specs/api/callables-roles.spec.js` | API | C1–C13 |
+| `tests/specs/api/receipt-counter.exclusive.spec.js` | API (`exclusive`: asserts the receipt counter) | C14 |
+| `tests/specs/api/rules-household-isolation.spec.js` | API | D1–D6 |
+| `tests/specs/api/set-role-script.spec.js` | API | H2, H3, H8, H10, H11, H13, H14, H17, I5, I16 |
+| `tests/specs/api/role-removal.spec.js` | API | I1, I2, I9, I10, I14 |
+| `tests/specs/api/last-treasurer.spec.js` | API | J1–J6 |
+| `tests/specs/ui/role-menus.spec.js` | UI (both brand projects) | A1, A3, A5, A7, L1, L2, L3, L5, L6 |
+| `tests/specs/ui/board-view.spec.js` | UI | E1–E4 |
+| `tests/specs/ui/dual-role.spec.js` | UI | F1, F2, F4, F5, F7, F8, F9, F11, F12 |
+| `tests/specs/ui/no-access.spec.js` | UI | G1–G5, G9–G12, K6, K11 |
+| `tests/specs/ui/staff-settings.spec.js` | UI | H1, H15, H16, I4 |
+| `tests/specs/ui/role-change-live.spec.js` | UI | H4, H5, I3, I6, I7, I8, I11, I12, I13, I15, L7 |
+| `tests/specs/ui/roles-a11y.spec.js` | UI | K1, K2, K4, K8 |
+| `tests/specs/ui/roles-phone.spec.js` | UI (`mobile` project) | F10, K3, K7, K9 |
+
+The script specs write `staff`, claims and `auditLog`, so `set-role-script`, `role-removal`, `last-treasurer` and `role-change-live` are **exclusive** with each other on one emulator, or each gets its own emulator project id. Their headers will say which.
+
+**Smoke:** A1, A3, A5, A7, F1, G1 and H15 carry `@smoke` in their own specs (the TC's smoke additions), rather than being copied into `smoke.spec.js`.
+
+**Changed (when the real app exists):**
+
+- `navigation.spec.js`: NAV-02 (role switch) and NAV-04 (role kept in browser storage) retire, replaced by the F block and L3. TC-01's triage already records the NAV-01 and NAV-04 re-baseline; nothing more here.
+- `smoke.spec.js`: `SMK-admin-nav` and `SMK-guard-nav` stay for the mock-up only (the TC's smoke note).
+- Support: one signed-in fixture per TC-02 fixture account in `tests/fixtures/test.js`; an emulator seed that sets claims and `staff` docs; a `runSetRoleScript()` helper that spawns the real script against the emulator; `.env.example` gains each fixture's email and password variable (names only).
+
+### Automation order (highest consequence first)
+
+1. **Harness:** environment guard, rules-test setup, the role seed, `runSetRoleScript()` against the emulator, and the rules coverage artefact.
+2. **"At once" on the server:** B44–B48, B51, I1, I2, I10 (settings half), I14.
+3. **Self-granted privilege:** B7, B8, B16, B17, B27, C11.
+4. **Script safety:** H8, H6, H12, H7, H9.
+5. **Last treasurer:** J1, J2, J4, J5, J6.
+6. **The rest of the matrix and isolation:** B block, D5, D6, C12, C13.
+7. **Grant data:** H2, H3, H10, H11, H13, H14, I5, I16.
+8. **Smoke and menus:** A1, A3, A5, A7, F1, G1, H15, and the Unit list with Dev.
+9. **Data shown to the wrong person in the browser:** F7–F9, G2, K1, L2, L3.
+10. **Live role changes on open pages:** I3, I15, I6, I12, I7, I8, I11, I13, H4, H5, H1, I4, L7.
+11. **Navigation, dual role, no-access, usability, phone:** blocks F, G, K and L remainder.
+12. **When unblocked:** C1–C10, C14, D1–D4 and the payment B rows (payments REQ); E1, E3–E5 (gap 2, R2); the other gap-blocked rows.
+13. **Manual:** K5 on a real phone; M1–M3 charters before release.
+
+### Implementation status
+
+2026-11-28: **nothing automated.** The real app doesn't exist (only the mock-ups `index.html` and `gentri-heights/index.html`, which have no roles on the server), and Dev waits on SA-001 approval. Every row is **Planned**, or **Blocked** on the gap it names. No spec, fixture or config was written at triage.
+
+### Findings for QA
+
+These are QE's reading of the cases, for QA to accept or reject. QE did not change the cases.
+
+1. **Two of REQ-002's acceptance scenarios can't close in R1 Sprint 1 as written.** "A refused action is refused by the server" (C1) and "a homeowner's device cannot read another household" (D1) are built on payments and bills (EPIC-002 / EPIC-003, no REQ). That blocks 22 cases on gap 10 (and half of I10), all of C1–C10 among them. Either add an R1 case per scenario on something that exists in R1 (for example, B34 board writing a setting and C12 board calling `createHousehold` for the first, B2 / B4 for the second), or get the owner's written exception for those two scenarios until payments ship.
+2. **A2, A4, A6 and A8 are contained in A1, A3, A5 and A7.** Each exact-list case already proves the hidden item is absent. QE placed the pairs at Unit against the menu model (one named test per Gherkin example row) and the full lists at UI. Consider merging them, or keep them as Gherkin traces.
+3. **"Special staging" reads as the staging project.** In this TC it means special setup on the emulator (B44 note, H8, I7, I8, J5). Suggest renaming it "Special setup" so nobody points one of these at `hoa-portal-staging`.
+4. **I12 depends on the same Firebase behaviour as I6 but isn't marked *Assumption*.** Both run with a forced refresh on the emulator. Consider marking I12, and adding one staging check of the natural refresh, about an hour after removal, if the owner wants it proven outside the emulator.
+5. **K8 holds two checks:** 4.5:1 contrast (automated, axe at UI) and "pressed / not pressed not by colour alone" (a judgement). QE took UI. The second half needs a person to look; split it into a Manual case if QA agrees.
+6. **No case covers the rules read limit.** The regression section warns that the extra `get(staff/{uid})` plus `exists(members/...)` could exceed 10 document reads on the heaviest rules, but no case sends that request. Add an API case on the rule that reads the most documents once payments rules exist (likely payments or bills read by a dual-role treasurer).
+7. **D5 may duplicate TC-04.** A removed member refused at once is REQ-004's `removeMember` behaviour; TC-01's triage asked TC-04 to own that rules case. If TC-04 has it, D5 should become a cross-reference, like TC-01's Q12, so there is one row.
+8. **I9 mixes three things:** household reads still allowed and staff reads refused (API), the switch disappearing (UI, from F6's model), and sign-out (gap 4). QE took API. Split it once gap 4 is answered.
+
+### For Sol Arch
+
+- **Rules coverage is outside SonarQube.** SonarQube can't read `.rules` files, so the emulator's rules coverage report is the only evidence that every helper branch was exercised. Make it a kept artefact of the API run and part of the quality gate's evidence, alongside `lcov.info`.
+- **The `setRole` script must run against the emulator** (honouring `FIRESTORE_EMULATOR_HOST` and `FIREBASE_AUTH_EMULATOR_HOST`), and split its checks into `runSetRole(args, deps)` so H6, H7 and H12 stay Unit. H8 relies on "production" being decided from the project id (a `-prod` suffix), which is what lets an emulator project stand in safely. Confirm that rule in SA-001.
+- **Concurrency of the script specs.** The `staff` collection and the last-treasurer count are app-wide state. QE plans exclusive specs, or one emulator project per spec file; say if SA-001 prefers one.
+- **The test folder layout and the API runner,** both raised in TC-01's triage, apply here too.
