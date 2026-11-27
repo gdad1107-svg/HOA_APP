@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Access and Households Mockup</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap">
+<style>
+/* Layout: sticky top bar with role switch, left nav rail (horizontal strip on phones), content column of cards and tables. */
+:root{
+  --bg:#FFFFFF; --surface:#F4F8F5; --surface-2:#E9F2EC; --line:#DAE6DE; --fg:#13241B; --muted:#5A6D62;
+  --accent:#1C7A4A; --accent-strong:#135B36; --accent-soft:#E2F1E8; --on-accent:#FFFFFF;
+  --ok:#1C7A4A; --ok-bg:#E2F1E8; --warn:#8F5B00; --warn-bg:#FCF0D6; --bad:#B42318; --bad-bg:#FDE7E4; --info:#1F5E8C; --info-bg:#E3EEF8;
+  --chart-2:#A9CDB8; --paper:#FFFFFF; --scrim:rgba(10,25,17,.45);
+  --shadow:0 1px 2px rgba(19,36,27,.05),0 6px 20px rgba(19,36,27,.06);
+  --f-head:"Plus Jakarta Sans",Inter,system-ui,sans-serif; --f-body:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:10px; color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--accent)}
+h1,h2,h3{font-family:var(--f-head);text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:1.6rem;font-weight:800}
+h2{font-size:1.1rem;font-weight:700}
+h3{font-size:.98rem;font-weight:700}
+p{margin:0}
+.num,td.money,.money{font-variant-numeric:tabular-nums}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:var(--accent)}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--accent);color:var(--on-accent)}
+.top .logo{background:var(--on-accent)} .top .logo svg{stroke:var(--accent)}
+.top .brand small,.top .who,.top .who-admin{color:rgba(255,255,255,.8)}
+.top .seg{background:rgba(255,255,255,.16)} .top .seg button{color:rgba(255,255,255,.85)}
+.top .seg button[aria-pressed="true"]{background:var(--on-accent);color:var(--accent-strong)}
+.top .bell{background:transparent;border-color:rgba(255,255,255,.4)} .top .bell svg{stroke:var(--on-accent)}
+.top .who select{border-color:transparent}
+.top .bellpanel{color:var(--fg)}
+.top-in{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.logo{width:34px;height:34px;border-radius:9px;background:var(--accent);display:grid;place-items:center;flex:none}
+.logo svg{width:20px;height:20px;stroke:var(--on-accent)}
+.brand b{font-family:var(--f-head);font-size:1rem;display:block;line-height:1.1}
+.brand small{color:var(--muted);font-size:.75rem}
+.seg{display:inline-flex;background:var(--surface-2);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;padding:6px 14px;border-radius:999px;cursor:pointer;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--bg);color:var(--accent-strong);box-shadow:var(--shadow)}
+.top-r{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.who{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--muted)}
+.who select{max-width:220px}
+.who-admin{font-size:.85rem;color:var(--muted)}
+.bell{position:relative;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--bg);cursor:pointer;display:grid;place-items:center}
+.bell svg{width:18px;height:18px;stroke:var(--fg)}
+.bell .dot{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;border-radius:9px;background:var(--bad);color:#fff;font-size:.68rem;font-weight:700;display:grid;place-items:center;padding:0 4px}
+.bellpanel{position:absolute;right:max(16px,env(safe-area-inset-right,0px));top:calc(100% + 6px);width:min(360px,calc(100vw - 32px));background:var(--bg);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 12px 32px rgba(0,0,0,.14);max-height:420px;overflow:auto}
+.bellpanel header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.notif{padding:10px 14px;border-bottom:1px solid var(--line);font-size:.85rem}
+.notif.unread{background:var(--accent-soft)}
+.notif small{display:block;color:var(--muted)}
+
+/* shell */
+.shell{display:grid;grid-template-columns:220px minmax(0,1fr);gap:28px;padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:1320px;margin:0 auto}
+nav.side{display:flex;flex-direction:column;gap:2px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 80px);align-self:start}
+nav.side .navlbl{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:0 12px 6px}
+nav.side button{display:flex;justify-content:space-between;align-items:center;text-align:left;border:0;background:transparent;padding:9px 12px;border-radius:8px;cursor:pointer;font-weight:500;color:var(--fg)}
+nav.side button:hover{background:var(--surface)}
+nav.side button[aria-current="page"]{background:var(--accent-soft);color:var(--accent-strong);font-weight:700}
+.badge{background:var(--accent);color:var(--on-accent);border-radius:999px;font-size:.7rem;font-weight:700;padding:1px 7px}
+main{min-width:0;display:flex;flex-direction:column;gap:20px}
+.menu-btn{display:none;width:38px;height:38px;border-radius:8px;border:1px solid rgba(255,255,255,.4);background:transparent;cursor:pointer;place-items:center;flex:none}
+.menu-btn svg{width:20px;height:20px;stroke:var(--on-accent)}
+.navscrim{position:fixed;inset:0;background:var(--scrim);z-index:39}
+@media (max-width:860px){
+  .shell{grid-template-columns:172px minmax(0,1fr);gap:16px;padding-block:16px 40px}
+  nav.side button{padding:8px 10px;font-size:.88rem}
+  .who span{display:none}
+}
+@media (max-width:640px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .menu-btn{display:grid}
+  nav.side{position:fixed;top:0;bottom:0;left:0;width:min(280px,82vw);z-index:40;background:var(--bg);padding:calc(env(safe-area-inset-top,0px) + 18px) 12px 18px max(12px,env(safe-area-inset-left,0px));box-shadow:4px 0 24px rgba(0,0,0,.18);transform:translateX(-105%);transition:transform .2s ease;overflow-y:auto;align-self:stretch}
+  nav.side button{padding:11px 12px;font-size:.95rem}
+  body.nav-open nav.side{transform:none}
+}
+@media (prefers-reduced-motion:reduce){nav.side{transition:none}}
+
+/* building blocks */
+.ph{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.ph p{color:var(--muted);margin-top:4px}
+.card{background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:18px;min-width:0;display:flex;flex-direction:column;gap:14px}
+.card.soft{background:var(--surface);border-color:transparent}
+.card-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.card-h p{color:var(--muted);font-size:.85rem}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g-73{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr)}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:1060px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){.g2,.g-73{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:420px){.tiles{grid-template-columns:minmax(0,1fr)}}
+.tile{background:var(--surface);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.tile.hero{background:var(--accent);color:var(--on-accent)}
+.tile.hero .tile-l,.tile.hero .tile-s{color:var(--on-accent);opacity:.85}
+.tile-l{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+.tile-v{font-family:var(--f-head);font-size:1.55rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.2}
+.tile-s{font-size:.82rem;color:var(--muted)}
+.tile .btn{margin-top:8px;align-self:flex-start}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:8px 14px;border-radius:8px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--surface)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.primary:hover{background:var(--accent-strong);border-color:var(--accent-strong)}
+.btn.onhero{background:var(--on-accent);color:var(--accent-strong);border-color:transparent}
+.btn.danger{color:var(--bad);border-color:var(--bad-bg)}
+.btn.danger:hover{background:var(--bad-bg)}
+.btn.sm{padding:5px 10px;font-size:.8rem}
+.btn.link{border:0;background:none;padding:0;color:var(--accent);font-weight:600}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.actions{display:flex;gap:6px;flex-wrap:wrap}
+
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;font-size:.75rem;font-weight:600;white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.p-ok{background:var(--ok-bg);color:var(--ok)} .p-warn{background:var(--warn-bg);color:var(--warn)}
+.p-bad{background:var(--bad-bg);color:var(--bad)} .p-info{background:var(--info-bg);color:var(--info)}
+.p-muted{background:var(--surface-2);color:var(--muted)}
+
+.alert{display:flex;gap:12px;align-items:flex-start;padding:12px 16px;border-radius:var(--r);border:1px solid}
+.alert.warn{background:var(--warn-bg);border-color:transparent;color:var(--fg)}
+.alert.bad{background:var(--bad-bg);border-color:transparent}
+.alert.info{background:var(--info-bg);border-color:transparent}
+.alert b{display:block}
+.alert .grow{flex:1;min-width:0}
+
+.tbl{overflow-x:auto;margin:0 -4px}
+table{width:100%;border-collapse:collapse;font-size:.86rem}
+th{text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td.money,th.money{text-align:right;white-space:nowrap}
+tfoot td{font-weight:700;border-top:2px solid var(--line);border-bottom:0}
+tr.click{cursor:pointer} tr.click:hover td{background:var(--surface)}
+.sub{color:var(--muted);font-size:.78rem;display:block}
+.empty{color:var(--muted);text-align:center;padding:24px 8px;font-size:.9rem}
+
+form.f{display:flex;flex-direction:column;gap:12px}
+label.fl{display:flex;flex-direction:column;gap:5px;font-size:.8rem;font-weight:600;color:var(--muted)}
+input[type=text],input[type=number],input[type=date],input[type=search],select,textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:8px 10px;font-weight:400;color:var(--fg)}
+input[type=file]{font-size:.8rem;color:var(--muted);max-width:100%}
+textarea{min-height:84px;resize:vertical}
+.row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:480px){.row2{grid-template-columns:minmax(0,1fr)}}
+.check{display:flex;gap:8px;align-items:center;font-size:.88rem}
+.hint{font-size:.78rem;color:var(--muted);font-weight:400}
+
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{border:0;background:none;padding:10px 14px;cursor:pointer;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;display:flex;gap:6px;align-items:center}
+.tabs button[aria-selected="true"]{color:var(--accent-strong);border-bottom-color:var(--accent)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--bg);padding:5px 12px;border-radius:999px;cursor:pointer;font-weight:600;font-size:.8rem}
+.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-strong)}
+
+/* QR pay */
+.qrwrap{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.qrbox{background:var(--paper);padding:10px;border-radius:12px;border:1px solid var(--line);width:180px;flex:none}
+.qrbox canvas,.qrbox img{display:block;width:100%;height:auto;image-rendering:pixelated}
+.qrbox .qrtag{color:#13241B;text-align:center;font-size:.68rem;font-weight:700;letter-spacing:.08em;margin-top:6px}
+.payee{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.payee b{font-family:var(--f-head)}
+.steps{margin:0;padding-left:18px;color:var(--muted);font-size:.82rem;display:flex;flex-direction:column;gap:2px}
+
+/* amenities */
+.amen{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:760px){.amen{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.amen button{text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:var(--r);padding:12px 14px;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+.amen button b{font-family:var(--f-head)}
+.amen button span{font-size:.8rem;color:var(--muted)}
+.amen button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.cal-h{display:flex;justify-content:space-between;align-items:center}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cal .dow{font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;text-align:center;color:var(--muted);padding:4px 0}
+.cal button{aspect-ratio:1/1;max-width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-variant-numeric:tabular-nums;font-weight:600;font-size:.85rem;padding:0}
+.cal button:disabled{opacity:.35;cursor:not-allowed}
+.cal button .bar{width:60%;height:4px;border-radius:2px;background:var(--surface-2);overflow:hidden}
+.cal button .bar i{display:block;height:100%;background:var(--accent)}
+.cal button.full .bar i{background:var(--bad)}
+.cal button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.cal button[aria-pressed="true"] .bar{background:rgba(255,255,255,.35)}
+.cal button.today{border-color:var(--accent)}
+.legend{display:flex;gap:14px;font-size:.75rem;color:var(--muted);flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:4px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media (max-width:480px){.slots{grid-template-columns:minmax(0,1fr)}}
+.slot{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:8px;padding:9px 12px;cursor:pointer;position:relative}
+.slot input{position:absolute;opacity:0;pointer-events:none}
+.slot-t{font-weight:700;font-variant-numeric:tabular-nums}
+.slot-s{font-size:.75rem;color:var(--ok)}
+.slot.taken{background:var(--surface);cursor:not-allowed}
+.slot.taken .slot-s{color:var(--muted)}
+.slot:has(input:checked){border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.slot:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
+.feebox{background:var(--surface);border-radius:8px;padding:10px 12px;font-size:.84rem}
+
+/* vehicles */
+.vlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.vcard{border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:10px}
+.plate{background:var(--paper);color:#13241B;border:2px solid #13241B;border-radius:6px;padding:4px 10px 6px;text-align:center;align-self:flex-start;min-width:150px}
+.plate small{display:block;font-size:.56rem;letter-spacing:.3em;font-weight:700;color:#1C7A4A}
+.plate b{font-family:var(--f-head);font-size:1.3rem;letter-spacing:.08em}
+.vmeta{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+
+/* tickets */
+details.tk{border:1px solid var(--line);border-radius:var(--r)}
+details.tk summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+details.tk summary::-webkit-details-marker{display:none}
+details.tk[open] summary{border-bottom:1px solid var(--line)}
+.tk-body{padding:12px 14px;display:flex;flex-direction:column;gap:12px}
+.timeline{display:flex;flex-direction:column;gap:10px;border-left:2px solid var(--line);margin-left:4px;padding-left:14px}
+.timeline div{position:relative;font-size:.85rem}
+.timeline div::before{content:"";position:absolute;left:-20px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid var(--bg)}
+.timeline small{color:var(--muted);display:block}
+.thumb{max-width:220px;border-radius:8px;border:1px solid var(--line)}
+
+/* announcements */
+.news{display:flex;flex-direction:column;gap:2px}
+.news article{padding:12px 0;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:4px}
+.news article:last-child{border-bottom:0}
+.news time{font-size:.75rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+
+/* chart */
+.chart{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font-size:11px;font-family:var(--f-body)}
+.chart .grid line{stroke:var(--line)}
+.hbar{display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr) auto;gap:10px;align-items:center;font-size:.84rem}
+.hbar .track{height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden}
+.hbar .track i{display:block;height:100%;background:var(--accent);border-radius:5px}
+
+.fund{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.fund div{padding:14px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.fund div:last-child{border-right:0;background:var(--accent-soft)}
+.fund span{font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+.fund b{font-family:var(--f-head);font-size:1.1rem;font-variant-numeric:tabular-nums}
+@media (max-width:760px){.fund{grid-template-columns:minmax(0,1fr)}.fund div{border-right:0;border-bottom:1px solid var(--line)}}
+
+/* letter */
+.letter{background:var(--paper);color:#1d1d1d;padding:36px 40px;border-radius:4px;border:1px solid var(--line);font-family:Georgia,"Times New Roman",serif;font-size:.92rem;line-height:1.6;display:flex;flex-direction:column;gap:12px}
+.letter .lh{display:flex;justify-content:space-between;gap:12px;border-bottom:2px solid #1C7A4A;padding-bottom:10px;flex-wrap:wrap}
+.letter .lh b{font-family:var(--f-head);color:#135B36;font-size:1.05rem}
+.letter .lh small{display:block;color:#555;font-family:var(--f-body);font-size:.75rem}
+.letter h4{margin:4px 0 0;font-family:var(--f-head);letter-spacing:.06em;text-transform:uppercase;font-size:.95rem;color:#135B36}
+.letter h4.final{color:#B42318}
+.letter table{font-family:var(--f-body);font-size:.8rem;color:#1d1d1d}
+.letter th{color:#555;border-color:#ddd}.letter td{border-color:#eee}
+@media (max-width:560px){.letter{padding:20px}}
+
+/* modal + toast */
+.modal-wrap{position:fixed;inset:0;background:var(--scrim);z-index:50;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding-block:calc(env(safe-area-inset-top,0px) + 40px) 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.modal{background:var(--bg);border-radius:14px;width:min(560px,100%);box-shadow:0 20px 60px rgba(0,0,0,.25);display:flex;flex-direction:column}
+.modal.wide{width:min(760px,100%)}
+.modal-h{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line);gap:10px}
+.modal-b{padding:18px 20px;display:flex;flex-direction:column;gap:14px}
+.modal-f{padding:14px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.x{border:0;background:none;font-size:1.4rem;line-height:1;cursor:pointer;color:var(--muted)}
+.proof{max-width:100%;max-height:70vh;margin:0 auto;display:block;border-radius:8px}
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 16px;font-size:.88rem}
+.kv dt{color:var(--muted)} .kv dd{margin:0;font-weight:600}
+#toasts{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);left:50%;transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;gap:8px;align-items:center;width:min(420px,calc(100vw - 32px))}
+.toast{background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:.88rem;box-shadow:0 8px 24px rgba(0,0,0,.2);animation:tin .2s ease-out}
+.toast.bad{background:var(--bad);color:#fff}
+@keyframes tin{from{transform:translateY(8px);opacity:.4}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.toast{animation:none}}
+.ann{display:flex;gap:14px;align-items:flex-start;padding:14px 16px;border-radius:var(--r);background:var(--accent-soft);border:1px solid var(--accent)}
+.ann .grow{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.ann-k{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--accent-strong)}
+.ann b{font-family:var(--f-head);font-size:1rem}
+.ann p{font-size:.88rem}
+.ann-ic{width:36px;height:36px;border-radius:50%;background:var(--accent);display:grid;place-items:center;flex:none}
+.ann-ic svg{width:18px;height:18px;stroke:var(--on-accent)}
+.ann .actions{align-items:center;flex-wrap:nowrap}
+.ann.imp{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.ann.imp .ann-k,.ann.imp .x{color:var(--on-accent)}
+.ann.imp .ann-ic{background:var(--on-accent)} .ann.imp .ann-ic svg{stroke:var(--accent)}
+@media (max-width:640px){.ann{flex-wrap:wrap}.ann .actions{width:100%;justify-content:space-between}}
+.tipline{display:flex;justify-content:space-between;gap:14px}
+#tip{position:fixed;z-index:70;pointer-events:none;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.8rem;box-shadow:0 8px 24px rgba(19,36,27,.14);min-width:160px;font-variant-numeric:tabular-nums}
+#tip b{display:block;margin-bottom:4px;font-family:var(--f-head)}
+#tip .sw{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
+.viz{--s1:#1C7A4A;--s2:#257de0}
+.chart .hit{fill:transparent;cursor:pointer} .chart .hit:hover,.chart .hit:focus{fill:var(--surface-2)} .chart .hit:focus{outline:none}
+.chart .tot{fill:var(--fg);font-weight:600;font-size:11px}
+.insight{font-size:.85rem;color:var(--fg);background:var(--surface);border-radius:8px;padding:8px 12px}
+.insight b{color:var(--accent-strong)}
+.heat{width:100%;border-collapse:separate;border-spacing:3px;font-size:.82rem}
+.heat th{border:0;padding:4px 6px;text-align:right}.heat th:first-child{text-align:left}
+.heat td{border:0;border-radius:4px;padding:8px 6px;text-align:right;font-variant-numeric:tabular-nums;cursor:default}
+.heat td.rowh{text-align:left;font-weight:700;background:none;padding-left:0;white-space:nowrap}
+.heat td.tot{font-weight:700;background:var(--surface)}
+.heat tr.sum td{font-weight:700;background:var(--surface)}
+.heat td.na{color:var(--muted);background:var(--surface)}
+.split{display:flex;height:28px;border-radius:6px;overflow:hidden;gap:2px}
+.split i{display:block;height:100%}
+.split-l{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:.85rem}
+.split-l span{display:flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:10px;height:10px;border-radius:3px;flex:none}
+.hero-n{font-family:var(--f-head);font-size:1.9rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+.hbars{display:flex;flex-direction:column;gap:10px}
+@media (max-width:640px){.hbars .hbar{grid-template-columns:minmax(0,1fr) auto!important;row-gap:4px}.hbars .hbar .track{grid-column:1/-1;grid-row:2}}
+.hbar .track i.alt{background:var(--chart-2)}
+.note{font-size:.78rem;color:var(--muted)}
+details.tv summary{cursor:pointer;font-size:.82rem;font-weight:600;color:var(--accent)}
+.rtypes{display:flex;flex-direction:column;gap:6px}
+.rtype{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:9px 12px;cursor:pointer}
+.rtype input{margin-top:3px;accent-color:var(--accent)}
+.rtype:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.rtype b{display:block;font-size:.88rem}
+.rtype span{font-size:.78rem;color:var(--muted)}
+.rtype .auto{color:var(--accent-strong);font-weight:600}
+.rr{border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:10px}
+.rr-h{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.stepper{display:flex;gap:4px}
+.stepper span{flex:1;font-size:.72rem;font-weight:600;color:var(--muted);border-top:3px solid var(--surface-2);padding-top:5px}
+.stepper span.on{color:var(--accent-strong);border-color:var(--accent)}
+.stepper span.bad{color:var(--bad);border-color:var(--bad)}
+.dyn{display:flex;gap:8px;align-items:center}
+.dyn input{flex:1;min-width:0}
+.dyn .x{flex:none;width:28px}
+.passes{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.pass{border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;gap:12px;align-items:flex-start}
+.pass.dim{opacity:.6}
+.pass img.qr{width:84px;height:84px;flex:none;border-radius:6px;border:1px solid var(--line);background:#fff;image-rendering:pixelated}
+.pass .grow{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.qrbig{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;align-self:center;width:min(280px,100%)}
+.qrbig img{display:block;width:100%;image-rendering:pixelated}
+.code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:1.3rem;font-weight:700;letter-spacing:.12em;text-align:center}
+.verdict{border-radius:var(--r);padding:16px 18px;display:flex;gap:14px;align-items:center}
+.verdict b{font-family:var(--f-head);font-size:1.4rem;display:block}
+.verdict.ok{background:var(--accent);color:var(--on-accent)}
+.verdict.bad{background:var(--bad);color:#fff}
+.verdict.warn{background:var(--warn-bg);color:var(--fg)}
+.verdict .ic{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.2);display:grid;place-items:center;font-size:1.5rem;font-weight:800;flex:none}
+.gst{border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.gst-h{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+.gst-h b{font-size:1rem}
+.gst form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:10px;align-items:end}
+@media (max-width:760px){.gst form{grid-template-columns:minmax(0,1fr)}}
+.bigbtn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:2px dashed var(--accent);border-radius:14px;padding:28px 16px;cursor:pointer;background:var(--accent-soft);color:var(--accent-strong);font-weight:700;font-size:1.05rem;text-align:center}
+.bigbtn small{font-weight:500;color:var(--muted);font-size:.8rem}
+.bigbtn input{position:absolute;opacity:0;width:1px;height:1px}
+.bigbtn:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.idthumb{width:56px;height:36px;object-fit:cover;border-radius:4px;border:1px solid var(--line);cursor:pointer}
+.steplbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--accent-strong);margin:0}
+.req{color:var(--bad)}
+.demo-note{font-size:.75rem;color:var(--muted)}
+</style>
+<style>
+/* Mockup viewer: a review bar on top, then one screen at a time in a phone or desktop frame, using the mock-up's own styles above. */
+.mk{--mk-bg:#EEF3F0;--mk-ink:#13241B;--mk-muted:#5A6D62;--mk-line:#D2DFD7}
+html,body{background:#EEF3F0}
+body::before{display:none}
+.mkbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:80;background:#13241B;color:#fff;padding-block:12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:10px}
+.mkbar h1{font-size:1.05rem;color:#fff}
+.mkbar p{font-size:.8rem;color:rgba(255,255,255,.75)}
+.mkrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.mkrow select{width:auto;max-width:100%;background:#fff;color:#13241B}
+.mkrow .btn{background:transparent;color:#fff;border-color:rgba(255,255,255,.35)}
+.mkrow .btn:hover{background:rgba(255,255,255,.1)}
+.mkreq{display:flex;gap:6px;flex-wrap:wrap}
+.mkreq button{border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:999px;padding:4px 12px;font-weight:600;font-size:.8rem;cursor:pointer}
+.mkreq button[aria-pressed="true"]{background:#fff;color:#13241B}
+.mkwrap{max-width:1180px;margin:0 auto;padding-block:20px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+.mkinfo{background:#fff;border:1px solid #D2DFD7;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.mkinfo .k{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:#135B36}
+.mkinfo h2{font-size:1.15rem}
+.mkinfo p{font-size:.86rem;color:#3d4f45}
+.mkopt{display:inline-flex;gap:6px;align-items:center;font-size:.75rem;font-weight:700;border-radius:999px;padding:2px 10px}
+.mkopt.rec{background:#E2F1E8;color:#135B36}.mkopt.alt{background:#FCF0D6;color:#8F5B00}
+.frame{background:#fff;border:1px solid #C9D8CF;border-radius:14px;overflow:hidden;box-shadow:0 10px 30px rgba(19,36,27,.08);position:relative;align-self:center;width:100%}
+.frame.phone{max-width:390px;border-radius:28px;border:8px solid #13241B}
+.frame.desk{max-width:1180px}
+.frame.paper{max-width:720px;border-radius:4px;background:#fff}
+.frame .shell{max-width:none}
+.frame .modal-wrap{position:absolute}
+.frame.phone .shell{grid-template-columns:minmax(0,1fr);padding-block:16px 24px}
+.frame.phone nav.side{display:none}
+.frame.phone .top-in{gap:10px}
+.frame.phone .menu-btn{display:grid}
+.mknav{display:flex;justify-content:space-between;gap:8px}
+.signbox{max-width:400px;margin:0 auto;display:flex;flex-direction:column;gap:16px;padding-block:28px 32px}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;border:1px solid #747775;background:#fff;color:#1F1F1F;border-radius:8px;padding:11px 14px;font-weight:600;min-height:44px;width:100%;cursor:pointer}
+.gbtn svg{width:18px;height:18px}
+.or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.8rem}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+.f input[type=email],.f input[type=password],.f input[type=tel]{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:10px 12px;font-weight:400;color:var(--fg);min-height:44px}
+.f .btn.primary.big{padding:12px 14px;min-height:44px;width:100%}
+.ferr{color:var(--bad);font-size:.78rem;font-weight:600}
+input.bad{border-color:var(--bad)!important;box-shadow:0 0 0 1px var(--bad)}
+.pwrow{display:flex;gap:8px;align-items:center}
+.pwrow input{flex:1}
+.codein{font-family:ui-monospace,SFMono-Regular,Menlo,monospace!important;font-size:1.3rem!important;letter-spacing:.14em;text-transform:uppercase;text-align:center}
+.mail{font-family:var(--f-body);background:#fff;display:flex;flex-direction:column}
+.mail .mh{padding:14px 16px;border-bottom:1px solid #e5e5e5;font-size:.82rem;color:#555;display:flex;flex-direction:column;gap:2px}
+.mail .mh b{color:#111;font-size:.95rem}
+.mail .mb{padding:22px 18px;display:flex;flex-direction:column;gap:14px;font-size:.92rem}
+.mail .brandline{display:flex;align-items:center;gap:10px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;padding:18px}
+.rolecol{border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:2px}
+.rolecol h3{margin-bottom:6px}
+.rolecol .it{padding:6px 8px;border-radius:6px;font-size:.86rem}
+.rolecol .it.on{background:var(--accent-soft);color:var(--accent-strong);font-weight:700}
+.rolecol .ro{font-size:.72rem;color:var(--muted);margin-top:6px}
+.hocards{display:flex;flex-direction:column;gap:10px}
+.hocard{border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.hocard .r{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.slip{border:2px dashed #9fb5a8;border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:8px}
+.slips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:24px}
+@media (max-width:640px){.slips{grid-template-columns:minmax(0,1fr)}}
+.membr{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--line)}
+.membr:last-child{border-bottom:0}
+.errlist{display:flex;flex-direction:column;gap:10px}
+.callout{font-size:.75rem;font-weight:700;color:#8F5B00;background:#FCF0D6;border-radius:6px;padding:4px 8px;align-self:flex-start}
+.mknote{font-size:.8rem;color:#3d4f45}
+</style>
+
+<div class="mk">
+  <div class="mkbar">
+    <div><h1>Access and households mockup · REQ-001 to REQ-004</h1><p>Draft for owner review. Sample HOA and invented people only. Each screen names the REQ scenario it shows. Comment on any screen.</p></div>
+    <div class="mkrow">
+      <div class="mkreq" id="mkreq" role="group" aria-label="Requirement"></div>
+    </div>
+    <div class="mkrow">
+      <label for="mksel" style="font-size:.8rem;color:rgba(255,255,255,.8)">Screen</label>
+      <select id="mksel"></select>
+      <button class="btn sm" id="mkprev" type="button">‹ Previous</button>
+      <button class="btn sm" id="mknext" type="button">Next ›</button>
+    </div>
+  </div>
+  <div class="mkwrap">
+    <div class="mkinfo" id="mkinfo"></div>
+    <div id="mkstage" style="display:flex;flex-direction:column"></div>
+  </div>
+</div>
+
+<script>
+const HOA='Greenfield Homes HOA';
+const HOUSE='<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>';
+const BELL='<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1112 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 004 0"/></svg>';
+const MENU='<button class="menu-btn" aria-label="Open menu" type="button"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>';
+const G='<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.2l7.8 6C12.3 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.6c0-1.6-.1-3.1-.4-4.6H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.8c4.3-4 6.9-9.9 6.9-17.1z"/><path fill="#FBBC05" d="M10.4 28.8A14.5 14.5 0 019.5 24c0-1.7.3-3.3.9-4.8l-7.8-6A24 24 0 000 24c0 3.9.9 7.5 2.6 10.8l7.8-6z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.8-5.8l-7.4-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.3 0-11.7-4.1-13.6-9.8l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>';
+
+function top(opts={}){
+  const {menu=false,seg='',right='',sub='Resident portal'}=opts;
+  return `<header class="top"><div class="top-in">${menu?MENU:''}<div class="brand"><span class="logo">${HOUSE}</span><div><b>${HOA}</b><small>${sub}</small></div></div>${seg}<div class="top-r">${right}</div></div></header>`;
+}
+const bell=n=>`<button class="bell" aria-label="Notifications" type="button">${BELL}${n?`<span class="dot">${n}</span>`:''}</button>`;
+function nav(lbl,items,cur){return `<nav class="side" aria-label="Sections"><div class="navlbl">${lbl}</div>${items.map(i=>`<button type="button" ${i===cur?'aria-current="page"':''}><span>${i}</span></button>`).join('')}</nav>`}
+const shell=(n,m)=>`<div class="shell">${n}<main>${m}</main></div>`;
+const ph=(t,s,r='')=>`<div class="ph"><div><h1>${t}</h1>${s?`<p>${s}</p>`:''}</div>${r?`<div class="actions">${r}</div>`:''}</div>`;
+const pill=(k,t)=>`<span class="pill p-${k}">${t}</span>`;
+const LS={ni:pill('muted','Not invited'),inv:d=>pill('info','Invited · expires '+d),l:n=>pill('ok',`Linked · ${n} ${n>1?'people':'person'}`),exp:pill('warn','Invite expired'),fail:pill('bad','Email failed')};
+const STAFFNAV=['Dashboard','Approvals','Homeowners','Announcements','Settings'];
+const signTop=()=>top({sub:'Resident portal'});
+
+function signIn(state){
+  const bad=state==='bad';
+  return signTop()+`<div style="padding-inline:16px"><div class="signbox">
+   <div><h1>Sign in to ${HOA}</h1><p class="hint" style="margin-top:6px;font-size:.88rem">Pay dues, see your statement and get HOA news.</p></div>
+   <button class="gbtn" type="button">${G}Continue with Google</button>
+   <div class="or">or use your email</div>
+   ${bad?`<div class="alert bad" role="alert"><div class="grow"><b>That email and password don't match.</b>Try again, or reset your password.</div></div>`:''}
+   <form class="f" onsubmit="return false">
+    <label class="fl" for="em${state}">Email<input id="em${state}" type="email" autocomplete="email" inputmode="email" value="${bad?'juan@example.com':''}" placeholder="you@example.com"></label>
+    <label class="fl" for="pw${state}">Password<span class="pwrow"><input id="pw${state}" type="password" autocomplete="current-password" ${bad?'class="bad" value="xxxxxxxx"':''}><button class="btn sm" type="button">Show password</button></span></label>
+    <div style="display:flex;justify-content:flex-end"><button class="btn link" type="button">Forgot password?</button></div>
+    <button class="btn primary big" type="button">Sign in</button>
+   </form>
+   <p style="text-align:center;font-size:.88rem">New here? <button class="btn link" type="button">Create an account</button></p>
+  </div></div>`;
+}
+const notLinked=()=>top({right:`<button class="btn sm" type="button" style="background:transparent;color:#fff;border-color:rgba(255,255,255,.4)">Sign out</button>`})+`<div style="padding-inline:16px"><div class="signbox">
+  <div class="alert info"><div class="grow"><b>Your account isn't linked to a household yet.</b>Enter the invite code from the admin office.</div></div>
+  <form class="f" onsubmit="return false"><label class="fl" for="nlc">Invite code<input id="nlc" type="text" class="codein" placeholder="XXXX-XXXX" autocomplete="off" autocapitalize="characters"></label><span class="hint">You'll find it in your invitation email or on the slip from the admin office.</span><button class="btn primary big" type="button">Continue</button></form>
+  <p class="hint" style="text-align:center">Signed in as ana.reyes@example.com</p></div></div>`;
+const codeEntry=(val,err)=>top({right:`<button class="btn sm" type="button" style="background:transparent;color:#fff;border-color:rgba(255,255,255,.4)">Sign out</button>`})+`<div style="padding-inline:16px"><div class="signbox">
+  <div><h1>Enter your invite code</h1><p class="hint" style="margin-top:6px;font-size:.88rem">You'll find it in your invitation email or on the slip from the admin office.</p></div>
+  <form class="f" onsubmit="return false"><label class="fl" for="ce${val}">Invite code<input id="ce${val}" type="text" class="codein ${err?'bad':''}" value="${val}" autocomplete="off" autocapitalize="characters"></label>${err?`<span class="ferr" role="alert">${err}</span>`:''}<button class="btn primary big" type="button">Continue</button></form></div></div>`;
+
+const S=[
+/* ---------- REQ-001 ---------- */
+{id:'1A',req:'REQ-001',dev:'phone',opt:'rec',title:'Sign in (Option A: email and password, or Google)',scn:'"A linked homeowner signs in with Google" and "…with email and password".',note:'Google first because most homeowners use Android phones. Password managers work because the fields use the right autocomplete values.',html:()=>signIn('ok')},
+{id:'1B',req:'REQ-001',dev:'phone',opt:'alt',title:'Option B: email sign-in link',scn:'Option B only. Shown for comparison.',note:'Every sign-in waits for an email. On phones the link often opens inside the email app’s own browser, which is why this isn’t recommended.',html:()=>signTop()+`<div style="padding-inline:16px"><div class="signbox"><h1>Check your email</h1><p>We sent a sign-in link to <b>juan@example.com</b>. Open it on this phone to sign in.</p><div class="alert warn"><div class="grow"><b>Opened the link and you're still here?</b>Your email app may have opened it in its own browser. Copy the link into Chrome or Safari instead.</div></div><button class="btn big" type="button">Send a new link</button><button class="btn link" type="button">Use a different email</button></div></div>`},
+{id:'1C',req:'REQ-001',dev:'phone',opt:'alt',title:'Option C: mobile number and SMS code',scn:'Option C only. Shown for comparison.',note:'Each code sent is charged per text message, on every sign-in.',html:()=>signTop()+`<div style="padding-inline:16px"><div class="signbox"><h1>Sign in with your mobile number</h1><form class="f" onsubmit="return false"><label class="fl" for="mob">Mobile number<input id="mob" type="tel" value="0917 555 0101" inputmode="tel"></label><label class="fl" for="otp">6-digit code sent by text<input id="otp" type="text" inputmode="numeric" class="codein" value="" placeholder="••••••"></label><button class="btn primary big" type="button">Sign in</button><button class="btn link" type="button">Send the code again (in 30 s)</button></form></div></div>`},
+{id:'1D',req:'REQ-001',dev:'phone',opt:'rec',title:'Wrong password',scn:'"A wrong password does not reveal whether the email exists".',note:'The same message shows for an email with no account. The email stays typed.',html:()=>signIn('bad')},
+{id:'1E',req:'REQ-001',dev:'phone',opt:'rec',title:'Forgot password',scn:'"Resetting a forgotten password" and "Too many wrong passwords".',note:'Two states stacked: after the reset link is sent, and after too many attempts.',html:()=>signTop()+`<div style="padding-inline:16px"><div class="signbox"><h1>Reset your password</h1><form class="f" onsubmit="return false"><label class="fl" for="rem">Email<input id="rem" type="email" value="juan@example.com"></label><button class="btn primary big" type="button">Send reset link</button></form><div class="alert info" role="status"><div class="grow"><b>Check your email</b>If there's an account for juan@example.com, we've sent a link to reset the password. Check your spam folder too.</div></div><span class="callout">Other state</span><div class="alert bad" role="alert"><div class="grow"><b>Too many attempts.</b>Wait a while, or reset your password.</div></div><button class="btn link" type="button">Back to sign in</button></div></div>`},
+{id:'1F',req:'REQ-001',dev:'phone',opt:'rec',title:'Create an account',scn:'"Creating an account", "A password that is too short" and "Creating an account with an email that already has one".',note:'After this a verification email is sent and the person lands on "Enter your invite code" (4B). No household data is shown until a code is redeemed. Firebase also refuses a short password, not only this page.',html:()=>signTop()+`<div style="padding-inline:16px"><div class="signbox"><h1>Create an account</h1><button class="gbtn" type="button">${G}Continue with Google</button><div class="or">or use your email</div><form class="f" onsubmit="return false"><label class="fl" for="cn">Your name<input id="cn" type="text" value="Ana Reyes" autocomplete="name"></label><label class="fl" for="ce">Email<input id="ce" type="email" value="ana.reyes@example.com" autocomplete="email"></label><label class="fl" for="cp">Password<span class="pwrow"><input id="cp" type="password" class="bad" value="1234567" autocomplete="new-password"><button class="btn sm" type="button">Show password</button></span></label><span class="ferr" role="alert">Use at least 8 characters</span><button class="btn primary big" type="button">Create account</button></form><span class="callout">Other state</span><div class="alert bad" role="alert"><div class="grow">There's already an account for this email. Sign in, or reset your password.</div></div><p style="text-align:center;font-size:.88rem">Already have an account? <button class="btn link" type="button">Sign in</button></p></div></div>`},
+{id:'1G',req:'REQ-001',dev:'phone',opt:'rec',title:'Signed in, not linked to a household',scn:'"Signed in but not linked to any household".',note:'The only actions are entering a code and signing out. Rules deny every household read for this person.',html:notLinked},
+
+/* ---------- REQ-002 ---------- */
+{id:'2A',req:'REQ-002',dev:'desk',opt:'rec',title:'What each role sees in R1',scn:'"Each role sees only its own menu".',note:'Menus for later releases appear only when those features ship. Board pages show figures with no controls that change them.',html:()=>`<div class="cols">
+  ${[['Homeowner',['Dashboard','Dues & Payments','Announcements'],'Own household only'],['Admin office staff',['Dashboard','Homeowners','Announcements','Settings'],'Approvals appears only if D4 lets the office approve payments'],['Treasurer',['Dashboard','Approvals (payments)','Homeowners','Announcements','Settings (dues, QR)'],'Everything the admin office has, plus money'],['Board member',['Dashboard'],'View only. Reports and Accounting arrive in R2.'],['Guard',['Scan Pass','Visitors Inside','Today’s Log'],'R4 add-on only']].map(([r,items,ro],i)=>`<div class="rolecol"><h3>${r}</h3>${items.map((x,j)=>`<div class="it ${j===0?'on':''}">${x}</div>`).join('')}<span class="ro">${ro}</span></div>`).join('')}</div>`},
+{id:'2B',req:'REQ-002',dev:'desk',opt:'rec',title:'Treasurer who is also a homeowner',scn:'"A treasurer who is also a homeowner switches views".',note:'The switch replaces the mock-up’s Homeowner | Admin | Guard switch and appears only for people who hold both.',html:()=>top({sub:'Resident portal',seg:`<div class="seg" role="group" aria-label="Switch view"><button type="button" aria-pressed="true">Treasurer</button><button type="button" aria-pressed="false">My household</button></div>`,right:`<span class="who-admin">Signed in as <b>Carmela Cruz</b></span>${bell(3)}`})+shell(nav('Administration',STAFFNAV,'Approvals'),ph('Approvals','Payments submitted by homeowners.')+`<section class="card"><div class="card-h"><h2>Payments waiting for approval</h2><p>3 waiting</p></div><div class="tbl"><table><thead><tr><th>Submitted</th><th>Household</th><th>Reference no.</th><th class="money">Amount</th><th></th></tr></thead><tbody><tr><td>Nov 25, 2026</td><td><b>Carlo Mendoza</b><span class="sub">Blk 5 Lot 1</span></td><td class="num">4012883219554</td><td class="money"><b>₱1,800.00</b></td><td><div class="actions"><button class="btn sm primary" type="button">Approve</button><button class="btn sm danger" type="button">Reject</button></div></td></tr></tbody></table></div></section>`)},
+{id:'2C',req:'REQ-002',dev:'phone',opt:'rec',title:'No access',scn:'"Opening a staff page without the role" and REQ-001 "A homeowner cannot open another household’s page".',note:'No data is loaded behind this page: the rules refused the read.',html:()=>top({menu:true,right:bell(0)})+`<div style="padding-inline:16px"><div class="signbox" style="text-align:center;align-items:center"><div style="width:56px;height:56px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></div><h1>You don't have access to this page</h1><p class="hint" style="font-size:.88rem">If you think you should, contact the admin office.</p><button class="btn primary big" type="button">Go to my dashboard</button></div></div>`},
+{id:'2D',req:'REQ-002',dev:'desk',opt:'rec',title:'Settings → Staff and roles (Option B, with Option A for comparison)',scn:'"Granting a role" and "Removing a role".',note:'Option B (left) is read-only: roles change on the board’s written request. Option A (right) adds a form, recommended later with the gate add-on.',html:()=>top({right:`<span class="who-admin">Signed in as <b>HOA Treasurer</b></span>${bell(0)}`})+shell(nav('Administration',STAFFNAV,'Settings'),ph('Settings','Dues, QR payment details and staff.')+`<div class="grid g2"><section class="card"><div class="card-h"><h2>Staff and roles</h2><span class="mkopt rec">Option B · recommended for R1</span></div><div class="tbl"><table><thead><tr><th>Name</th><th>Role</th><th>Since</th></tr></thead><tbody><tr><td><b>Carmela Cruz</b><span class="sub">carmela@example.com</span></td><td>Treasurer</td><td>Dec 1, 2026</td></tr><tr><td><b>Paolo Aquino</b><span class="sub">paolo@example.com</span></td><td>Admin office</td><td>Dec 1, 2026</td></tr><tr><td><b>Teresa Villanueva</b><span class="sub">teresa@example.com</span></td><td>Board</td><td>Dec 1, 2026</td></tr></tbody></table></div><p class="hint">To add, change or remove a staff role, the board president asks the developer in writing.</p></section>
+  <section class="card"><div class="card-h"><h2>Add staff</h2><span class="mkopt alt">Option A · later</span></div><form class="f" onsubmit="return false"><label class="fl" for="se">Email of their portal account<input id="se" type="email" value="rafael@example.com"></label><label class="fl" for="sr">Role<select id="sr"><option>Admin office</option><option>Treasurer</option><option>Board</option><option>Guard</option></select></label><button class="btn primary" type="button">Give this role</button><p class="hint">They see the new menu the next time they open the portal. A removed role stops working at once. Every change is recorded.</p></form></section></div>`)},
+
+/* ---------- REQ-003 ---------- */
+{id:'3A',req:'REQ-003',dev:'desk',opt:'rec',title:'Homeowners directory with link status',scn:'"Import the household list", "Search a long list", and the link status used by REQ-004.',note:'Link status is a pill with words, never colour alone. The list is paged 50 at a time.',html:()=>top({right:`<span class="who-admin">Signed in as <b>Paolo Aquino</b></span>${bell(0)}`})+shell(nav('Administration',STAFFNAV,'Homeowners'),ph('Homeowners','623 households · 412 linked · 160 invited · 51 not invited',`<button class="btn" type="button">Import households</button><button class="btn primary" type="button">Add household</button>`)+`<div class="card-h"><div class="chips"><button class="chip" aria-pressed="true" type="button">All (623)</button><button class="chip" aria-pressed="false" type="button">Not invited (51)</button><button class="chip" aria-pressed="false" type="button">Invite expired (9)</button><button class="chip" aria-pressed="false" type="button">Email failed (3)</button><button class="chip" aria-pressed="false" type="button">Inactive (2)</button></div><input type="search" aria-label="Search name or lot" placeholder="Search name or lot" value="blk 4" style="width:240px"></div>
+  <section class="card"><div class="tbl"><table><thead><tr><th><input type="checkbox" aria-label="Select all"></th><th>Lot</th><th>Owner</th><th>Contact</th><th>Portal</th><th></th></tr></thead><tbody>
+  ${[['Blk 4 Lot 2','Bea Fernandez','bea@example.com · 0917 555 0114',LS.l(2),'Manage'],['Blk 4 Lot 5','Miguel Ramos','No email · 0918 555 0109',LS.ni,'Print slip'],['Blk 4 Lot 8','Nina Soriano','nina@example.com · 0919 555 0120',LS.inv('Dec 5'),'Resend'],['Blk 4 Lot 12','Juan Dela Cruz','juan@example.com · 0917 555 0101',LS.l(1),'Manage'],['Blk 4 Lot 15','Dennis Ocampo','dennis@exmaple.com · 0921 555 0133',LS.fail,'Resend'],['Blk 4 Lot 19','Joy Castillo','joy@example.com · 0917 555 0142',LS.exp,'Resend']].map(r=>`<tr class="click"><td><input type="checkbox" aria-label="Select ${r[0]}"></td><td class="num"><b>${r[0]}</b></td><td>${r[1]}</td><td><span class="sub" style="font-size:.82rem;color:var(--fg)">${r[2]}</span></td><td>${r[3]}</td><td><button class="btn sm" type="button">${r[4]}</button></td></tr>`).join('')}
+  </tbody></table></div><div class="card-h"><p>Showing 6 of 6 matching "blk 4"</p><div class="actions"><button class="btn sm" type="button">Invite selected</button><button class="btn sm" type="button">Print invite slips</button></div></div></section>`)},
+{id:'3B',req:'REQ-003',dev:'phone',opt:'rec',title:'Directory on a phone',scn:'"Readable on a phone".',note:'Cards instead of the table below 640 px. No sideways scrolling. Balance shows "—" until the first billing run.',html:()=>top({menu:true,right:bell(0)})+`<div style="padding:16px;display:flex;flex-direction:column;gap:14px">${ph('Homeowners','623 households')}<input type="search" aria-label="Search name or lot" placeholder="Search name or lot"><div class="actions"><button class="btn primary" type="button">Add household</button><button class="btn" type="button">Import</button></div><div class="hocards">${[['Blk 4 Lot 2','Bea Fernandez',LS.l(2)],['Blk 4 Lot 5','Miguel Ramos',LS.ni],['Blk 4 Lot 8','Nina Soriano',LS.inv('Dec 5')],['Blk 4 Lot 15','Dennis Ocampo',LS.fail]].map(r=>`<div class="hocard"><div class="r"><b class="num">${r[0]}</b>${r[2]}</div><span>${r[1]}</span><span class="sub">Balance —</span><div class="actions"><button class="btn sm" type="button">Open</button></div></div>`).join('')}</div></div>`},
+{id:'3C',req:'REQ-003',dev:'desk',opt:'rec',title:'Import: preview before saving',scn:'"Rows with problems are shown, not imported" and "Importing a lot that already exists does not duplicate it".',note:'Nothing is saved until the admin presses the import button. The count on the button matches the rows that will be added.',html:()=>top({right:`<span class="who-admin">Signed in as <b>Paolo Aquino</b></span>${bell(0)}`})+shell(nav('Administration',STAFFNAV,'Homeowners'),ph('Import households','Step 2 of 3 · Check before importing',`<button class="btn" type="button">Choose a different file</button>`)+`<div class="tiles" style="grid-template-columns:repeat(3,minmax(0,1fr))"><div class="tile hero"><span class="tile-l">Ready to import</span><span class="tile-v">618</span><span class="tile-s">households-2026-11.csv · 623 rows</span></div><div class="tile"><span class="tile-l">Won't be imported</span><span class="tile-v">4</span><span class="tile-s">Fix them and import again</span></div><div class="tile"><span class="tile-l">Already in the directory</span><span class="tile-v">1</span><span class="tile-s">Skipped, not changed</span></div></div>
+  <section class="card"><div class="card-h"><h2>Rows that won't be imported</h2><button class="btn sm" type="button">Download these rows</button></div><div class="tbl"><table><caption class="sub" style="text-align:left;padding:0 8px 6px">Row numbers match your file</caption><thead><tr><th>Row</th><th>Block</th><th>Lot</th><th>Owner</th><th>Email</th><th>Reason</th></tr></thead><tbody>
+  ${[['14','3','','Rafael Navarro','rafael@example.com','Lot number is missing'],['31','2','7','Ana Reyes','ana@example.com','Blk 2 Lot 7 appears more than once in the file'],['32','2','7','A. Reyes','','Blk 2 Lot 7 appears more than once in the file'],['57','5','8','Teresa Villanueva','teresa@','"teresa@" is not a valid email address'],['88','4','12','Juan Dela Cruz','juan@example.com','Already in the directory, skipped']].map(r=>`<tr><td class="num">${r[0]}</td><td>${r[1]}</td><td>${r[2]||'<span class="sub">—</span>'}</td><td>${r[3]}</td><td>${r[4]||'<span class="sub">—</span>'}</td><td><b style="color:${r[5].startsWith('Already')?'var(--muted)':'var(--bad)'}">${r[5]}</b></td></tr>`).join('')}
+  </tbody></table></div></section>
+  <div class="actions" style="justify-content:flex-end"><button class="btn" type="button">Cancel</button><button class="btn primary" type="button">Import 618 households</button></div>`)},
+{id:'3D',req:'REQ-003',dev:'desk',opt:'rec',title:'Import finished, and the empty directory',scn:'"Pressing Import twice imports once" (finished state) and the empty state before any import.',note:'Two states stacked. While importing, the button reads "Importing…" and is disabled.',html:()=>top({right:`<span class="who-admin">Signed in as <b>Paolo Aquino</b></span>${bell(0)}`})+shell(nav('Administration',STAFFNAV,'Homeowners'),`<div class="alert info" role="status"><div class="grow"><b>Imported 618 households.</b>4 rows were not imported. <button class="btn link" type="button">Download them</button> to fix and import again.</div></div>`+ph('Homeowners','618 households')+`<span class="callout">Other state: before the first import</span><section class="card"><div class="empty"><p style="font-size:1rem;color:var(--fg);font-weight:600">No households yet.</p><p>Import your list or add the first household.</p><div class="actions" style="justify-content:center;margin-top:12px"><button class="btn primary" type="button">Import households</button><button class="btn" type="button">Add household</button><button class="btn link" type="button">Download template</button></div></div></section>`)},
+{id:'3E',req:'REQ-003',dev:'desk',opt:'rec',title:'Add household, with a duplicate lot',scn:'"Add one household" and "The same lot can’t be added twice".',note:'The dialog doesn’t close on a click outside it, so typing is never lost. The duplicate message shows as soon as the lot is known.',html:()=>top({right:`<span class="who-admin">Signed in as <b>Paolo Aquino</b></span>${bell(0)}`})+shell(nav('Administration',STAFFNAV,'Homeowners'),ph('Homeowners','623 households')+`<section class="card" style="min-height:420px"></section>`)+`<div class="modal-wrap"><div class="modal" role="dialog" aria-modal="true" aria-label="Add household"><div class="modal-h"><h2>Add household</h2><button class="x" aria-label="Close" type="button">×</button></div><div class="modal-b"><form class="f" onsubmit="return false"><div class="row2"><label class="fl" for="ab">Block<input id="ab" type="text" value="8" inputmode="numeric"></label><label class="fl" for="al">Lot<input id="al" type="text" value="2" class="bad" inputmode="numeric"></label></div><span class="ferr" role="alert">Blk 8 Lot 2 is already in the directory.</span><label class="fl" for="ao">Owner name<input id="ao" type="text" value="Rina Domingo"></label><div class="row2"><label class="fl" for="aem">Email <span class="hint">Optional. Invitations go here.</span><input id="aem" type="email" value="rina@example.com"></label><label class="fl" for="amo">Mobile <span class="hint">Optional</span><input id="amo" type="tel" value="0917 555 0150"></label></div><label class="fl" for="aph">Phase <span class="hint">Optional</span><select id="aph"><option>Not set</option><option>Phase 1</option><option>Phase 2</option><option>Phase 3</option><option>Phase 4</option></select></label></form></div><div class="modal-f"><button class="btn" type="button">Cancel</button><button class="btn primary" type="button" disabled>Save</button></div></div></div>`},
+
+/* ---------- REQ-004 ---------- */
+{id:'4A',req:'REQ-004',dev:'phone',opt:'rec',title:'Invitation email',scn:'"Send an invitation" and "Accept an emailed invitation".',note:'Step 2 of the recommendation: needs the email provider (SA-001 Q7). The code is printed in the email too, in case the button doesn’t work.',html:()=>`<div class="mail"><div class="mh"><b>Your invitation to the ${HOA} portal</b><span>From: ${HOA} &lt;noreply@greenfieldhomes.example&gt;</span><span>To: ana@example.com</span></div><div class="mb"><div class="brandline"><span class="logo">${HOUSE}</span><b style="font-family:var(--f-head)">${HOA}</b></div><p>Hi Ana Reyes,</p><p>The ${HOA} admin office has invited you to the resident portal for <b>Blk 2 Lot 7</b>. Press the button to join. This invitation expires on <b>Dec 5, 2026</b>.</p><button class="btn primary big" type="button" style="width:100%;padding:13px">Join the portal</button><p class="hint">If the button doesn't work, sign in at portal.greenfieldhomes.example and enter this code:</p><div class="code">K7QX-M9TA</div><p class="hint">You got this email because your address is on file with the admin office. If this isn't your lot, ignore it.</p></div></div>`},
+{id:'4B',req:'REQ-004',dev:'phone',opt:'rec',title:'Enter an invite code',scn:'"Enter a printed code".',note:'Lower case, spaces and hyphens are accepted: "k7qx m9ta" works. Step 1 of the recommendation needs only this screen and printed slips.',html:()=>codeEntry('k7qx m9ta','')},
+{id:'4C',req:'REQ-004',dev:'phone',opt:'rec',title:'Confirm the lot',scn:'"Accept an emailed invitation" and "Enter a printed code".',note:'Shows the lot and the owner name on file, nothing else. "No, this isn’t my lot" stops the link and points to the office.',html:()=>top({right:''})+`<div style="padding-inline:16px"><div class="signbox"><h1>You're joining Blk 2 Lot 7</h1><dl class="kv"><dt>Lot</dt><dd>Blk 2 Lot 7</dd><dt>Owner on file</dt><dd>Ana Reyes</dd></dl><p>Is this your lot?</p><button class="btn primary big" type="button">Yes, link my account</button><button class="btn big" type="button">No, this isn't my lot</button></div></div>`},
+{id:'4D',req:'REQ-004',dev:'phone',opt:'rec',title:'Code errors',scn:'"A wrong code", "An expired code", "A code can be used only once", "Resending replaces the old invitation", "A code for a deactivated household", "A person already linked to another lot", "Guessing codes is stopped".',note:'Each error says what to do next. All appear under the code field. The guess limit is per account: 5 refused codes in 15 minutes.',html:()=>top({right:''})+`<div style="padding-inline:16px"><div class="signbox"><h1>Enter your invite code</h1><div class="errlist">${["That code doesn't match an invitation. Check it, or ask the admin office for a new one.","This invitation has expired. Ask the admin office to send a new one.","This invitation was already used. Ask the admin office for a new one.","This invitation was replaced by a newer one. Use the newest invitation, or ask the admin office.","This invitation is no longer valid. Ask the admin office.","Your account is already linked to Blk 4 Lot 12. Ask the admin office if you need access to another lot.","Too many wrong codes. Try again in 15 minutes."].map(e=>`<div class="alert bad" role="alert"><div class="grow">${e}</div></div>`).join('')}</div></div></div>`},
+{id:'4E',req:'REQ-004',dev:'desk',opt:'rec',title:'Household detail: people, invitations, removing after a sale',scn:'"A second person in the same household", "Resending replaces the old invitation", "Removing a person after a sale", "A failed email is shown".',note:'Removing is confirmed and says what stays with the lot.',html:()=>top({right:`<span class="who-admin">Signed in as <b>Paolo Aquino</b></span>${bell(0)}`})+shell(nav('Administration',STAFFNAV,'Homeowners'),ph('Blk 2 Lot 7','Owner on file: Ana Reyes · ana@example.com · 0917 555 0107',`<button class="btn" type="button">Edit household</button>`)+`<div class="grid g2"><section class="card"><div class="card-h"><h2>People with portal access</h2>${LS.l(2)}</div><div><div class="membr"><div><b>Ana Reyes</b><span class="sub">Owner · linked Nov 29, 2026</span></div><button class="btn sm danger" type="button">Remove</button></div><div class="membr"><div><b>Carlo Reyes</b><span class="sub">Family · linked Dec 1, 2026</span></div><button class="btn sm danger" type="button">Remove</button></div></div><button class="btn" type="button" style="align-self:flex-start">Invite another person</button></section>
+  <section class="card"><div class="card-h"><h2>Invitations</h2></div><div class="tbl"><table><thead><tr><th>Sent to</th><th>Status</th><th></th></tr></thead><tbody><tr><td>ana@example.com<span class="sub">Sent Nov 28</span></td><td>${pill('ok','Used Nov 29')}</td><td></td></tr><tr><td>carlo.reyes@exmaple.com<span class="sub">Sent Nov 30</span></td><td>${pill('bad','Email failed')}</td><td><div class="actions"><button class="btn sm" type="button">Resend</button><button class="btn sm" type="button">Print slip</button></div></td></tr><tr><td>Printed slip<span class="sub">Printed Nov 30</span></td><td>${pill('ok','Used Dec 1')}</td><td></td></tr></tbody></table></div></section></div>`)+`<div class="modal-wrap"><div class="modal" role="dialog" aria-modal="true" aria-label="Remove person"><div class="modal-h"><h2>Remove Ana Reyes?</h2><button class="x" aria-label="Close" type="button">×</button></div><div class="modal-b"><p>Remove Ana Reyes from Blk 2 Lot 7? She will no longer see this lot. Its bills and payments stay with the lot.</p></div><div class="modal-f"><button class="btn" type="button">Cancel</button><button class="btn primary" type="button" style="background:var(--bad);border-color:var(--bad)">Remove</button></div></div></div>`},
+{id:'4F',req:'REQ-004',dev:'desk',opt:'rec',title:'Invite many households at once',scn:'"Invite many households at once".',note:'Households with no email are counted and sent to printing instead.',html:()=>top({right:`<span class="who-admin">Signed in as <b>Paolo Aquino</b></span>${bell(0)}`})+shell(nav('Administration',STAFFNAV,'Homeowners'),ph('Homeowners','400 selected')+`<section class="card" style="min-height:360px"></section>`)+`<div class="modal-wrap"><div class="modal" role="dialog" aria-modal="true" aria-label="Send invitations"><div class="modal-h"><h2>Send 380 invitations?</h2><button class="x" aria-label="Close" type="button">×</button></div><div class="modal-b"><p>20 households have no email. Print their slips instead.</p><dl class="kv"><dt>Email invitations</dt><dd>380</dd><dt>No email</dt><dd>20</dd><dt>Expire on</dt><dd>Dec 5, 2026</dd></dl><p class="hint">Households that already have an unused invitation are skipped. While queuing, the button reads "Queuing…". Then: "380 invitations queued. Each household shows its email status."</p></div><div class="modal-f"><button class="btn" type="button">Print 20 slips</button><button class="btn" type="button">Cancel</button><button class="btn primary" type="button">Send 380 invitations</button></div></div></div>`},
+{id:'4G',req:'REQ-004',dev:'paper',opt:'rec',title:'Printed invite slips',scn:'"Print code slips".',note:'Two per page, cut along the dashes. No balance, email or phone number on the slip. Slips expire after 30 days (proposed setting). Before printing, the admin confirms: "Printing makes new codes. Any earlier unused code for these 20 households will stop working."',html:()=>`<div class="alert warn" style="margin:16px 24px 0"><div class="grow"><b>Printing makes new codes.</b>Any earlier unused code for these 20 households will stop working.</div></div><div class="slips">${[['Blk 4 Lot 5','M2RJ-5KVD'],['Blk 6 Lot 3','P3HN-8WRC']].map(([l,c])=>`<div class="slip"><div class="brandline" style="display:flex;gap:10px;align-items:center"><span class="logo">${HOUSE}</span><b style="font-family:var(--f-head)">${HOA} resident portal</b></div><b style="font-size:1.1rem">${l}</b><span class="hint">Your invite code</span><div class="code" style="text-align:left">${c}</div><span>Expires <b>Dec 28, 2026</b></span><ol class="steps" style="color:var(--fg)"><li>Go to portal.greenfieldhomes.example</li><li>Sign in or create an account</li><li>Enter the code</li></ol></div>`).join('')}</div><p class="hint" style="padding:0 24px 20px">Delete this file after printing.</p>`},
+{id:'4H',req:'REQ-004',dev:'phone',opt:'alt',title:'Option C: self-registration with proof',scn:'Option C only. Shown for comparison.',note:'Not recommended: the office would review hundreds of titles and IDs, and the portal would store copies of them.',html:()=>top({right:''})+`<div style="padding-inline:16px"><div class="signbox"><h1>Claim your lot</h1><form class="f" onsubmit="return false"><div class="row2"><label class="fl" for="cb">Block<input id="cb" type="text" value="2"></label><label class="fl" for="cl">Lot<input id="cl" type="text" value="7"></label></div><label class="fl" for="cr">Proof that you own or live here<input id="cr" type="file"><span class="hint">Land title, contract to sell, or a bill with this address</span></label><button class="btn primary big" type="button">Send for approval</button><p class="hint">The admin office reviews your proof, usually within 3 working days.</p></form></div></div>`}
+];
+
+const REQS=[['REQ-001','Sign in'],['REQ-002','Roles'],['REQ-003','Household directory'],['REQ-004','Invite and link']];
+let cur=0;
+function draw(){
+  const s=S[cur];
+  document.getElementById('mkreq').innerHTML=REQS.map(([r,l])=>`<button type="button" data-req="${r}" aria-pressed="${s.req===r}">${r} · ${l}</button>`).join('');
+  document.getElementById('mksel').innerHTML=S.map((x,i)=>`<option value="${i}" ${i===cur?'selected':''}>${x.id} · ${x.title}</option>`).join('');
+  document.getElementById('mkinfo').innerHTML=`<span class="k">${s.req} · Screen ${s.id}</span><h2>${s.title}</h2><div><span class="mkopt ${s.opt}">${s.opt==='rec'?'Recommended option':'Alternative option, for comparison'}</span></div><p><b>Shows:</b> ${s.scn}</p><p class="mknote">${s.note}</p>`;
+  document.getElementById('mkstage').innerHTML=`<div class="frame ${s.dev}">${s.html()}</div>`;
+  document.getElementById('mkprev').disabled=cur===0;document.getElementById('mknext').disabled=cur===S.length-1;
+  try{history.replaceState(null,'','#s'+s.id)}catch(e){}
+}
+document.addEventListener('click',e=>{
+  const r=e.target.closest('[data-req]');if(r){cur=S.findIndex(x=>x.req===r.dataset.req);draw();return}
+  if(e.target.id==='mkprev'&&cur>0){cur--;draw()}
+  if(e.target.id==='mknext'&&cur<S.length-1){cur++;draw()}
+});
+document.getElementById('mksel').addEventListener('change',e=>{cur=+e.target.value;draw()});
+const h=(location.hash||'').replace('#s','');const hi=S.findIndex(x=>x.id===h);if(hi>=0)cur=hi;
+draw();
+</script>
+
+</html>
