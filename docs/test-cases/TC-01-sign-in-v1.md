@@ -13,6 +13,7 @@
 | Source files / functions touched (anticipated, per SA-001 §9) | `web/src/main.js` (boot, auth listener, role router), the sign-in / create-account / reset / not-linked views, the route guard, `firestore.rules` (`users/{uid}`, deny by default), Firebase Auth project settings (§8.4). No Cloud Function is added by REQ-001 |
 | Environment | Firebase **Emulator Suite** (Auth + Firestore) for everything that can run there. **`hoa-portal-staging`** only for the project-settings cases in block R and the real-Google and real-email cases marked so. **Never production** |
 | Author / date | QA, 2026-11-28 |
+| Status | **Approved** by the owner, 2026-11-28 ("Approve, send gaps"). QE may start triage. Gaps G-1 to G-14 sent to the BA; cases that depend on a gap record what the build does until the BA answers |
 
 ## Roles and what crosses between them
 
