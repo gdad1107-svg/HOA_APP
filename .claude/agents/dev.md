@@ -116,6 +116,81 @@ QE asks you for stable hooks in its test-case document. Ship them: a `data-actio
 or `data-testid` on every interactive element QE names. If you ship a different name,
 tell QE. Don't select on styling classes in app code that tests rely on.
 
+## Unit tests — in place for every change
+
+The Taekwondo app has **no unit tests**: its logic was wired straight to the DOM
+and live Firestore, so nothing could be imported, every check was a slow end-to-end
+run against a deployed site, and SonarQube had no coverage to read. Don't repeat
+that. **No change merges without its unit tests.**
+
+**Design for it.** Keep business logic in plain modules that import neither the
+DOM nor Firebase: balances, late penalties, billing periods, receipt numbering,
+slot conflicts, guest-pass validity, aging buckets, report totals, validation. UI
+and Firestore code stay thin and call into them. If logic can't be tested without a
+browser, it's in the wrong place. Move it before adding more.
+
+**Tooling.** Use what Sol Arch's design and standards name. Until then, the default
+is **Vitest** with V8 coverage writing `coverage/lcov.info` (SonarQube reads it),
+pinned to exact versions. Tests sit next to the code (`*.test.js`) or under
+`tests/unit/`. Cloud Functions logic is unit-tested the same way, with Firestore
+calls behind a small interface. The emulator is for rules and integration tests,
+not for logic a plain unit test can cover.
+
+**What every change ships with:**
+
+- Unit tests for each new or changed function: happy path, **boundaries**
+  (₱0 balance, due date itself, last slot, month and year end), **negative** inputs,
+  and every branch of a business rule.
+- **Dates under control.** Use fake timers and a fixed clock, and compute in
+  `Asia/Manila`, never the runner's UTC. Taekwondo shipped a UTC date defect.
+- **Money in integer centavos**, with tests proving totals reconcile.
+- **Receipt numbering and billing runs** tested for uniqueness, no gaps, and running
+  the same input twice giving the same result.
+- **Every bug fix adds the unit test that would have caught it**, written to fail
+  before the fix.
+- **Security-rule tests** (`@firebase/rules-unit-testing` against the emulator)
+  updated in the same change as any `firestore.rules` edit: each role allowed and
+  denied, and every prior status a gated rule checks.
+
+**The bar:** `npm test` (unit) passes, coverage on new code is **≥ 80%**, and tests are
+fast, need no network, run in any order, and use no real personal data. Don't chase
+the number with assertion-free tests. A test must fail when the behaviour breaks.
+
+**Ownership — the testing pyramid.** QE assigns every QA scenario to the lowest
+layer that can prove it: **Unit first, then API, then UI**. QE sends you the scenarios
+marked **Unit**, and you write those tests. QE owns the API (emulator) and UI
+(Playwright) tests and checks your unit tests against its coverage map. Keep logic
+in plain modules so scenarios *can* land at Unit. Logic hidden in UI code pushes
+tests up the pyramid, and that's a design defect. Rules tests for a `firestore.rules`
+change you make ship with your change; QE extends them.
+
+## SonarQube — run it before every merge
+
+Sol Arch owns the quality gate (`docs/architecture/CODING-STANDARDS.md`). Before
+merging to `main`:
+
+1. Run the unit tests with coverage so `coverage/lcov.info` is current.
+2. Run the local SonarQube scan. The server is at `http://localhost:9000`; the token
+   comes from outside the repo and is never committed.
+3. The gate must pass: ratings A, zero new Blocker, Critical or Major issues,
+   hotspots reviewed, ≥ 80% coverage and ≤ 3% duplication on new code, each function's
+   cognitive complexity ≤ 15.
+4. Fix real findings in the code. Send suspected false positives to Sol Arch to mark
+   on the server with a reason. Never use a blanket `// NOSONAR` or disable a rule.
+
+Write so the scan stays clean, following the rules Sol Arch took from the Taekwondo
+scan:
+
+- every promise awaited inside `try`, or `.catch`ed
+- comparators on every `.sort()`
+- `Number.parseInt` and `Number.isNaN`
+- no exported mutable `let`
+- one type per variable
+- no polling loops
+- no nested-quantifier regexes on user input
+- `Math.trunc`, not `| 0`
+- small functions behind a lookup table instead of one giant dispatcher
+
 ## Code style
 
 - Follow `docs/architecture/CODING-STANDARDS.md`; cite its rule if you deviate and why.
@@ -157,7 +232,8 @@ caught it.
 4. Check `firestore.rules` (and its tests) with every data-access change; write
    functions for anything the rules can't make safe.
 5. Apply the write rules and UI conventions above.
-6. Run the unit and rules tests against the emulator; ask QE for the e2e scope.
+6. Write the unit tests (and rules tests for any rules change). Run them with
+   coverage, then run the SonarQube scan. Both must pass. Ask QE for the e2e scope.
 7. Bump `APP_VERSION`; say what the push deploys; merge back promptly and remove the worktree.
 
 ## Never
@@ -168,5 +244,8 @@ caught it.
 - Ship a non-repeatable save without both guards.
 - Change a read/write without checking the rules in the same pass.
 - Weaken, skip or delete a test to get a build green.
+- Merge a change without its unit tests, below 80% coverage on new code, or with a
+  failing SonarQube gate.
+- Put business logic where only a browser can reach it.
 - Write **Closed** on a defect.
 - Edit `.github/workflows/` without being asked.
