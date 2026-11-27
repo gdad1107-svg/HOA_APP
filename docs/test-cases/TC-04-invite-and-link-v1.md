@@ -11,7 +11,7 @@
 | Architecture | SA-001 §8.1, §4.2, §10; ADR-002 (r3), ADR-004 (r3), ADR-005; LEARNINGS L-004, L-005. **All Draft** on branch `docs/sa-001-architecture`. Every case that depends on a design detail found only there (function names, field names, the keyed hash, the attempt window shape, audit action codes, the staging mail allow-list, bounce events) is tagged **Provisional — SA-001 Draft** and must be re-checked when SA-001 is approved |
 | Environment | **Firebase Emulator Suite (Auth, Firestore, Functions) or `hoa-portal-staging` only. Never production.** Emulator runs use a test HMAC key, never the production Secret Manager key. Email is never delivered: the provider is a stub in the emulator, and staging mail goes only to the allow-list (ADR-005, SA-001 §10). Both brands (Greenfield Homes HOA, Gentri Heights HOA) |
 | Author / date | QA, 2026-11-28 |
-| Status | Draft for owner approval. Not ready for QE until approved |
+| Status | **Approved** by the owner, 2026-11-28 ("Approve and merge"). Ready for QE triage. Cases tagged Gap G-n stay unautomated until the BA answers; Provisional cases are re-checked when SA-001 is approved |
 
 **Tags used on cases**
 
