@@ -10,7 +10,7 @@
 | Source files / functions touched | **Anticipated, provisional (SA-001 Draft)**: callables `previewHouseholdImport`, `commitHouseholdImport`, `createHousehold`, `updateHousehold` (with `seenUpdatedAt`), `setHouseholdActive` (SA-001 §3); collections `households`, `lots/{lotKey}`, `householdContacts/{householdId}`, `importRuns/{importId}`, `auditLog` (§4.2); Firestore rules helpers `isStaff()`, `hasRole()`, `isMember()` (§8.1); indexes `households (active, block, lot)` and `(active, searchTokens array-contains, lotKey)`; web module `web/src/features/households/` and shared `web/src/ui/modal.js`, `table.js` (§9) |
 | Environment | **Emulator Suite or the test project `hoa-portal-staging` only** (SA-001 §10, ADR-005, provisional). Never a `-prod` project. Invented data only; staging mail allow-list applies to any invitation a case triggers |
 | Author / date | QA, 2026-11-28 |
-| Status | Draft v1, for owner approval. Not ready for QE until approved |
+| Status | Draft v1, for owner approval. Not ready for QE until approved. v1 r2: cases split by behaviour for layer push-down |
 
 > **Provisional (SA-001 Draft).** SA-001 and its ADRs are still Draft on branch
 > `docs/sa-001-architecture`. Every statement below that names a collection, field,
@@ -63,8 +63,8 @@ No read-back cell is empty.
 
 | Prior value | Deactivate | Reactivate | Copy cross-check | Cases |
 |---|---|---|---|---|
-| Active | Allowed after confirm; hidden from default list, listed under Inactive, records kept | Not offered; a direct call is refused or is a no-op (assumption — pending BA, Q9) | Confirm promises: "won't be billed" (not verifiable in R1, billing REQ), "won't be shown in the list" (H2), "unused invitation stops working" (H4), "records are kept" (H3) | H1–H5, H9 |
-| Inactive | Not offered; a direct call is refused or is a no-op (assumption — pending BA, Q9) | Allowed; back in the default list | "Reactivate" restores the list entry; does not resurrect a cancelled invitation (assumption — pending BA, Q10) | H6–H8, H10 |
+| Active | Allowed after confirm; hidden from default list, listed under Inactive, records kept | Not offered; a direct call is refused or is a no-op (assumption — pending BA, Q9) | Confirm promises: "won't be billed" (not verifiable in R1, billing REQ), "won't be shown in the list" (H16), "unused invitation stops working" (H4), "records are kept" (H3) | H1–H5, H9, H15–H17 |
+| Inactive | Not offered; a direct call is refused or is a no-op (assumption — pending BA, Q9) | Allowed; back in the default list | "Reactivate" restores the list entry; does not resurrect a cancelled invitation (assumption — pending BA, Q10) | H6–H8, H10, H18 |
 
 **S2. Link status at the moment of Deactivate** (every value `linkStatus` can hold, REQ-003 copy of record).
 
@@ -114,21 +114,21 @@ mock-up's Homeowners heading loads. This change adds role-visible areas it does 
 
 | # | Gherkin scenario | Cases |
 |---|---|---|
-| 1 | Import the household list | A1, A2, A3, A4 |
-| 2 | Rows with problems are shown, not imported | A5, A6, A7, A8 |
-| 3 | Importing a lot that already exists does not duplicate it | A9, A10, A11 |
+| 1 | Import the household list | A1, A2, A3, A4, K19, K20, K22 |
+| 2 | Rows with problems are shown, not imported | A5, A6, A7, A8, K20, K21, K22 |
+| 3 | Importing a lot that already exists does not duplicate it | A9, A10, A11, K21 |
 | 4 | Pressing Import twice imports once | D2, D3, D4 |
 | 5 | Two admins import the same file at the same time | D5, D6 |
-| 6 | Add one household | F1, F2 |
-| 7 | The same lot can't be added twice | F3, F4, F5, F6 |
-| 8 | Correct a contact number | G1, G2, G3 |
-| 9 | Two admins edit the same household | G6, G7 |
-| 10 | A household is deactivated, not deleted | H1, H2, H3, H4 |
+| 6 | Add one household | F1, F2, F10, F11 |
+| 7 | The same lot can't be added twice | F3, F4, F5, F6, F12, F13, K23 |
+| 8 | Correct a contact number | G1, G2, G3, G13 |
+| 9 | Two admins edit the same household | G6, G7, K24 |
+| 10 | A household is deactivated, not deleted | H1, H2, H3, H4, H15, H16, H17 |
 | 11 | Typing in a half-filled form is not lost | K9, K10 |
 | 12 | Search by block | J1, J2, J3 |
 | 13 | Search by name | J4, J5 |
 | 14 | Readable on a phone | K1, K2, K3, K4 |
-| 15 | Only the office and the treasurer can change households | M1, M2 |
+| 15 | Only the office and the treasurer can change households | M1, M2, M8 |
 
 Unhappy paths are included in every row above; the rest of the plan widens them.
 
@@ -138,30 +138,30 @@ Unhappy paths are included in every row above; the rest of the plan widens them.
 
 | Area | Why it is at risk | Cases / re-run |
 |---|---|---|
-| `households/{id}` shape | Every later feature (billing, payments, bookings, vehicles, passes) reads it; homeowners read their own. Contacts must never land on it | N1, N2, M5 |
+| `households/{id}` shape | Every later feature (billing, payments, bookings, vehicles, passes) reads it; homeowners read their own. Contacts must never land on it | N1, N2, N12, M5 |
 | Rules helpers `isStaff()`, `hasRole()`, `isMember()` (prov.) | Shared with every collection in REQ-002; adding household rules can widen or break them | M-block; re-run TC-02 rules matrix |
 | REQ-004 invitations | Read `displayName`, `contactEmail`, `active`; write `linkStatus`, `memberCount`. A rename of a field or an edit that rewrites the household doc could wipe `linkStatus` | P1–P5; re-run TC-04 invite and redeem cases |
 | Shared modal (`ui/modal.js`, mock-up `.modal`) | REQ-003 says no close on backdrop; existing NAV-06 says Escape closes any modal. One change to the shared modal moves every dialog in the app | K9–K11; re-run NAV-06 |
 | Shared table and pills (`ui/table.js`, `.pill`) | Link status reuses payment pill colours; a change ripples to Approvals and Dues | K13; re-run SMK-admin-approvals |
 | Phone layout | DEF-001 is open: no viewport meta, so cards never appear on a real phone | K1–K4 under phone emulation; re-run NAV-07, NAV-08 |
-| Household count shown elsewhere | Mock-up's admin Dashboard ("{n} households"), Announcements ("Seen by x of N households"), Collections, Reports read the household list | P6, P7 (derived figure) |
+| Household count shown elsewhere | Mock-up's admin Dashboard ("{n} households"), Announcements ("Seen by x of N households"), Collections, Reports read the household list | P6, P7, K19 (derived figure) |
 | Mock-up Homeowners screen | `aHo()` is replaced; its free-text `contact` column and detail pop-up go away | Q1; re-run SMK-admin-homeowners |
-| Audit log | Written by every privileged action; a household write without audit breaks accountability | N5–N8 |
+| Audit log | Written by every privileged action; a household write without audit breaks accountability | G2, H5, H18, N5–N8 |
 
 **Known failure patterns applied**
 
 | Pattern | Applies? | Where |
 |---|---|---|
-| Copy promises what the code doesn't do | Yes: "Import 619 households", "Imported {n}…", "Skipped, not changed", Deactivate confirm, "{lot} is already in the directory." | A4, A8, A11, D6, H1–H4, F3; "won't be billed" flagged as unverifiable in R1 |
+| Copy promises what the code doesn't do | Yes: "Import 619 households", "Imported {n}…", "Skipped, not changed", Deactivate confirm, "{lot} is already in the directory." | Copy checked once in D4, H1, J9, K3, K13, K19–K25, B19–B21; each promise verified at record level by A3, A8, A11, D6, F3, H3, H4, H16; "won't be billed" flagged as unverifiable in R1 |
 | A value written for one role, never shown back | Yes: phase, contacts, audit | Round-trip register R3, R6, R7, R12 |
 | Status-gated rule checked for one transition only | Yes: active, link status, import run status, edit freshness | S1–S4 tables |
 | Same concept, different word on another screen | Yes: "Import households" vs mobile "Import"; "Homeowners" page vs "households" count; "Inactive" chip vs "Deactivate"; link status words in REQ-003 vs REQ-004 | K18 |
 | Dates computed in UTC where the user means local | Low: no due dates here; audit "when" and the 30-day retention cut-off; invite expiry date | N10, H12 (build dates from Asia/Manila local today) |
-| A derived figure doesn't refresh after a related write | Yes: heading count, chip counts, search tokens after rename | P6, P7, G4 |
-| Zero and "not set" look the same | Yes: empty directory vs search with no match; "—" balance vs ₱0; phase "Not set"; no email vs invalid email; 0 valid rows | J8, J9, K3, C12, C18, B4 |
+| A derived figure doesn't refresh after a related write | Yes: heading count, chip counts, search tokens after rename | P6, P7, G4, G13, H17 |
+| Zero and "not set" look the same | Yes: empty directory vs search with no match; "—" balance vs ₱0; phase "Not set"; no email vs invalid email; 0 valid rows | J8, J9, K3, C12, C18, C25, C27, B4, B21 |
 | A write silently refused by security rules | Yes: every direct client write and refused callable | M-block asserts the refusal, never "nothing changed" |
-| Double-tap / two devices create duplicates | Yes: Import, Save (add), Save (edit), Deactivate | D2–D5, F5, F6, G10, H9 |
-| Stale reference | Yes: stale edit, preview then lot added, edit of a household deactivated meanwhile, import vs form on the same lot | G6–G9, D8, D9 |
+| Double-tap / two devices create duplicates | Yes: Import, Save (add), Save (edit), Deactivate | D2–D5, F5, F6, F12, F13, G10, G14, H9 |
+| Stale reference | Yes: stale edit, preview then lot added, edit of a household deactivated meanwhile, import vs form on the same lot | G6–G9, D8, D9, D17, D18, K24 |
 | Backdrop click loses work | Yes: Add / Edit dialog | K9, K10, K11 |
 | A modal appearing mid-flow blocks the next action | Yes: important-announcement pop-up (NAV-05) appearing on the Import page or over the Add dialog | K12 |
 | Assumed SDK/network behaviour baked into a case | Yes: "network error keeps the preview"; partial commit resume | D7, K8 marked as assumptions |
@@ -225,376 +225,437 @@ directory holds Households A–F plus the ZZ Search Set; the actor is ZZ Test Ad
 desktop browser. "Refused explicitly" means the call or read returns a permission or
 validation error that the case checks for, never "nothing changed on screen".
 
+**One behaviour per case (r2).** Each case checks one kind of behaviour: a rule (parsing,
+normalisation, validation, counts, uniqueness), a permission, a stored outcome, or what the
+screen shows. Rule, permission and stored-outcome cases state the record or the decision
+first and name no screen wording; the preview result or the run record (prov.) is the
+evidence, not the preview table. The REQ-003 copy of record is checked once, in these
+screen cases: D4 (Importing…), H1 (Deactivate confirm), J9 (empty state), K3 (balance
+"—"), K13 (link status pills), K19 (page heading), K20 (preview heading and Import
+button), K21 (row reasons), K22 (finished banner), K23 (duplicate lot), K24 (stale edit),
+K25 (import hint and buttons), plus B19–B21 for file-level refusals. A refusal case's
+"no record written" is its proof of refusal, not a second behaviour.
+
 ### Block A — Import: preview and happy path
 
-#### TC-03-A1 — A clean 623-row file previews as "623 households ready to import"
+#### TC-03-A1 — The preview of a clean 623-row file classifies every row as ready and none as rejected
 **Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** No
 - **Setup:** empty directory; ZZ Test Admin 1; `ZZ-import-623-clean.csv`.
-- **Action:** Homeowners → Import households → choose the file.
-- **Expected:** preview heading reads "623 households ready to import"; no list of rows that won't be imported; button reads "Import 623 households".
+- **Action:** run the preview for the file.
+- **Expected:** the preview result has 623 rows ready and 0 rejected; the import-run record (prov.) is `previewed` with those counts. Screen wording: K20.
 - **Don't assert:** time taken; the import id.
 
 #### TC-03-A2 — The preview alone saves no household
 **Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** No
-- **Setup:** as A1, preview shown.
-- **Action:** press Cancel on the preview.
-- **Expected:** Homeowners shows the empty state; no `households`, `lots` or `householdContacts` documents exist (prov.).
+- **Setup:** as A1, preview done.
+- **Action:** cancel the preview.
+- **Expected:** no `households`, `lots` or `householdContacts` documents exist (prov.). Empty-state screen: J9.
 - **Don't assert:** whether the import-run record is deleted on Cancel (gap Q13).
 
-#### TC-03-A3 — Committing the clean file makes the page read "623 households"
+#### TC-03-A3 — Committing the clean file stores exactly 623 households
 **Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** as A1.
-- **Action:** press "Import 623 households"; wait for it to finish.
-- **Expected:** finished banner starts "Imported 623 households."; heading "Homeowners · 623 households".
-- **Don't assert:** whether the banner's "{m} rows were not imported" part is absent or reads 0 (gap Q5); row order on page 1.
+- **Action:** commit the run; wait for it to finish.
+- **Expected:** 623 household records exist, one per lot in the file; the run record (prov.) reports 623 imported. Banner: K22; heading: K19.
+- **Don't assert:** whether the run reports 0 rejected or omits the figure (gap Q5); record order.
 
-#### TC-03-A4 — Every imported household shows the link status "Not invited"
+#### TC-03-A4 — Every imported household is stored with link status "Not invited" and no members
 **Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** after A3.
-- **Action:** choose the "Not invited" chip; open the first and last page.
-- **Expected:** chip reads "Not invited (623)"; every row's pill reads "Not invited" in words.
-- **Don't assert:** the pill colour value.
+- **Action:** read the 623 household records.
+- **Expected:** each has link status Not invited and member count 0 (register R9, prov.). Chip count: J14; pill words: K13.
+- **Don't assert:** the stored value's spelling (prov.).
 
-#### TC-03-A5 — Problem rows are listed with row number and reason, the header counted as row 1
+#### TC-03-A5 — The preview rejects exactly rows 14, 31, 32 and 57, counting the header as row 1
 **Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** No
 - **Setup:** empty directory; Admin 1; `ZZ-import-623-problems.csv`.
-- **Action:** upload the file.
-- **Expected:** exactly four rows listed: 14 "Lot number is missing"; 31 and 32 "Blk 2 Lot 7 appears more than once in the file"; 57 "\"zz-ana@\" is not a valid email address".
-- **Don't assert:** list order beyond ascending row number.
+- **Action:** run the preview.
+- **Expected:** exactly four rejected rows: 14 lot missing; 31 and 32 Blk 2 Lot 7 duplicated in the file; 57 invalid email, value `zz-ana@`. Reason wording: K21.
+- **Don't assert:** order beyond ascending row number.
 
-#### TC-03-A6 — The import button counts only the rows that will be added
+#### TC-03-A6 — The preview counts only the rows that will be added
 **Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** No
 - **Setup:** as A5.
-- **Action:** read the preview heading and button.
-- **Expected:** "619 households ready to import · 4 rows won't be imported"; button "Import 619 households".
+- **Action:** read the preview result.
+- **Expected:** 619 ready, 4 rejected. Heading and button wording: K20.
 - **Don't assert:** tile layout.
 
-#### TC-03-A7 — Neither copy of an in-file duplicate lot is imported
+#### TC-03-A7 — Neither copy of an in-file duplicate lot is stored
 **Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** as A5.
-- **Action:** commit; search "blk 2".
-- **Expected:** no Blk 2 Lot 7 in the directory; 619 households in total.
+- **Action:** commit; read the records.
+- **Expected:** no lot entry or household for Blk 2 Lot 7; 619 households from this run.
 - **Don't assert:** which of rows 31/32 the system saw first.
 
-#### TC-03-A8 — After a partial import the banner states both counts and offers the download
+#### TC-03-A8 — After a partial import the run record holds 619 imported and the 4 rejected rows
 **Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** as A7, committed.
-- **Action:** read the banner.
-- **Expected:** "Imported 619 households. 4 rows were not imported. Download them to fix and import again." with a working download (content in block E).
-- **Don't assert:** banner position.
+- **Action:** read the run record (prov.).
+- **Expected:** 619 imported; the 4 rejected rows (14, 31, 32, 57) with reasons, available to download (file content: E1). Banner: K22.
+- **Don't assert:** field names.
 
-#### TC-03-A9 — A lot already in the directory previews as "Already in the directory, skipped"
+#### TC-03-A9 — The preview classifies a lot already in the directory as skipped and counts 3 ready
 **Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** No
 - **Setup:** Household A (Blk 4 Lot 12) exists; Admin 1; `ZZ-import-with-B04-L12.csv`.
-- **Action:** upload.
-- **Expected:** the Blk 4 Lot 12 row reads "Already in the directory, skipped"; button "Import 3 households".
-- **Don't assert:** whether that row counts in "{m} rows won't be imported" (gap Q5).
+- **Action:** run the preview.
+- **Expected:** the Blk 4 Lot 12 row is classified "already in the directory, skipped"; 3 rows ready. Wording: K20, K21.
+- **Don't assert:** whether the skipped row counts among the rows that won't be imported (gap Q5).
 
 #### TC-03-A10 — The import leaves exactly one Blk 4 Lot 12
 **Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** as A9.
-- **Action:** commit; search "blk 4".
-- **Expected:** one Blk 4 Lot 12 row; one lot entry for it (prov.).
-- **Don't assert:** total page count.
+- **Action:** commit; read the records for Blk 4 Lot 12.
+- **Expected:** one lot entry and one household for Blk 4 Lot 12 (prov.).
+- **Don't assert:** the total household count.
 
 #### TC-03-A11 — The existing household's name and contacts are unchanged by the import
 **Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** as A10.
-- **Action:** open Blk 4 Lot 12's edit form.
-- **Expected:** "ZZ Test Owner Alpha", zz-owner-a@example.test, 0900 000 0001; pill still "Linked".
+- **Action:** read Household A's household and contact records.
+- **Expected:** display name "ZZ Test Owner Alpha"; email zz-owner-a@example.test; mobile the stored form of 0900 000 0001; link status Linked.
 - **Don't assert:** that the file's different values appear anywhere.
 
-#### TC-03-A12 — The template downloads with the six columns in order
+#### TC-03-A12 — The template file's header is the six columns in order
 **Priority** P2 · **Type** Happy path · **Layer** TBD — QE · **Writes** No
 - **Setup:** Admin 1 on Import households.
-- **Action:** press "Download template".
-- **Expected:** a CSV whose header is Block, Lot, Owner name, Email, Mobile, Phase; the page hint reads "Fill in the template and save it as CSV UTF-8."
+- **Action:** download the template.
+- **Expected:** a CSV whose header is Block, Lot, Owner name, Email, Mobile, Phase. Hint wording: K25.
 - **Don't assert:** file name.
 
-#### TC-03-A13 — A treasurer can import end to end
+#### TC-03-A13 — A treasurer's import preview and commit calls are allowed
 **Priority** P2 · **Type** Security / role · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** empty directory; ZZ Test Treasurer; a 3-row clean file.
-- **Action:** preview and commit.
-- **Expected:** "Imported 3 households."; heading shows 3.
+- **Action:** call preview, then commit.
+- **Expected:** neither call returns a permission error.
 - **Don't assert:** audit record contents (N6).
+
+#### TC-03-A14 — A treasurer's commit stores the file's households
+**Priority** P2 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
+- **Setup:** after A13.
+- **Action:** read the records for the file's 3 lots.
+- **Expected:** 3 household records, one per lot.
+- **Don't assert:** who the run record names beyond the treasurer's uid.
 
 ### Block B — Import: file-level boundaries and negatives
 
-#### TC-03-B1 — A 0-byte file is refused with a message saying what to do
+#### TC-03-B1 — A 0-byte file is refused before any preview
 **Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** No
 - **Setup:** `ZZ-import-empty.csv`.
-- **Action:** upload.
-- **Expected:** a text message naming the problem and the fix; no preview; no Import button. **Assumption — pending BA (Q2).**
-- **Don't assert:** exact wording.
+- **Action:** submit the file.
+- **Expected:** refused at file level; no row results; no `previewed` run record. **Assumption — pending BA (Q2).** Screen: B19.
+- **Don't assert:** whether the refusal happens in the browser or the function.
 
-#### TC-03-B2 — A header-only file offers no working Import button
+#### TC-03-B2 — A header-only file yields zero ready rows
 **Priority** P1 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
 - **Setup:** `ZZ-import-header-only.csv`.
-- **Action:** upload.
-- **Expected:** zero rows ready; Import absent or disabled. **Assumption — pending BA (Q2).**
-- **Don't assert:** whether the text says "0 households" or "No rows".
+- **Action:** run the preview.
+- **Expected:** 0 ready, 0 rejected; committing that run writes no household. **Assumption — pending BA (Q2).** Import button: B21.
+- **Don't assert:** whether the preview is refused or returns empty.
 
-#### TC-03-B3 — A file with one valid row imports one household
+#### TC-03-B3 — A file with one valid row stores one household
 **Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** empty directory; header + 1 valid row.
 - **Action:** preview and commit.
-- **Expected:** one household listed.
+- **Expected:** one household record.
 - **Don't assert:** "household" vs "households" in the copy (gap Q3).
 
-#### TC-03-B4 — A file where every row has a problem offers no working Import button
+#### TC-03-B4 — A file where every row has a problem yields zero ready rows
 **Priority** P1 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
 - **Setup:** header + 3 rows, each with no owner name.
-- **Action:** upload.
-- **Expected:** 3 rows listed "Owner name is missing"; Import absent or disabled. **Assumption — pending BA (Q2).**
+- **Action:** run the preview.
+- **Expected:** 3 rejected for a missing owner name; 0 ready. **Assumption — pending BA (Q2).** Import button: B21.
 - **Don't assert:** tile values.
 
-#### TC-03-B5 — A file that is not valid UTF-8 is refused with the re-save instruction
+#### TC-03-B5 — A file that is not valid UTF-8 is refused at file level
 **Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** No
 - **Setup:** `ZZ-import-ansi.csv`.
-- **Action:** upload.
-- **Expected:** "Save the file as CSV UTF-8 and upload it again."; no preview rows. Copy is from the Sol Arch review, not REQ-003's copy table (gap Q4).
-- **Don't assert:** that a garbled name is shown anywhere.
+- **Action:** submit the file.
+- **Expected:** refused as not UTF-8; no row results. Wording: B20.
+- **Don't assert:** that a garbled name is returned anywhere.
 
 #### TC-03-B6 — A UTF-8 file with a BOM is read correctly, first column included
 **Priority** P1 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
 - **Setup:** 3 valid rows saved as Excel "CSV UTF-8" (with BOM).
-- **Action:** upload.
-- **Expected:** "3 households ready to import"; no row says "Block is missing". **Assumption — pending BA (Q4).**
+- **Action:** run the preview.
+- **Expected:** 3 ready, 0 rejected; row 2's block parsed as its number, not rejected for a missing block. **Assumption — pending BA (Q4).**
 - **Don't assert:** how the BOM is stripped.
 
 #### TC-03-B7 — A UTF-8 file without a BOM is read correctly
 **Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
 - **Setup:** the same 3 rows with no BOM (as Google Sheets exports).
-- **Action:** upload.
-- **Expected:** "3 households ready to import".
-- **Don't assert:** file name shown.
+- **Action:** run the preview.
+- **Expected:** 3 ready, 0 rejected.
+- **Don't assert:** file name.
 
-#### TC-03-B8 — "ñ" in an owner name survives import
+#### TC-03-B8 — "ñ" in an owner name is stored unchanged
 **Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** UTF-8 row with owner "ZZ Test Peña".
-- **Action:** preview, commit, search "peña".
-- **Expected:** preview and directory show "ZZ Test Peña" exactly.
+- **Action:** preview, commit; read the household record.
+- **Expected:** display name is exactly "ZZ Test Peña". Display: B22.
 - **Don't assert:** search with "pena" (J7).
 
 #### TC-03-B9 — CRLF, LF and mixed line endings give the same rows and row numbers
 **Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
 - **Setup:** one 5-row file saved three ways (CRLF, LF, mixed); row 4 has no lot.
-- **Action:** upload each.
-- **Expected:** each shows 4 ready and row 4 "Lot number is missing". **Assumption — pending BA (Q4).**
+- **Action:** run the preview for each.
+- **Expected:** each: 4 ready; row 4 rejected for a missing lot. **Assumption — pending BA (Q4).**
 - **Don't assert:** CR-only files until Q4 is answered.
 
 #### TC-03-B10 — A last row with no final newline is read; trailing blank lines are not rows
 **Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
 - **Setup:** two copies of a 3-row file: no final newline; two blank lines at the end.
-- **Action:** upload each.
-- **Expected:** both show 3 ready; no "Block is missing" rows. **Assumption — pending BA (Q4).**
+- **Action:** run the preview for each.
+- **Expected:** both: 3 ready, 0 rejected. **Assumption — pending BA (Q4).**
 - **Don't assert:** row numbers of blank lines.
 
 #### TC-03-B11 — A quoted field containing a comma stays in one column
 **Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** owner `"ZZ Test Santos, Jr."` with email and mobile.
-- **Action:** preview and commit.
-- **Expected:** owner "ZZ Test Santos, Jr."; email and mobile in their own fields.
-- **Don't assert:** quote characters in the display.
+- **Action:** preview and commit; read the records.
+- **Expected:** display name "ZZ Test Santos, Jr."; email and mobile in their own contact fields.
+- **Don't assert:** quote characters in any display.
 
 #### TC-03-B12 — A missing required column is reported once for the file
 **Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** No
 - **Setup:** template without the Lot column, 3 rows.
-- **Action:** upload.
-- **Expected:** one file-level message naming the Lot column; no import offered. **Assumption — pending BA (Q2).**
+- **Action:** submit the file.
+- **Expected:** one file-level error identifying the Lot column; no row results; nothing can be committed. **Assumption — pending BA (Q2).** Screen: B19.
 - **Don't assert:** wording.
 
-#### TC-03-B13 — An extra unknown column doesn't block the import and isn't stored
-**Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** Yes
+#### TC-03-B13 — An extra unknown column causes no row to be rejected
+**Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** No
 - **Setup:** template + a "Notes" column holding "ZZ note text".
-- **Action:** preview and commit.
-- **Expected:** rows import; "ZZ note text" is in no household or contact record. **Assumption — pending BA (Q2).**
+- **Action:** run the preview.
+- **Expected:** every row ready. **Assumption — pending BA (Q2).**
 - **Don't assert:** whether the preview warns about the column.
 
 #### TC-03-B14 — Reordered columns are matched by header, never shifted
 **Priority** P3 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
 - **Setup:** columns in the order Owner name, Block, Lot, Mobile, Email, Phase.
-- **Action:** upload.
-- **Expected:** rows read correctly, or one file-level message; never a name in the Lot field. **Assumption — pending BA (Q2).**
+- **Action:** run the preview.
+- **Expected:** rows parsed with each value in its own field, or one file-level error; never a name parsed as a lot. **Assumption — pending BA (Q2).**
 - **Don't assert:** which of the two outcomes.
 
 #### TC-03-B15 — A semicolon-separated file is refused, not read as one column
 **Priority** P3 · **Type** Negative · **Layer** TBD — QE · **Writes** No
 - **Setup:** template saved with `;` separators.
-- **Action:** upload.
-- **Expected:** a file-level message; no row whose Block holds a whole line. **Assumption — pending BA (Q2).**
+- **Action:** submit the file.
+- **Expected:** a file-level error; no row whose block holds a whole line. **Assumption — pending BA (Q2).** Screen: B19.
 - **Don't assert:** wording.
 
-#### TC-03-B16 — An .xlsx file is refused with a CSV instruction
+#### TC-03-B16 — An .xlsx file is refused before any preview
 **Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** No
 - **Setup:** the template saved as `.xlsx`.
 - **Action:** choose it.
-- **Expected:** a message to save as CSV UTF-8; no preview (CSV only in R1).
+- **Expected:** refused as not CSV; no row results (CSV only in R1). Screen: B19.
 - **Don't assert:** whether the file picker filters it out first.
 
-#### TC-03-B17 — A file at the row limit previews; one row over is refused, stating the limit
+#### TC-03-B17 — A file at the row limit is accepted; one row over is refused, stating the limit
 **Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
 - **Setup:** files with exactly the limit and limit + 1 valid rows (limit: gap Q1).
-- **Action:** upload each.
-- **Expected:** limit: preview. Limit + 1: a message stating the limit, no preview. **Assumption — pending BA (Q1).**
+- **Action:** run the preview for each.
+- **Expected:** limit: previewed. Limit + 1: refused at file level, the error carrying the limit. **Assumption — pending BA (Q1).** Screen: B19.
 - **Don't assert:** a number until Q1 is answered.
 
-#### TC-03-B18 — A multi-megabyte file is refused and the page stays responsive
+#### TC-03-B18 — A multi-megabyte file is refused
 **Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** No
 - **Setup:** a CSV padded to about 5 MB.
-- **Action:** choose it.
-- **Expected:** a size message; page usable. **Assumption — pending BA (Q1).**
+- **Action:** submit the file.
+- **Expected:** refused for size; no row results. **Assumption — pending BA (Q1).** Page responsiveness: B24.
 - **Don't assert:** the size threshold.
+
+#### TC-03-B19 — A file-level refusal is shown as a text message saying what to do, with no preview
+**Priority** P2 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+- **Setup:** the files from B1, B12, B15, B16, B17 (limit + 1) and B18.
+- **Action:** choose each on Import households.
+- **Expected:** each shows a text message naming the problem and the fix (B12's names the Lot column, B17's states the limit, B16's says to save as CSV UTF-8); no preview table; no Import button. **Assumption — pending BA (Q1, Q2).**
+- **Don't assert:** exact wording (no copy of record exists for these).
+
+#### TC-03-B20 — The not-UTF-8 refusal reads "Save the file as CSV UTF-8 and upload it again."
+**Priority** P2 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+- **Setup:** `ZZ-import-ansi.csv`.
+- **Action:** choose it.
+- **Expected:** that text; no preview rows. Copy is from the Sol Arch review, not REQ-003's copy table (gap Q4).
+- **Don't assert:** message position.
+
+#### TC-03-B21 — With zero ready rows the Import button is absent or disabled
+**Priority** P2 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+- **Setup:** the previews from B2, B4 and D13.
+- **Action:** look for the Import button.
+- **Expected:** absent or disabled in each. **Assumption — pending BA (Q2).**
+- **Don't assert:** which of the two, or "0 households" vs "No rows".
+
+#### TC-03-B22 — An owner name with "ñ" is shown unchanged in the preview and directory
+**Priority** P2 · **Type** UI/UX · **Layer** TBD — QE · **Writes** Yes
+- **Setup:** as B8.
+- **Action:** read the preview row, then search "peña".
+- **Expected:** "ZZ Test Peña" exactly in both.
+- **Don't assert:** font rendering.
+
+#### TC-03-B23 — An extra column's values are stored in no record
+**Priority** P2 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
+- **Setup:** as B13.
+- **Action:** commit; read the household, lot and contact records.
+- **Expected:** "ZZ note text" is in none of them. **Assumption — pending BA (Q2).**
+- **Don't assert:** other field names.
+
+#### TC-03-B24 — The page stays usable while a multi-megabyte file is refused
+**Priority** P3 · **Type** Usability · **Layer** TBD — QE · **Writes** No
+- **Setup:** as B18.
+- **Action:** choose the file; then press Choose a different file.
+- **Expected:** the page responds; no frozen tab.
+- **Don't assert:** a timing figure.
 
 ### Block C — Field validation and lot-key normalisation
 
 The rules apply to the import and the form alike (one validation function, Sol Arch review).
-Each case uses a small import file of new rows plus one control row that is valid.
+Each case uses a small import file of new rows plus one control row that is valid. The
+expected result is the preview result for each row; reason wording is checked once in K21.
 
-#### TC-03-C1 — A row with no block is rejected "Block is missing"
+#### TC-03-C1 — A row with no block is rejected for a missing block
 **Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** No
 - **Setup:** row: Block blank, Lot 3, owner "ZZ Test Owner C1".
-- **Action:** upload.
-- **Expected:** that row listed "Block is missing"; control row ready.
-- **Don't assert:** column order in the preview.
+- **Action:** run the preview.
+- **Expected:** that row rejected, reason block missing; control row ready.
+- **Don't assert:** column order.
 
-#### TC-03-C2 — A row with no owner name is rejected "Owner name is missing"
+#### TC-03-C2 — A row with no owner name is rejected for a missing owner name
 **Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** No
 - **Setup:** row: Block 30, Lot 1, owner blank.
-- **Action:** upload.
-- **Expected:** "Owner name is missing".
-- **Don't assert:** other columns' display.
+- **Action:** run the preview.
+- **Expected:** rejected, reason owner name missing.
+- **Don't assert:** other fields.
 
-#### TC-03-C3 — An owner name of spaces only is rejected "Owner name is missing"
+#### TC-03-C3 — An owner name of spaces only is treated as missing
 **Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** No
 - **Setup:** owner "   ".
-- **Action:** upload.
-- **Expected:** "Owner name is missing".
-- **Don't assert:** how spaces are displayed.
+- **Action:** run the preview.
+- **Expected:** rejected, reason owner name missing.
+- **Don't assert:** how spaces are echoed.
 
-#### TC-03-C4 — An owner name of exactly 80 characters is accepted and shown in full
+#### TC-03-C4 — An owner name of exactly 80 characters is accepted and stored in full
 **Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** owner "ZZ Test " padded to 80 characters.
-- **Action:** preview, commit, open the edit form.
-- **Expected:** all 80 characters stored and shown.
-- **Don't assert:** line-wrap position.
+- **Action:** preview, commit; read the household record.
+- **Expected:** row ready; display name stored with all 80 characters. Display: C23.
+- **Don't assert:** anything about wrapping.
 
 #### TC-03-C5 — An owner name of 81 characters is rejected with a length reason
 **Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
 - **Setup:** the C4 name plus one character.
-- **Action:** upload.
-- **Expected:** row rejected with a reason naming the 80-character limit. **Assumption — pending BA (Q7).**
+- **Action:** run the preview.
+- **Expected:** rejected, reason naming the 80-character limit. **Assumption — pending BA (Q7).**
 - **Don't assert:** wording.
 
-#### TC-03-C6 — Every accepted mobile shape is accepted and shown in one display format
-**Priority** P1 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
+#### TC-03-C6 — Each of the six accepted mobile shapes passes validation
+**Priority** P1 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
 - **Setup:** six rows with mobiles `9000000011`, `09000000012`, `639000000013`, `+639000000014`, `0900-000-0015`, `0900 000 0016`.
-- **Action:** preview, commit.
-- **Expected:** all ready; directory shows "0900 000 0011" … "0900 000 0016".
-- **Don't assert:** the stored string (N3).
+- **Action:** run the preview.
+- **Expected:** all six ready. Stored format: N3; display format: C24.
+- **Don't assert:** the stored string here.
 
-#### TC-03-C7 — A mobile one digit short is rejected quoting the value
+#### TC-03-C7 — A mobile one digit short is rejected as invalid, quoting the value
 **Priority** P1 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
 - **Setup:** mobile `0900000001` (10 digits).
-- **Action:** upload.
-- **Expected:** "\"0900000001\" is not a valid mobile number".
+- **Action:** run the preview.
+- **Expected:** rejected, reason invalid mobile, carrying the value `0900000001`.
 - **Don't assert:** whether spaces in the value are echoed.
 
-#### TC-03-C8 — A mobile one digit long is rejected
+#### TC-03-C8 — A mobile one digit long is rejected as invalid
 **Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
 - **Setup:** mobile `090000000123`.
-- **Action:** upload.
-- **Expected:** the mobile reason quoting the value.
-- **Don't assert:** wording beyond the copy of record.
+- **Action:** run the preview.
+- **Expected:** rejected, reason invalid mobile, carrying the value.
+- **Don't assert:** wording.
 
 #### TC-03-C9 — A mobile in scientific notation is rejected, not guessed
 **Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** No
 - **Setup:** mobile `9.00E+09`.
-- **Action:** upload.
-- **Expected:** the mobile reason quoting "9.00E+09".
+- **Action:** run the preview.
+- **Expected:** rejected, reason invalid mobile, carrying "9.00E+09".
 - **Don't assert:** any reconstructed number.
 
 #### TC-03-C10 — A 5,000-digit mobile is rejected promptly
 **Priority** P3 · **Type** Negative · **Layer** TBD — QE · **Writes** No
 - **Setup:** one row with a 5,000-digit mobile.
-- **Action:** upload.
-- **Expected:** rejected; preview returns in normal time (length capped before matching, S8786).
+- **Action:** run the preview.
+- **Expected:** rejected; validation returns in normal time (length capped before matching, S8786).
 - **Don't assert:** a timing figure.
 
-#### TC-03-C11 — An invalid email is rejected quoting the value
+#### TC-03-C11 — Three malformed emails are each rejected as invalid, quoting the value
 **Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** No
 - **Setup:** three rows with emails `zz-ana@`, `zz@@example.test`, `zz example@example.test`.
-- **Action:** upload.
-- **Expected:** each listed "\"{value}\" is not a valid email address".
+- **Action:** run the preview.
+- **Expected:** each rejected, reason invalid email, carrying its value.
 - **Don't assert:** acceptance of unusual-but-valid addresses (library decides).
 
-#### TC-03-C12 — A row with no email and no mobile is accepted
+#### TC-03-C12 — A row with no email and no mobile is stored with both contacts empty
 **Priority** P1 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** Block 31, Lot 1, owner "ZZ Test Owner C12", no email, no mobile.
-- **Action:** preview, commit.
-- **Expected:** imported; directory shows no email for it.
-- **Don't assert:** placeholder text for the missing contact.
+- **Action:** preview, commit; read the contact record.
+- **Expected:** row ready; household stored; contact record has no email and no mobile (empty, not an invalid placeholder). Display: C25.
+- **Don't assert:** whether the fields are absent or empty strings (prov.).
 
 #### TC-03-C13 — Two households may share one contact email
 **Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** two new lots, both zz-family@example.test.
-- **Action:** preview, commit.
-- **Expected:** both imported (shared family emails are expected, SA-001 §8.1).
+- **Action:** preview, commit; read both contact records.
+- **Expected:** both rows ready; both contact records hold zz-family@example.test (shared family emails are expected, SA-001 §8.1).
 - **Don't assert:** any warning text.
 
-#### TC-03-C14 — Lot "12-A" is accepted and distinct from Lot 12
+#### TC-03-C14 — Lot "12-A" is stored as a lot distinct from Lot 12
 **Priority** P1 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** Household A (Blk 4 Lot 12) exists; row Blk 4 Lot 12-A.
-- **Action:** preview, commit.
-- **Expected:** ready, then listed as "Blk 4 Lot 12-A" beside Blk 4 Lot 12.
+- **Action:** preview, commit; read the lot entries.
+- **Expected:** row ready; two lot entries and two households, Blk 4 Lot 12 and Blk 4 Lot 12-A. Label: C26.
 - **Don't assert:** the key string.
 
-#### TC-03-C15 — Block "04" and block "4" are the same lot
+#### TC-03-C15 — Block "04" and block "4" resolve to the same lot
 **Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** No
 - **Setup:** Household A exists; row Block "04", Lot "12".
-- **Action:** upload.
-- **Expected:** "Already in the directory, skipped".
+- **Action:** run the preview.
+- **Expected:** classified as already in the directory, skipped.
 - **Don't assert:** the key string.
 
 #### TC-03-C16 — Lot values "012", " 12 " and "12-a" resolve to existing lots by one rule
 **Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** No
 - **Setup:** Households A (Blk 4 Lot 12) and F (Blk 12 Lot 12-A) exist; rows Blk 4 Lot "012", Blk 4 Lot " 12 ", Blk 12 Lot "12-a".
-- **Action:** upload.
-- **Expected:** QA assumes trim, case-insensitive, leading zeros ignored: all three "Already in the directory, skipped". **Assumption — pending BA (Q8).** Never two households a person would read as the same lot.
+- **Action:** run the preview.
+- **Expected:** QA assumes trim, case-insensitive, leading zeros ignored: all three classified as already in the directory, skipped. **Assumption — pending BA (Q8).** Never two households a person would read as the same lot.
 - **Don't assert:** the key string.
 
 #### TC-03-C17 — A non-numeric, zero or negative block is rejected
 **Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** No
 - **Setup:** rows with Block "4A", "0", "-1".
-- **Action:** upload.
+- **Action:** run the preview.
 - **Expected:** each rejected with a block reason. **Assumption — pending BA (Q8):** no copy exists for an invalid (not missing) block.
 - **Don't assert:** wording.
 
-#### TC-03-C18 — Phase blank becomes "Not set"; an unknown phase is handled by one rule
+#### TC-03-C18 — A blank phase is stored as not set; an unknown phase is handled by one rule
 **Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** rows with Phase blank, "Phase 2", "2", "Phase 9".
-- **Action:** preview, commit; open each edit form.
-- **Expected:** blank → "Not set"; "Phase 2" → Phase 2; "2" and "Phase 9" per BA. **Assumption — pending BA (Q8).**
+- **Action:** preview, commit; read the household records.
+- **Expected:** blank → phase not set (null, prov.); "Phase 2" → Phase 2; "2" and "Phase 9" per BA. **Assumption — pending BA (Q8).** "Not set" display: C27.
 - **Don't assert:** outcomes for "2" and "Phase 9" until Q8.
 
-#### TC-03-C19 — Three copies of one lot in a file are all listed as duplicates
+#### TC-03-C19 — Three copies of one lot in a file are all rejected as duplicates
 **Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
 - **Setup:** rows 2, 3, 4 all Blk 32 Lot 1.
-- **Action:** upload.
-- **Expected:** all three listed "Blk 32 Lot 1 appears more than once in the file".
+- **Action:** run the preview.
+- **Expected:** all three rejected, reason duplicated in the file, naming Blk 32 Lot 1.
 - **Don't assert:** order.
 
 #### TC-03-C20 — A lot duplicated in the file and already in the directory gets one reason per row
 **Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** No
 - **Setup:** Household A exists; two rows for Blk 4 Lot 12.
-- **Action:** upload.
-- **Expected:** each row shows one reason; neither imported. **Assumption — pending BA (Q5):** which reason.
+- **Action:** run the preview.
+- **Expected:** each row carries exactly one reason; neither ready. **Assumption — pending BA (Q5):** which reason.
 - **Don't assert:** which reason until Q5.
 
 #### TC-03-C21 — A row with two problems is reported by one consistent rule
 **Priority** P3 · **Type** Negative · **Layer** TBD — QE · **Writes** No
 - **Setup:** one row with no lot and email `zz@`.
-- **Action:** upload.
+- **Action:** run the preview.
 - **Expected:** both reasons, or the first only, the same way for every such row. **Assumption — pending BA (Q7).**
 - **Don't assert:** which until Q7.
 
@@ -602,72 +663,107 @@ Each case uses a small import file of new rows plus one control row that is vali
 **Priority** P1 · **Type** Security / role · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** owner `ZZ <img src=x onerror=alert(1)>`.
 - **Action:** preview, commit, open list and edit form.
-- **Expected:** the literal text shows; no script runs; no page error.
+- **Expected:** the literal text shows on each screen; no script runs; no page error.
 - **Don't assert:** how the text is escaped internally.
+
+#### TC-03-C23 — An 80-character owner name is shown in full in the list and edit form
+**Priority** P3 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+- **Setup:** after C4.
+- **Action:** open the list and the household's edit form.
+- **Expected:** all 80 characters visible or reachable (wrapped, not cut off).
+- **Don't assert:** line-wrap position.
+
+#### TC-03-C24 — Stored mobiles are shown in the "0900 000 0000" display format
+**Priority** P2 · **Type** UI/UX · **Layer** TBD — QE · **Writes** Yes
+- **Setup:** C6's six rows committed.
+- **Action:** read the Contact column.
+- **Expected:** "0900 000 0011" … "0900 000 0016" (register R7).
+- **Don't assert:** the stored string (N3).
+
+#### TC-03-C25 — A household with no email shows no email in the list and an empty Email field
+**Priority** P3 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+- **Setup:** after C12 and after G5.
+- **Action:** read each household's Contact cell; open its edit form.
+- **Expected:** no email shown; Email field empty.
+- **Don't assert:** placeholder text.
+
+#### TC-03-C26 — A suffixed lot's label reads "Blk 4 Lot 12-A"
+**Priority** P3 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+- **Setup:** after C14.
+- **Action:** search "blk 4".
+- **Expected:** a row labelled "Blk 4 Lot 12-A" and a separate "Blk 4 Lot 12".
+- **Don't assert:** order.
+
+#### TC-03-C27 — A household with no phase shows "Not set" in the edit form
+**Priority** P3 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+- **Setup:** after C18 (blank-phase row) and Household F (phase null).
+- **Action:** open each edit form.
+- **Expected:** Phase reads "Not set".
+- **Don't assert:** phase list contents.
 
 ### Block D — Commit, idempotency, re-import, partial failure, concurrency
 
-#### TC-03-D1 — While committing, the page shows "Importing…" with a progress count, then the banner
+#### TC-03-D1 — While committing, the page shows a progress count, then the finished banner
 **Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** empty directory; `ZZ-import-623-clean.csv` previewed.
 - **Action:** press Import; watch.
-- **Expected:** a progress count during the run (UX notes); then the finished banner.
+- **Expected:** a progress count during the run (UX notes); then the finished banner (wording: K22).
 - **Don't assert:** intermediate counts.
 
 #### TC-03-D2 — Pressing Import twice quickly imports each row once
 **Priority** P1 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** as D1.
 - **Action:** double-press "Import 623 households".
-- **Expected:** heading "623 households"; one lot entry per lot (prov.).
+- **Expected:** 623 household records; one lot entry per lot (prov.).
 - **Don't assert:** whether the second press reached the server.
 
 #### TC-03-D3 — A second commit call for a running import is refused by the server
 **Priority** P1 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** as D1; special staging: a second tab, or a direct second call with the same import id while the first runs.
 - **Action:** send the second commit.
-- **Expected:** refused explicitly; 623 households at the end.
+- **Expected:** refused explicitly; 623 household records at the end.
 - **Don't assert:** error text.
 
 #### TC-03-D4 — While importing, the button reads "Importing…" and is disabled
 **Priority** P1 · **Type** Usability · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** as D1.
 - **Action:** press Import; inspect the button before it finishes.
-- **Expected:** label "Importing…", disabled until the run finishes.
+- **Expected:** label "Importing…" (copy of record), disabled until the run finishes.
 - **Don't assert:** whether Cancel is also disabled (not stated).
 
-#### TC-03-D5 — Two admins importing the same file at once end with 623 households
+#### TC-03-D5 — Two admins importing the same file at once store 623 households
 **Priority** P1 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** special staging: two sessions at once (Admin 1, Admin 2); empty directory; each has previewed the same file.
-- **Action:** both press Import at the same moment.
-- **Expected:** 623 households; one lot entry per lot (prov.).
+- **Action:** both commit at the same moment.
+- **Expected:** 623 household records; one lot entry per lot (prov.).
 - **Don't assert:** which run wrote which row.
 
-#### TC-03-D6 — The import that finished second lists its rows "Already in the directory, skipped"
+#### TC-03-D6 — The import that finished second reports each of its rows as skipped
 **Priority** P1 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** as D5.
-- **Action:** read the second-finishing session's results.
-- **Expected:** each of its rows "Already in the directory, skipped". If rows interleave, totals across both runs add to exactly 623. **Assumption — pending BA (Q6).**
+- **Action:** read the second-finishing run's results.
+- **Expected:** each of its rows classified as already in the directory, skipped. If rows interleave, imported totals across both runs add to exactly 623. **Assumption — pending BA (Q6).**
 - **Don't assert:** which admin finishes second.
 
 #### TC-03-D7 — An import interrupted part-way can be finished without duplicates
 **Priority** P2 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** special staging: stop the commit function mid-run on the emulator.
 - **Action:** rerun as the BA defines.
-- **Expected:** remaining rows written; rows already written skipped; 623 in total. **Assumption — pending BA (Q6).** Resume behaviour comes from the Sol Arch review only.
+- **Expected:** remaining rows written; rows already written skipped; 623 household records in total. **Assumption — pending BA (Q6).** Resume behaviour comes from the Sol Arch review only.
 - **Don't assert:** how the screen describes the stuck run.
 
-#### TC-03-D8 — A lot added by the form between preview and commit is skipped at commit
+#### TC-03-D8 — A lot added by the form between preview and commit is reported skipped at commit
 **Priority** P1 · **Type** Stale reference · **Layer** TBD — QE · **Writes** Yes
-- **Setup:** two sessions. Admin 1 previews a file with Blk 9 Lot 1 (shown ready); Admin 2 then adds Blk 9 Lot 1 as "ZZ Test Owner Golf".
+- **Setup:** two sessions. Admin 1 previews a file with Blk 9 Lot 1 (classified ready); Admin 2 then adds Blk 9 Lot 1 as "ZZ Test Owner Golf".
 - **Action:** Admin 1 commits.
-- **Expected:** Blk 9 Lot 1 reported "Already in the directory, skipped"; one Blk 9 Lot 1, owner "ZZ Test Owner Golf".
+- **Expected:** the commit result classifies Blk 9 Lot 1 as already in the directory, skipped.
 - **Don't assert:** the count tiles from the original preview.
 
-#### TC-03-D9 — Form save and import commit on the same new lot at once produce one household
+#### TC-03-D9 — Form save and import commit on the same new lot at once store one household
 **Priority** P1 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** special staging: two sessions timed together; Blk 9 Lot 2 in Admin 1's previewed file; Admin 2 has the Add form filled for Blk 9 Lot 2.
 - **Action:** commit and Save at the same moment.
-- **Expected:** exactly one Blk 9 Lot 2; the loser sees "Blk 9 Lot 2 is already in the directory." or "Already in the directory, skipped".
+- **Expected:** exactly one lot entry and one household for Blk 9 Lot 2.
 - **Don't assert:** which one wins.
 
 #### TC-03-D10 — Committing another staff member's previewed run is refused
@@ -681,50 +777,85 @@ Each case uses a small import file of new rows plus one control row that is vali
 **Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** No
 - **Setup:** Admin 1; a made-up import id.
 - **Action:** call commit.
-- **Expected:** refused explicitly; directory unchanged.
+- **Expected:** refused explicitly; no households written.
 - **Don't assert:** error text.
 
 #### TC-03-D12 — Committing a completed run again is refused
 **Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** No
 - **Setup:** after A3.
 - **Action:** call commit again for the same id.
-- **Expected:** refused explicitly; 623 households; no second import-completed audit record.
+- **Expected:** refused explicitly; still 623 household records; no second import-completed audit record.
 - **Don't assert:** error text.
 
-#### TC-03-D13 — Uploading the same file again skips every row
+#### TC-03-D13 — Uploading the same file again classifies every row as skipped
 **Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** No
 - **Setup:** after A3.
-- **Action:** upload `ZZ-import-623-clean.csv` again.
-- **Expected:** 0 ready; 623 "Already in the directory, skipped"; Import absent or disabled; heading still 623.
-- **Don't assert:** whether the button is hidden or disabled (Q2).
+- **Action:** run the preview for `ZZ-import-623-clean.csv` again.
+- **Expected:** 0 ready; 623 classified as already in the directory, skipped; still 623 household records. Import button: B21.
+- **Don't assert:** preview order.
 
-#### TC-03-D14 — A fixed rejected-rows file imports only the fixed rows
-**Priority** P1 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
+#### TC-03-D14 — A fixed rejected-rows file previews only the fixed rows as ready
+**Priority** P1 · **Type** Integration · **Layer** TBD — QE · **Writes** No
 - **Setup:** after A8; downloaded 4 rows; fix row 14 (add Lot 99), change one of 31/32 to Blk 2 Lot 70, leave 57.
-- **Action:** upload the fixed file (with or without the reason column), commit.
-- **Expected:** 3 ready (fixed 14, Blk 2 Lot 70, the remaining Blk 2 Lot 7), 1 rejected (57); 622 households.
+- **Action:** run the preview for the fixed file (with or without the reason column).
+- **Expected:** 3 ready (fixed 14, Blk 2 Lot 70, the remaining Blk 2 Lot 7); 1 rejected (57).
 - **Don't assert:** whether the extra reason column is ignored silently (B13).
 
 #### TC-03-D15 — A re-import with changed names updates no existing household
 **Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** No
 - **Setup:** after A3; the clean file with every owner name changed.
-- **Action:** upload.
-- **Expected:** 0 ready, all skipped; directory names unchanged (R1 never updates from import).
-- **Don't assert:** preview order.
+- **Action:** run the preview; commit if the run allows it.
+- **Expected:** every household's display name equals its value before the upload (R1 never updates from import).
+- **Don't assert:** whether the commit is offered (Q2).
 
-#### TC-03-D16 — An inactive household's lot is skipped by the import
+#### TC-03-D16 — An inactive household's lot is classified as skipped by the import
 **Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** No
 - **Setup:** Household C deactivated; a file with Blk 7 Lot 1.
-- **Action:** upload.
-- **Expected:** "Already in the directory, skipped"; one Blk 7 Lot 1, still inactive. **Assumption — pending BA (Q9).**
+- **Action:** run the preview.
+- **Expected:** Blk 7 Lot 1 classified as already in the directory, skipped. **Assumption — pending BA (Q9).**
 - **Don't assert:** any mention of "inactive" in the reason.
+
+#### TC-03-D17 — A household added by the form survives a later import of its lot unchanged
+**Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
+- **Setup:** after D8.
+- **Action:** read the records for Blk 9 Lot 1.
+- **Expected:** one lot entry and one household; display name "ZZ Test Owner Golf".
+- **Don't assert:** the run's other rows.
+
+#### TC-03-D18 — The losing write of a form-versus-import race is refused as a duplicate
+**Priority** P2 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
+- **Setup:** as D9.
+- **Action:** read the form call's response and the commit result.
+- **Expected:** exactly one of them reports Blk 9 Lot 2 as a duplicate: the form call refused as already in the directory, or the commit row classified as skipped. Wording: K21, K23.
+- **Don't assert:** which one loses.
+
+#### TC-03-D19 — Committing the fixed file adds exactly the three fixed rows
+**Priority** P2 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
+- **Setup:** after D14.
+- **Action:** commit; read the records.
+- **Expected:** households now exist for Blk 2 Lot 70, Blk 2 Lot 7 and the fixed row 14's lot; 622 households in total; row 57's lot absent.
+- **Don't assert:** record order.
+
+#### TC-03-D20 — A re-import with changed names classifies every row as skipped
+**Priority** P2 · **Type** Data integrity · **Layer** TBD — QE · **Writes** No
+- **Setup:** as D15.
+- **Action:** run the preview.
+- **Expected:** 0 ready; all 623 classified as already in the directory, skipped.
+- **Don't assert:** preview order.
+
+#### TC-03-D21 — An import never creates or reactivates a household on an inactive lot
+**Priority** P2 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
+- **Setup:** as D16; commit the run.
+- **Action:** read the records for Blk 7 Lot 1.
+- **Expected:** one lot entry and one household; still inactive. **Assumption — pending BA (Q9).**
+- **Don't assert:** the run's other rows.
 
 ### Block E — Rejected-rows report and download
 
 #### TC-03-E1 — The download holds exactly the rejected rows with their reasons
 **Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** No
 - **Setup:** after A8.
-- **Action:** press "Download them".
+- **Action:** download the rejected rows.
 - **Expected:** 4 data rows (from rows 14, 31, 32, 57) with the template columns plus row number and reason; no valid row.
 - **Don't assert:** file name; the position of the extra columns.
 
@@ -735,24 +866,24 @@ Each case uses a small import file of new rows plus one control row that is vali
 - **Expected:** Blk 4 Lot 12 included or excluded per BA. **Assumption — pending BA (Q5).**
 - **Don't assert:** either outcome until Q5.
 
-#### TC-03-E3 — Cells starting with "=", "+", "-" or "@" are escaped in the download
+#### TC-03-E3 — Cells starting with "=", "+", "-" or "@" are escaped in the download file
 **Priority** P1 · **Type** Security / role · **Layer** TBD — QE · **Writes** No
 - **Setup:** four rejected rows (no lot) with owner names `=HYPERLINK("http://example.test")`, `+1+1`, `-2+3`, `@SUM(1)`.
-- **Action:** download; open in a spreadsheet app.
-- **Expected:** each cell starts with `'` in the raw file; none evaluates as a formula.
-- **Don't assert:** how the app displays the apostrophe.
+- **Action:** download; read the raw file.
+- **Expected:** each of those cells starts with `'`. Spreadsheet behaviour: E7.
+- **Don't assert:** quoting of other cells.
 
-#### TC-03-E4 — A "+639…" mobile in the download survives a fix-and-reimport
+#### TC-03-E4 — A "+639…" mobile in the download is accepted again after a fix
 **Priority** P2 · **Type** Usability · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** a rejected row (no lot) with mobile `+639000000099`.
-- **Action:** download, add the lot, upload.
-- **Expected:** the mobile is accepted and shown "0900 000 0099". **Assumption — pending BA (Q7):** the import strips a leading `'`.
+- **Action:** download, add the lot, preview and commit.
+- **Expected:** the row is ready; the contact record holds the same number as `+639000000099` would store (N3). **Assumption — pending BA (Q7):** the import strips a leading `'`. Display: C24.
 - **Don't assert:** the raw cell text.
 
 #### TC-03-E5 — The download is UTF-8 and keeps "ñ"
 **Priority** P2 · **Type** Data integrity · **Layer** TBD — QE · **Writes** No
 - **Setup:** a rejected row with owner "ZZ Test Peña".
-- **Action:** download; open as UTF-8.
+- **Action:** download; decode as UTF-8.
 - **Expected:** "ZZ Test Peña" intact.
 - **Don't assert:** BOM presence.
 
@@ -763,28 +894,35 @@ Each case uses a small import file of new rows plus one control row that is vali
 - **Expected:** each refused explicitly.
 - **Don't assert:** another admin's access (gap Q12).
 
+#### TC-03-E7 — Escaped cells don't evaluate as formulas when the download is opened in a spreadsheet app
+**Priority** P2 · **Type** Security / role · **Layer** TBD — QE · **Writes** No
+- **Setup:** the E3 file.
+- **Action:** open it in a spreadsheet app.
+- **Expected:** none of the four cells evaluates as a formula or opens a link.
+- **Don't assert:** how the app displays the apostrophe.
+
 ### Block F — Add household
 
-#### TC-03-F1 — Adding Block 8 Lot 2 lists it with "Not invited"
+#### TC-03-F1 — Adding Block 8 Lot 2 stores one household with link status "Not invited"
 **Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** Blk 8 Lot 2 absent; Admin 1.
-- **Action:** Add household → Block 8, Lot 2, owner "ZZ Test Owner Delta", email zz-owner-d@example.test → Save.
-- **Expected:** dialog closes; Blk 8 Lot 2 listed with pill "Not invited".
-- **Don't assert:** list position.
+- **Action:** add Block 8, Lot 2, owner "ZZ Test Owner Delta", email zz-owner-d@example.test.
+- **Expected:** one lot entry, one household (link status Not invited, member count 0) and one contact record holding the email (prov.). Screen after Save: F10.
+- **Don't assert:** document ids.
 
-#### TC-03-F2 — Mobile and phase from the form are shown back in the edit form
+#### TC-03-F2 — Mobile and phase from the Add form are stored
 **Priority** P2 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** as F1, also mobile 0900 000 0004 and Phase 3.
-- **Action:** Save; reopen the household.
-- **Expected:** "0900 000 0004" and Phase 3 (register R3, R7).
-- **Don't assert:** the stored mobile string.
+- **Action:** Save; read the household and contact records.
+- **Expected:** phase 3 on the household; the mobile in the stored format on the contact record (register R3, R7). Read-back on screen: F11.
+- **Don't assert:** the exact stored string (N3).
 
-#### TC-03-F3 — Adding an existing lot shows "Blk 8 Lot 2 is already in the directory." under Lot
+#### TC-03-F3 — The form's lot check reports an existing lot as taken before Save
 **Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** No
 - **Setup:** Household D (Blk 8 Lot 2) exists.
-- **Action:** Add household → Block 8, Lot 2, then leave the Lot field.
-- **Expected:** the message under Lot, tied to the field for screen readers; Save disabled (mock-up 3E).
-- **Don't assert:** the delay before it appears.
+- **Action:** enter Block 8, Lot 2 in Add household and leave the Lot field (or run the same check directly, prov.).
+- **Expected:** the check reports Blk 8 Lot 2 as already in the directory; no record written. Message and Save state: K23.
+- **Don't assert:** the delay before the check returns.
 
 #### TC-03-F4 — A forced save of a duplicate lot is refused by the server
 **Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** No
@@ -797,45 +935,87 @@ Each case uses a small import file of new rows plus one control row that is vali
 **Priority** P1 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** Blk 9 Lot 1 absent; form filled.
 - **Action:** double-tap Save.
-- **Expected:** one Blk 9 Lot 1; Save disabled while in flight.
+- **Expected:** one lot entry and one household for Blk 9 Lot 1. Button state: F12.
 - **Don't assert:** whether a duplicate message flashes.
 
-#### TC-03-F6 — Two admins saving a new Blk 9 Lot 1 at once save exactly one
+#### TC-03-F6 — Two admins saving a new Blk 9 Lot 1 at once store exactly one household
 **Priority** P1 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** special staging: two sessions (Admin 1, Admin 2); both forms filled for Blk 9 Lot 1 with different owners.
 - **Action:** both press Save together.
-- **Expected:** one household; the other admin sees "Blk 9 Lot 1 is already in the directory." (assumption: same copy as F3).
+- **Expected:** one lot entry and one household for Blk 9 Lot 1.
 - **Don't assert:** which owner name wins.
 
-#### TC-03-F7 — Empty required fields show inline messages and block Save
-**Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** No
+#### TC-03-F7 — Leaving an empty required field shows a text message under it
+**Priority** P2 · **Type** Usability · **Layer** TBD — QE · **Writes** No
 - **Setup:** Add household open, all empty.
-- **Action:** tab through Block, Lot and Owner name; press Save.
-- **Expected:** each of the three shows a text message on blur; nothing saved.
+- **Action:** tab through Block, Lot and Owner name.
+- **Expected:** each of the three shows a text message on blur; Save does not close the dialog.
 - **Don't assert:** wording (copy table lists the import reasons only).
 
-#### TC-03-F8 — An invalid email on the form shows the import's reason
+#### TC-03-F8 — The form's email check rejects an invalid email by the import's rule
 **Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** No
 - **Setup:** Add household; email `zz@`.
-- **Action:** leave the Email field.
-- **Expected:** "\"zz@\" is not a valid email address" under Email.
+- **Action:** submit the form (or call `createHousehold`, prov., with that email).
+- **Expected:** refused, reason invalid email carrying `zz@`; no record written. Message: F15.
 - **Don't assert:** trailing punctuation.
 
 #### TC-03-F9 — Adding the lot of an inactive household is refused as a duplicate
 **Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** No
 - **Setup:** Household C inactive.
-- **Action:** Add household → Block 7, Lot 1.
-- **Expected:** "Blk 7 Lot 1 is already in the directory." **Assumption — pending BA (Q9).**
+- **Action:** add Block 7, Lot 1.
+- **Expected:** refused as already in the directory; still one Blk 7 Lot 1, inactive. **Assumption — pending BA (Q9).** Wording: K23.
 - **Don't assert:** a pointer to Reactivate.
+
+#### TC-03-F10 — After Save the Add dialog closes and the new household is listed
+**Priority** P2 · **Type** UI/UX · **Layer** TBD — QE · **Writes** Yes
+- **Setup:** as F1.
+- **Action:** press Save.
+- **Expected:** dialog closes; Blk 8 Lot 2 appears in the list without a reload. Pill: K13.
+- **Don't assert:** list position.
+
+#### TC-03-F11 — The edit form shows back the mobile and phase entered on Add
+**Priority** P2 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+- **Setup:** after F2.
+- **Action:** open the household's edit form.
+- **Expected:** "0900 000 0004" and Phase 3 (register R3, R7).
+- **Don't assert:** field order.
+
+#### TC-03-F12 — Save is disabled while an add is in flight
+**Priority** P2 · **Type** Usability · **Layer** TBD — QE · **Writes** Yes
+- **Setup:** as F5.
+- **Action:** press Save once; inspect it before the call returns.
+- **Expected:** Save disabled until the call returns.
+- **Don't assert:** spinner style.
+
+#### TC-03-F13 — The losing add of two simultaneous saves is refused as a duplicate
+**Priority** P2 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
+- **Setup:** as F6.
+- **Action:** read both `createHousehold` responses (prov.).
+- **Expected:** one succeeds; the other is refused as already in the directory. Wording: K23 (assumption: same copy as F3).
+- **Don't assert:** which admin loses.
+
+#### TC-03-F14 — A household with no block, lot or owner name is refused by validation
+**Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** No
+- **Setup:** Admin 1.
+- **Action:** submit Add household empty (or call `createHousehold`, prov., with each field missing in turn).
+- **Expected:** each refused with the matching missing-field reason; no lot, household or contact record written.
+- **Don't assert:** wording.
+
+#### TC-03-F15 — An invalid email on the form shows the import's reason under Email
+**Priority** P3 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+- **Setup:** Add household; email `zz@`.
+- **Action:** leave the Email field.
+- **Expected:** "\"zz@\" is not a valid email address" under Email (copy of record row reasons, same as K21).
+- **Don't assert:** trailing punctuation.
 
 ### Block G — Edit household and stale edits
 
-#### TC-03-G1 — Changing a mobile shows the new number in the list
+#### TC-03-G1 — A mobile edit stores the new number on the contact record
 **Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** Household A mobile 0900 000 0001.
-- **Action:** edit to 0900 000 0099; Save.
-- **Expected:** list shows "0900 000 0099" for Blk 4 Lot 12.
-- **Don't assert:** the stored string.
+- **Action:** edit to 0900 000 0099; Save; read the contact record.
+- **Expected:** the contact record holds the stored form of 0900 000 0099; the household record has no mobile (N1). List display: G13.
+- **Don't assert:** the stored string's exact shape (N3).
 
 #### TC-03-G2 — The edit writes one activity record with who and when
 **Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
@@ -848,63 +1028,63 @@ Each case uses a small import file of new rows plus one control row that is vali
 **Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** as G2.
 - **Action:** inspect the record.
-- **Expected:** no "0900 000 0001", "0900 000 0099", name or email in it.
+- **Expected:** no "0900 000 0001", "0900 000 0099" (in any format), name or email in it.
 - **Don't assert:** field names.
 
 #### TC-03-G4 — Renaming the owner makes the new name searchable and the old one not
 **Priority** P1 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** Household B "ZZ Test Owner Bravo".
-- **Action:** rename to "ZZ Test Owner Kilo"; search "kilo", then "bravo".
-- **Expected:** "kilo" finds Blk 1 Lot 3; "bravo" does not.
+- **Action:** rename to "ZZ Test Owner Kilo"; run the directory search for "kilo", then "bravo".
+- **Expected:** "kilo" returns Blk 1 Lot 3; "bravo" does not (search words refreshed, register R5).
 - **Don't assert:** debounce timing.
 
-#### TC-03-G5 — Clearing the email removes it from the directory
+#### TC-03-G5 — Clearing the email removes it from the contact record
 **Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** Household B with email.
-- **Action:** clear Email; Save.
-- **Expected:** list shows no email for Blk 1 Lot 3; edit form Email empty.
-- **Don't assert:** placeholder text.
+- **Action:** clear Email; Save; read the contact record.
+- **Expected:** no email stored. Display: C25.
+- **Don't assert:** whether the field is absent or empty (prov.).
 
-#### TC-03-G6 — The second of two editors sees the stale-edit message
+#### TC-03-G6 — The second of two edits loaded at the same time is refused as stale
 **Priority** P1 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
-- **Setup:** special staging: two sessions (Admin 1, Admin 2) both open Household A's edit form.
+- **Setup:** special staging: two sessions (Admin 1, Admin 2) both load Household A for editing.
 - **Action:** Admin 1 saves mobile 0900 000 0091; then Admin 2 saves 0900 000 0092.
-- **Expected:** Admin 2 sees "Someone else changed this household. Reload to see the latest, then make your change again."; dialog stays open with Admin 2's typing.
-- **Don't assert:** message placement.
+- **Expected:** Admin 2's `updateHousehold` (prov.) is refused as stale. Message and kept typing: K24.
+- **Don't assert:** error code text.
 
 #### TC-03-G7 — The first editor's change is kept after a stale save
 **Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** as G6.
-- **Action:** reload as either admin.
-- **Expected:** mobile "0900 000 0091"; one `household.updated` record from this pair, not two.
+- **Action:** read the contact record and the audit records.
+- **Expected:** mobile is the stored form of 0900 000 0091; one `household.updated` record from this pair, not two.
 - **Don't assert:** audit times.
 
-#### TC-03-G8 — The same admin editing in two tabs gets the stale message on the second save
+#### TC-03-G8 — The same admin editing in two tabs is refused as stale on the second save
 **Priority** P2 · **Type** Stale reference · **Layer** TBD — QE · **Writes** Yes
-- **Setup:** Admin 1 opens Household A's edit form in two tabs.
+- **Setup:** Admin 1 loads Household A for editing in two tabs.
 - **Action:** save in tab 1, then in tab 2.
-- **Expected:** tab 2 shows the stale-edit message; tab 1's value kept.
+- **Expected:** tab 2's save refused as stale; tab 1's value remains stored. Message: K24.
 - **Don't assert:** tab 1's refresh behaviour.
 
 #### TC-03-G9 — Saving an edit on a household deactivated meanwhile is refused
 **Priority** P2 · **Type** Stale reference · **Layer** TBD — QE · **Writes** Yes
-- **Setup:** two sessions; Admin 1's edit form open on Household A; Admin 2 deactivates it.
+- **Setup:** two sessions; Admin 1 has Household A loaded for editing; Admin 2 deactivates it.
 - **Action:** Admin 1 saves.
-- **Expected:** stale-edit message; household stays inactive. **Assumption — pending BA (Q9).**
+- **Expected:** refused as stale; household stays inactive, values unchanged. **Assumption — pending BA (Q9).** Message: K24.
 - **Don't assert:** wording if the BA defines a separate message.
 
-#### TC-03-G10 — Double-tapping Save on an edit writes one change and no stale message
+#### TC-03-G10 — Double-tapping Save on an edit writes one change
 **Priority** P2 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** Household A edit form, mobile changed.
-- **Action:** double-tap Save.
-- **Expected:** one update, one audit record; Admin 1 is not shown the stale-edit message for their own second tap.
+- **Action:** double-tap Save; read the records.
+- **Expected:** one update; one `household.updated` audit record. Screen: G14.
 - **Don't assert:** whether the second tap reached the server.
 
 #### TC-03-G11 — Changing block or lot on edit follows one stated rule
 **Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** Yes
-- **Setup:** Household F edit form.
+- **Setup:** Household F.
 - **Action:** try to change Lot 12-A to 12-B; Save.
-- **Expected:** Block/Lot read-only on edit, or the change saves and the old lot key is freed (a new add of Blk 12 Lot 12-A then succeeds). **Assumption — pending BA (Q14).**
+- **Expected:** Block/Lot not editable (refused), or the change saves and the old lot key is freed (a new add of Blk 12 Lot 12-A then succeeds). **Assumption — pending BA (Q14).**
 - **Don't assert:** either outcome until Q14.
 
 #### TC-03-G12 — An edit request without the loaded time is refused
@@ -914,34 +1094,48 @@ Each case uses a small import file of new rows plus one control row that is vali
 - **Expected:** refused explicitly; record unchanged.
 - **Don't assert:** error text.
 
+#### TC-03-G13 — The list shows the edited mobile without a reload
+**Priority** P2 · **Type** UI/UX · **Layer** TBD — QE · **Writes** Yes
+- **Setup:** as G1.
+- **Action:** after Save, read Blk 4 Lot 12's Contact cell.
+- **Expected:** "0900 000 0099".
+- **Don't assert:** the stored string.
+
+#### TC-03-G14 — A double-tapped edit shows its author no stale-edit message
+**Priority** P3 · **Type** Usability · **Layer** TBD — QE · **Writes** Yes
+- **Setup:** as G10.
+- **Action:** watch the dialog after the double tap.
+- **Expected:** no stale-edit message for Admin 1's own second tap; dialog closes normally.
+- **Don't assert:** dialog animation.
+
 ### Block H — Deactivate and reactivate
 
-#### TC-03-H1 — Deactivate asks for confirmation with the copy of record; Cancel keeps it active
+#### TC-03-H1 — The Deactivate confirm reads the copy of record
 **Priority** P1 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
 - **Setup:** Household C active.
-- **Action:** press Deactivate; read; press Cancel.
-- **Expected:** "Deactivate Blk 7 Lot 1? It won't be billed or shown in the list, and its unused invitation stops working. Its records are kept."; after Cancel, still active.
+- **Action:** press Deactivate; read.
+- **Expected:** "Deactivate Blk 7 Lot 1? It won't be billed or shown in the list, and its unused invitation stops working. Its records are kept." Each promise is verified elsewhere: list H16, invitation H4, records H3.
 - **Don't assert:** "won't be billed" (billing REQ; not verifiable in R1).
 
-#### TC-03-H2 — A deactivated household leaves the default list and appears under Inactive
+#### TC-03-H2 — Confirming Deactivate stores the household as inactive
 **Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** Household C active.
-- **Action:** Deactivate, confirm.
-- **Expected:** not under All; listed under "Inactive"; the Inactive chip count rises by one.
-- **Don't assert:** the All count (gap Q18).
+- **Action:** deactivate and confirm (or call `setHouseholdActive`, prov.); read the record.
+- **Expected:** `active` is false (prov.). List effect: H16; chip: H17.
+- **Don't assert:** other fields (H3, H11).
 
 #### TC-03-H3 — A deactivated household's records are kept
 **Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** after H2.
-- **Action:** open Blk 7 Lot 1 from Inactive; check the test project.
-- **Expected:** same name and contacts; household, lot and contact documents still exist (prov.).
+- **Action:** read Household C's household, lot and contact records.
+- **Expected:** all three still exist; same name and contacts (prov.).
 - **Don't assert:** fields other than `active` beyond these.
 
 #### TC-03-H4 — Deactivating stops the household's unused invitation
 **Priority** P1 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** Household C "Invited" with an unused email invitation (REQ-004 fixture); deactivate it.
-- **Action:** ZZ Test No-Role User enters that code.
-- **Expected:** "This invitation is no longer valid. Ask the admin office."; no membership created.
+- **Action:** ZZ Test No-Role User redeems that code.
+- **Expected:** redemption refused as no longer valid; no membership created. Screen wording is REQ-004's ("This invitation is no longer valid. Ask the admin office.") and belongs to TC-04.
 - **Don't assert:** the invite's stored status value.
 
 #### TC-03-H5 — Deactivate writes one `household.deactivated` record
@@ -951,26 +1145,26 @@ Each case uses a small import file of new rows plus one control row that is vali
 - **Expected:** one `household.deactivated` (prov.) with Admin 1's uid; ids only.
 - **Don't assert:** time.
 
-#### TC-03-H6 — Reactivate returns the household to the default list
+#### TC-03-H6 — After Reactivate the default list includes the household and the Inactive filter doesn't
 **Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** after H2.
-- **Action:** Inactive → Blk 7 Lot 1 → Reactivate.
-- **Expected:** listed under All; gone from Inactive; one `household.reactivated` record (prov.).
+- **Action:** reactivate Blk 7 Lot 1; run the default and the Inactive list queries.
+- **Expected:** `active` is true; the default query returns Blk 7 Lot 1; the Inactive query doesn't.
 - **Don't assert:** whether Reactivate asks for confirmation (not stated).
 
 #### TC-03-H7 — Reactivate keeps the name, contacts and members
 **Priority** P2 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** Household A (Linked) deactivated, then reactivated.
-- **Action:** open its edit form; check `members`.
-- **Expected:** same name, contacts; member record still present.
+- **Action:** read the household, contact and `members` records.
+- **Expected:** same name and contacts; member record still present.
 - **Don't assert:** link status (Q10).
 
 #### TC-03-H8 — Reactivate doesn't bring a cancelled invitation back
 **Priority** P2 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** after H4, reactivate Household C.
-- **Action:** No-Role User enters the old code.
-- **Expected:** still refused. **Assumption — pending BA (Q10).**
-- **Don't assert:** the link status pill.
+- **Action:** No-Role User redeems the old code.
+- **Expected:** still refused; no membership created. **Assumption — pending BA (Q10).**
+- **Don't assert:** the link status.
 
 #### TC-03-H9 — Double-tapping Deactivate's confirm writes one change
 **Priority** P2 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
@@ -983,93 +1177,124 @@ Each case uses a small import file of new rows plus one control row that is vali
 **Priority** P3 · **Type** Negative · **Layer** TBD — QE · **Writes** No
 - **Setup:** Household C inactive, Household F active.
 - **Action:** call `setHouseholdActive` (prov.) to deactivate C and to reactivate F.
-- **Expected:** refused or a no-op; no new audit record. **Assumption — pending BA (Q9).**
+- **Expected:** refused or a no-op; `active` unchanged; no new audit record. **Assumption — pending BA (Q9).**
 - **Don't assert:** refused vs no-op.
 
 #### TC-03-H11 — Deactivating a "Not invited" household changes only its active state
 **Priority** P3 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** Household F (Not invited).
-- **Action:** deactivate.
+- **Action:** deactivate; read the records.
 - **Expected:** inactive; name, contacts, link status unchanged.
 - **Don't assert:** pill shown under Inactive.
 
 #### TC-03-H12 — Deactivating an "Invite expired" household keeps the code refused
 **Priority** P3 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** a household with an expired invitation (REQ-004 fixture, expiry in the past by Asia/Manila date).
-- **Action:** deactivate; No-Role User enters the code.
-- **Expected:** refused.
-- **Don't assert:** whether the message says "expired" or "no longer valid".
+- **Action:** deactivate; No-Role User redeems the code.
+- **Expected:** refused; no membership created.
+- **Don't assert:** whether the refusal says "expired" or "no longer valid".
 
 #### TC-03-H13 — A deactivated "Email failed" household has no working code
 **Priority** P3 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** a household in "Email failed" (REQ-004 fixture).
-- **Action:** deactivate; look for Resend / Print slip under Inactive.
+- **Action:** deactivate; look for Resend / Print slip under Inactive and redeem any code they produce.
 - **Expected:** not offered, or any code they produce is refused. **Assumption — pending BA (Q11).**
 - **Don't assert:** which of the two.
 
 #### TC-03-H14 — Deactivating a "Linked" household leaves its member records in place
 **Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** Household A (Linked).
-- **Action:** deactivate.
+- **Action:** deactivate; read `members`.
 - **Expected:** its `members` record unchanged (prov.).
 - **Don't assert:** what Homeowner A sees afterwards (out of scope).
 
+#### TC-03-H15 — Cancel on the Deactivate confirm leaves the household active
+**Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** No
+- **Setup:** as H1.
+- **Action:** press Cancel; read the record.
+- **Expected:** `active` still true; no `household.deactivated` record.
+- **Don't assert:** dialog animation.
+
+#### TC-03-H16 — The default list excludes an inactive household and the Inactive filter includes it
+**Priority** P1 · **Type** Integration · **Layer** TBD — QE · **Writes** No
+- **Setup:** after H2.
+- **Action:** run the default and the Inactive list queries.
+- **Expected:** default query doesn't return Blk 7 Lot 1; Inactive query does.
+- **Don't assert:** the All count (gap Q18).
+
+#### TC-03-H17 — The Inactive chip count rises by one after a deactivation, without a reload
+**Priority** P2 · **Type** UI/UX · **Layer** TBD — QE · **Writes** Yes
+- **Setup:** Household C active; note the Inactive chip count.
+- **Action:** deactivate and confirm.
+- **Expected:** "Inactive" chip count is one higher; Blk 7 Lot 1 gone from the visible list.
+- **Don't assert:** the All count (gap Q18).
+
+#### TC-03-H18 — Reactivate writes one `household.reactivated` record
+**Priority** P2 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
+- **Setup:** after H6.
+- **Action:** read audit records for Household C.
+- **Expected:** one `household.reactivated` (prov.) with Admin 1's uid; ids only.
+- **Don't assert:** time.
+
 ### Block J — Directory list, search and paging
 
-#### TC-03-J1 — "blk 4" lists the Block 4 households
+Search cases assert the result set of the directory query (prov.: `searchTokens`, `lotKey`
+index); J3, J8, J9, J14 and J15 are the screen cases.
+
+#### TC-03-J1 — A search for "blk 4" returns every Block 4 household
 **Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** No
 - **Setup:** ZZ Search Set and Household A.
-- **Action:** type "blk 4" in "Search name or lot".
-- **Expected:** Blk 4 Lots 1–6 and Blk 4 Lot 12 listed.
+- **Action:** search "blk 4".
+- **Expected:** results include Blk 4 Lots 1–6 and Blk 4 Lot 12.
 - **Don't assert:** order.
 
-#### TC-03-J2 — "blk 4" lists none of Blocks 40 to 49 nor Blk 14
+#### TC-03-J2 — A search for "blk 4" returns no household from Blocks 40 to 49 or Blk 14
 **Priority** P1 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
 - **Setup:** as J1.
 - **Action:** as J1.
-- **Expected:** no row from Blocks 40–49 or Blk 14 Lot 4.
+- **Expected:** no result from Blocks 40–49 or Blk 14 Lot 4.
 - **Don't assert:** the "Showing x of y" text.
 
 #### TC-03-J3 — Typing re-renders only the list, keeping focus and text
 **Priority** P2 · **Type** Usability · **Layer** TBD — QE · **Writes** No
 - **Setup:** as J1.
-- **Action:** type "blk 4" one key at a time.
+- **Action:** type "blk 4" one key at a time in "Search name or lot".
 - **Expected:** focus stays in the box; heading and chips don't re-render; no page reload.
 - **Don't assert:** the 200 ms figure.
 
-#### TC-03-J4 — "santos" lists owners whose name contains the word Santos
+#### TC-03-J4 — A search for "santos" returns every owner with the word Santos in the name
 **Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** No
 - **Setup:** ZZ Search Set.
-- **Action:** type "santos".
-- **Expected:** "ZZ Test Santos" and "ZZ Test Dos Santos" listed.
+- **Action:** search "santos".
+- **Expected:** results include "ZZ Test Santos" and "ZZ Test Dos Santos".
 - **Don't assert:** order.
 
-#### TC-03-J5 — "santos" does not list "Santoson"
+#### TC-03-J5 — A search for "santos" doesn't return "Santoson"
 **Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
 - **Setup:** as J4.
-- **Action:** type "santos".
-- **Expected:** "ZZ Test Santoson" absent (whole-word rule). **Assumption — pending BA (Q17).**
+- **Action:** search "santos".
+- **Expected:** "ZZ Test Santoson" not in the results (whole-word rule). **Assumption — pending BA (Q17).**
 - **Don't assert:** results for partial words ("san").
 
 #### TC-03-J6 — Search ignores letter case
 **Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
 - **Setup:** as J1.
-- **Action:** type "BLK 4", then "SANTOS".
-- **Expected:** same results as J1 and J4.
+- **Action:** search "BLK 4", then "SANTOS".
+- **Expected:** same result sets as J1 and J4.
 - **Don't assert:** order.
 
 #### TC-03-J7 — "pena" and "peña" find "ZZ Test Peña" by one stated rule
 **Priority** P3 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
 - **Setup:** ZZ Search Set.
-- **Action:** type "peña", then "pena".
-- **Expected:** "peña" finds it; "pena" per BA. **Assumption — pending BA (Q17).**
+- **Action:** search "peña", then "pena".
+- **Expected:** "peña" returns it; "pena" per BA. **Assumption — pending BA (Q17).**
 - **Don't assert:** "pena" until Q17.
 
 #### TC-03-J8 — A search with no match says so, distinct from the empty directory
 **Priority** P2 · **Type** Usability · **Layer** TBD — QE · **Writes** No
 - **Setup:** as J1.
 - **Action:** type "zzqqxx".
-- **Expected:** a no-match message; not "No households yet. Import your list or add the first household."
+- **Expected:** a no-match message; not the empty-directory text (J9).
 - **Don't assert:** wording.
 
 #### TC-03-J9 — The empty directory shows the empty state and its three actions
@@ -1079,12 +1304,12 @@ Each case uses a small import file of new rows plus one control row that is vali
 - **Expected:** "No households yet. Import your list or add the first household." with Import households, Add household, Download template (mock-up 3D).
 - **Don't assert:** layout.
 
-#### TC-03-J10 — 50 households fit one page; the 51st appears on the next
+#### TC-03-J10 — The first page holds 50 households and the 51st is on the next page
 **Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
 - **Setup:** two directories: exactly 50 and exactly 51 households.
-- **Action:** open Homeowners; go to the next page.
-- **Expected:** 50: no next page. 51: next page lists one.
-- **Don't assert:** pager control style.
+- **Action:** run the first-page query, then the next-page query.
+- **Expected:** 50: first page 50, next page empty. 51: first page 50, next page 1. Pager control: J15.
+- **Don't assert:** order.
 
 #### TC-03-J11 — Opening the directory reads about one page, not every household
 **Priority** P2 · **Type** Data integrity · **Layer** TBD — QE · **Writes** No
@@ -1096,23 +1321,30 @@ Each case uses a small import file of new rows plus one control row that is vali
 #### TC-03-J12 — Search results over 50 page the same way
 **Priority** P3 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
 - **Setup:** ZZ Directory 623 with 60 owners named "Automation Owner".
-- **Action:** search "automation".
-- **Expected:** 50 then 10 on the next page.
+- **Action:** search "automation"; fetch the next page.
+- **Expected:** 50 then 10.
 - **Don't assert:** order.
 
-#### TC-03-J13 — Inactive households are not found under All
+#### TC-03-J13 — An inactive household is excluded from search under All and found under Inactive
 **Priority** P2 · **Type** Integration · **Layer** TBD — QE · **Writes** No
 - **Setup:** Household C inactive.
 - **Action:** search "charlie" under All, then under Inactive.
-- **Expected:** absent under All; found under Inactive (assumption: search applies within the chosen chip).
+- **Expected:** not returned under All; returned under Inactive (assumption: search applies within the chosen chip).
 - **Don't assert:** chip counts.
 
 #### TC-03-J14 — Each filter chip's count matches the rows it lists
 **Priority** P2 · **Type** Integration · **Layer** TBD — QE · **Writes** No
-- **Setup:** fixtures in each link status plus one inactive.
+- **Setup:** fixtures in each link status plus one inactive; also after A3 ("Not invited (623)").
 - **Action:** choose each chip.
-- **Expected:** count equals rows listed.
+- **Expected:** count shown equals rows listed.
 - **Don't assert:** whether All includes inactive (gap Q18).
+
+#### TC-03-J15 — With exactly 50 households no next-page control is offered
+**Priority** P3 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+- **Setup:** the two directories from J10.
+- **Action:** open Homeowners.
+- **Expected:** 50: no next-page control. 51: a next-page control that shows the one remaining household.
+- **Don't assert:** pager control style.
 
 ### Block K — Responsive, usability and UI/UX
 
@@ -1134,7 +1366,7 @@ Each case uses a small import file of new rows plus one control row that is vali
 **Priority** P1 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
 - **Setup:** as K1; no billing run exists.
 - **Action:** read a card's balance.
-- **Expected:** "—" (copy reads "Balance —" in mock-up 3B).
+- **Expected:** "—" (copy of record; mock-up 3B reads "Balance —").
 - **Don't assert:** label styling.
 
 #### TC-03-K4 — 640 px shows cards; 641 px shows the table
@@ -1144,11 +1376,11 @@ Each case uses a small import file of new rows plus one control row that is vali
 - **Expected:** 640: cards. 641: table.
 - **Don't assert:** pixel-perfect layout.
 
-#### TC-03-K5 — On a phone the import page says "Import works best on a computer" and still imports
-**Priority** P2 · **Type** Responsive · **Layer** TBD — QE · **Writes** Yes
-- **Setup:** 375 px phone emulation; empty directory; 3-row file.
-- **Action:** Import → choose file → commit.
-- **Expected:** the note shown; 3 households imported.
+#### TC-03-K5 — On a phone the import page says "Import works best on a computer"
+**Priority** P2 · **Type** Responsive · **Layer** TBD — QE · **Writes** No
+- **Setup:** 375 px phone emulation.
+- **Action:** open Import households.
+- **Expected:** the note shown; file input and Download template still available.
 - **Don't assert:** preview table layout on the phone.
 
 #### TC-03-K6 — The Add dialog is usable at 375 px
@@ -1197,14 +1429,14 @@ Each case uses a small import file of new rows plus one control row that is vali
 **Priority** P2 · **Type** Usability · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** an important announcement unseen by Admin 1 (NAV-05 behaviour); Admin 1 opens Import or Add.
 - **Action:** dismiss the pop-up; continue.
-- **Expected:** preview or dialog intact; Import / Save works.
+- **Expected:** preview or dialog intact; the next press of Import / Save is accepted.
 - **Don't assert:** when the pop-up appears.
 
 #### TC-03-K13 — Link status pills carry words and meet AA contrast
 **Priority** P2 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
 - **Setup:** one fixture in each of the five link statuses.
 - **Action:** inspect pills.
-- **Expected:** words "Not invited", "Invited", "Linked", "Invite expired", "Email failed"; text contrast ≥ 4.5:1.
+- **Expected:** words "Not invited", "Invited", "Linked", "Invite expired", "Email failed" (copy of record); text contrast ≥ 4.5:1.
 - **Don't assert:** the colour values.
 
 #### TC-03-K14 — The preview table has a caption, row numbers and text reasons
@@ -1242,6 +1474,62 @@ Each case uses a small import file of new rows plus one control row that is vali
 - **Expected:** identical words; phone "Import" vs desktop "Import households" only if confirmed. **Assumption — pending BA (Q20).**
 - **Don't assert:** the phone label until Q20.
 
+#### TC-03-K19 — The page heading reads "Homeowners · {n} households" with the stored count
+**Priority** P2 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+- **Setup:** after A3 (623 households); also after A14 (3).
+- **Action:** open Homeowners.
+- **Expected:** "Homeowners · 623 households"; "Homeowners · 3 households". Refresh after writes: P6.
+- **Don't assert:** whether inactive households count (gap Q18); singular form (gap Q3).
+
+#### TC-03-K20 — The preview heading and Import button read the copy of record with the preview's counts
+**Priority** P2 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+- **Setup:** three previews: A1 (623 clean), A5 (619 / 4), A9 (3 ready, one skipped).
+- **Action:** read the preview heading and Import button.
+- **Expected:** A1: "623 households ready to import", no list of rows that won't be imported, button "Import 623 households". A5: "619 households ready to import · 4 rows won't be imported", button "Import 619 households". A9: button "Import 3 households".
+- **Don't assert:** A9's "{m} rows won't be imported" figure (gap Q5); tile layout.
+
+#### TC-03-K21 — Each preview row reason reads the copy of record
+**Priority** P2 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+- **Setup:** Household A exists; one file with a row for each reason: no lot, no block, no owner name, Blk 2 Lot 7 twice, Blk 4 Lot 12, email `zz-ana@`, mobile `0900000001`.
+- **Action:** read each rejected row's reason.
+- **Expected:** "Lot number is missing"; "Block is missing"; "Owner name is missing"; "Blk 2 Lot 7 appears more than once in the file" (both rows); "Already in the directory, skipped"; "\"zz-ana@\" is not a valid email address"; "\"0900000001\" is not a valid mobile number". The C-block and A5 cases rely on this case for wording.
+- **Don't assert:** reason order on a row with two problems (C21).
+
+#### TC-03-K22 — The finished banner reads the copy of record with the run's counts
+**Priority** P2 · **Type** UI/UX · **Layer** TBD — QE · **Writes** Yes
+- **Setup:** after A8 (619 / 4); after A3 (623 / 0).
+- **Action:** read the banner.
+- **Expected:** A8: "Imported 619 households. 4 rows were not imported. Download them to fix and import again." with "Download them" working (content E1). A3: starts "Imported 623 households."
+- **Don't assert:** A3's "{m} rows were not imported" part (gap Q5); banner position.
+
+#### TC-03-K23 — The duplicate-lot message reads "{lot} is already in the directory." under Lot and Save is disabled
+**Priority** P2 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+- **Setup:** as F3; also the losing session of F6.
+- **Action:** leave the Lot field; read the message.
+- **Expected:** "Blk 8 Lot 2 is already in the directory." under Lot, tied to the field for screen readers; Save disabled (mock-up 3E). F6's losing session shows "Blk 9 Lot 1 is already in the directory." (assumption: same copy).
+- **Don't assert:** the delay before it appears.
+
+#### TC-03-K24 — The stale-edit message reads the copy of record and the dialog keeps the typing
+**Priority** P2 · **Type** UI/UX · **Layer** TBD — QE · **Writes** Yes
+- **Setup:** as G6 (Admin 2's session); also G8 tab 2.
+- **Action:** read the dialog after the refused save.
+- **Expected:** "Someone else changed this household. Reload to see the latest, then make your change again."; dialog stays open with the typed 0900 000 0092.
+- **Don't assert:** message placement.
+
+#### TC-03-K25 — The import hint and the directory buttons read the copy of record
+**Priority** P3 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+- **Setup:** Admin 1 on Homeowners, then on Import households.
+- **Action:** read the buttons and the hint.
+- **Expected:** buttons "Import households", "Add household", "Download template"; hint "Fill in the template and save it as CSV UTF-8."
+- **Don't assert:** the phone label (K18).
+
+#### TC-03-K26 — An import run from a phone stores the file's households
+**Priority** P3 · **Type** Responsive · **Layer** TBD — QE · **Writes** Yes
+- **Setup:** 375 px phone emulation; empty directory; 3-row file.
+- **Action:** choose the file and commit on the phone; read the records.
+- **Expected:** 3 household records.
+- **Don't assert:** preview table layout on the phone.
+
 ### Block L — Navigation
 
 #### TC-03-L1 — Admin reaches Homeowners from the menu with that item highlighted
@@ -1258,70 +1546,70 @@ Each case uses a small import file of new rows plus one control row that is vali
 - **Expected:** Homeowners page with Import households and Add household.
 - **Don't assert:** menu order.
 
-#### TC-03-L3 — "Choose a different file" returns to step 1 with nothing saved
+#### TC-03-L3 — "Choose a different file" returns to step 1
 **Priority** P2 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
 - **Setup:** preview of a 3-row file.
 - **Action:** press "Choose a different file".
-- **Expected:** step 1; no household saved.
+- **Expected:** step 1 with an empty file input. That nothing is saved by a preview: A2.
 - **Don't assert:** whether the old run record remains (Q13).
 
-#### TC-03-L4 — Cancel on the preview returns to Homeowners with nothing saved
+#### TC-03-L4 — Cancel on the preview returns to Homeowners
 **Priority** P2 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
 - **Setup:** as L3.
 - **Action:** press Cancel.
-- **Expected:** Homeowners; count unchanged.
+- **Expected:** Homeowners, with Homeowners still highlighted in the menu. Nothing saved: A2.
 - **Don't assert:** scroll position.
 
 #### TC-03-L5 — After the import finishes, the admin is on Homeowners with the banner
 **Priority** P2 · **Type** Navigation · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** 3-row file previewed.
 - **Action:** commit.
-- **Expected:** Homeowners with the finished banner (mock-up 3D).
+- **Expected:** Homeowners with the finished banner (mock-up 3D; wording K22).
 - **Don't assert:** whether the banner is dismissible.
 
 #### TC-03-L6 — Browser Back after a finished import doesn't import again
 **Priority** P2 · **Type** Navigation · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** after L5.
 - **Action:** browser Back; press any Import button shown.
-- **Expected:** no extra households (pairs with D12).
+- **Expected:** no extra household records (pairs with D12).
 - **Don't assert:** which page Back shows.
 
-#### TC-03-L7 — Reloading on the preview never commits and follows one stated rule
+#### TC-03-L7 — Reloading on the preview shows step 1 or the restored preview, by one stated rule
 **Priority** P3 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
 - **Setup:** preview shown.
 - **Action:** reload.
-- **Expected:** step 1 or the preview restored; nothing saved. **Assumption — pending BA (Q13).**
+- **Expected:** step 1 or the preview restored. **Assumption — pending BA (Q13).** Nothing saved: L15.
 - **Don't assert:** which of the two.
 
-#### TC-03-L8 — After Save or Cancel in Add / Edit, the list keeps its search and filter
+#### TC-03-L8 — After Save in Add, the list keeps its search and filter
 **Priority** P3 · **Type** Navigation · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** search "blk 4" active; Add dialog open.
-- **Action:** add Blk 4 Lot 7; Save.
-- **Expected:** list still filtered to "blk 4" and now includes Lot 7.
+- **Action:** add Blk 4 Lot 7; Save. Repeat with Cancel.
+- **Expected:** list still filtered to "blk 4" after both; after Save it includes Lot 7.
 - **Don't assert:** scroll position.
 
-#### TC-03-L9 — A board member opening the Homeowners address sees "You don't have access to this page"
+#### TC-03-L9 — A board member opening the Homeowners address gets the no-access page, with no rows shown first
 **Priority** P1 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
 - **Setup:** ZZ Test Board Member signed in.
 - **Action:** open the Homeowners address directly.
-- **Expected:** "You don't have access to this page" with "Go to my dashboard" (REQ-002); no rows flash first.
+- **Expected:** "You don't have access to this page" with "Go to my dashboard" (REQ-002); no rows flash first. Data refusal: M1.
 - **Don't assert:** the address format.
 
-#### TC-03-L10 — A guard opening the Homeowners or Import address sees the no-access page
+#### TC-03-L10 — A guard opening the Homeowners or Import address gets the no-access page
 **Priority** P1 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
 - **Setup:** ZZ Test Guard.
 - **Action:** open each address directly.
-- **Expected:** no-access page for both.
+- **Expected:** no-access page for both. Data refusal: M3.
 - **Don't assert:** the address format.
 
-#### TC-03-L11 — A homeowner opening the Homeowners or Import address sees the no-access page
+#### TC-03-L11 — A homeowner opening the Homeowners or Import address gets the no-access page
 **Priority** P1 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
 - **Setup:** ZZ Test Homeowner A.
 - **Action:** open each address directly.
-- **Expected:** no-access page for both.
+- **Expected:** no-access page for both. Data refusal: M7.
 - **Don't assert:** the address format.
 
-#### TC-03-L12 — A user with no role or household sees the "not linked" screen
+#### TC-03-L12 — A user with no role or household gets the "not linked" screen, never the directory
 **Priority** P2 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
 - **Setup:** ZZ Test No-Role User.
 - **Action:** open the Homeowners address.
@@ -1342,9 +1630,17 @@ Each case uses a small import file of new rows plus one control row that is vali
 - **Expected:** no Homeowners item. Overlaps TC-02; QE de-duplicates.
 - **Don't assert:** the rest of the menu.
 
+#### TC-03-L15 — Reloading on the preview stores no household
+**Priority** P3 · **Type** Data integrity · **Layer** TBD — QE · **Writes** No
+- **Setup:** as L7.
+- **Action:** reload; read the records for the file's lots.
+- **Expected:** no household, lot or contact record for any of them. **Assumption — pending BA (Q13).**
+- **Don't assert:** the run record's state.
+
 ### Block M — Role and security
 
-Each case asserts the request is refused with a permission error.
+Each case asserts the request is refused with a permission error (or, for M13 and N12,
+allowed). Where a write is attempted, no record written is the proof of the refusal.
 
 #### TC-03-M1 — A board member's request for the household list is refused
 **Priority** P1 · **Type** Security / role · **Layer** TBD — QE · **Writes** No
@@ -1399,7 +1695,7 @@ Each case asserts the request is refused with a permission error.
 **Priority** P1 · **Type** Security / role · **Layer** TBD — QE · **Writes** No
 - **Setup:** each of the four users.
 - **Action:** call `createHousehold`, `updateHousehold`, `setHouseholdActive` (prov.).
-- **Expected:** each refused explicitly; directory unchanged when re-read as Admin.
+- **Expected:** each refused explicitly; no household, lot or contact record created or changed.
 - **Don't assert:** error text. QE may split per role.
 
 #### TC-03-M9 — Import preview and commit calls are refused for Board, Guard, Homeowner and No-role
@@ -1413,7 +1709,7 @@ Each case asserts the request is refused with a permission error.
 **Priority** P1 · **Type** Security / role · **Layer** TBD — QE · **Writes** No
 - **Setup:** Admin 1, client SDK.
 - **Action:** write `households/{A}.displayName`.
-- **Expected:** refused explicitly (clients never write households).
+- **Expected:** refused explicitly (clients never write households); display name unchanged.
 - **Don't assert:** error text.
 
 #### TC-03-M11 — Direct client writes to lots, contacts and import runs are refused for every role
@@ -1455,7 +1751,7 @@ Each case asserts the request is refused with a permission error.
 **Priority** P3 · **Type** Security / role · **Layer** TBD — QE · **Writes** No
 - **Setup:** after G2; Treasurer, Board Member, Admin 1, Guard.
 - **Action:** read the `household.updated` record.
-- **Expected:** treasurer and board allowed; guard refused; admin per BA. **Assumption — pending BA (Q15).**
+- **Expected:** treasurer and board allowed; guard refused explicitly; admin per BA. **Assumption — pending BA (Q15).**
 - **Don't assert:** admin outcome until Q15.
 
 ### Block N — Data integrity and privacy
@@ -1467,19 +1763,19 @@ Each case asserts the request is refused with a permission error.
 - **Expected:** no field holds a fixture email or mobile; those exist only in `householdContacts`.
 - **Don't assert:** other field names.
 
-#### TC-03-N2 — A homeowner's read of their own household returns no contacts
+#### TC-03-N2 — A homeowner's own household record carries no contacts
 **Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** No
 - **Setup:** Homeowner A.
 - **Action:** read `households/{A}`.
-- **Expected:** allowed; payload has no email or mobile (after a sale a new owner never sees the old owner's contacts).
+- **Expected:** the payload has no email or mobile (after a sale a new owner never sees the old owner's contacts). Read permission: N12.
 - **Don't assert:** which other fields are present.
 
 #### TC-03-N3 — Every mobile is stored in one format
 **Priority** P2 · **Type** Data integrity · **Layer** TBD — QE · **Writes** No
-- **Setup:** after C6.
+- **Setup:** after C6 committed.
 - **Action:** read the six contact records.
 - **Expected:** all in the same shape (`+639…`, prov.).
-- **Don't assert:** the display format here (C6 does).
+- **Don't assert:** the display format here (C24 does).
 
 #### TC-03-N4 — Each imported household has one lot entry and one contact record
 **Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** No
@@ -1496,11 +1792,11 @@ Each case asserts the request is refused with a permission error.
 - **Expected:** one `household.created` (prov.) with Admin 1's uid.
 - **Don't assert:** time.
 
-#### TC-03-N6 — An import writes one completion record whose counts match the banner
+#### TC-03-N6 — An import writes one completion record with 619 imported and 4 not imported
 **Priority** P2 · **Type** Data integrity · **Layer** TBD — QE · **Writes** No
 - **Setup:** after A8.
 - **Action:** read the `import.completed` record (prov.).
-- **Expected:** one record: 619 imported, 4 not imported.
+- **Expected:** one record: 619 imported, 4 not imported, matching the run record (A8).
 - **Don't assert:** whether per-row `household.created` records are also written.
 
 #### TC-03-N7 — Household audit records hold no names, emails or mobiles
@@ -1538,48 +1834,55 @@ Each case asserts the request is refused with a permission error.
 - **Expected:** no name, email, mobile or search text in the URL (SA-001 §8.2).
 - **Don't assert:** the URL format.
 
+#### TC-03-N12 — A homeowner's read of their own household is allowed
+**Priority** P2 · **Type** Security / role · **Layer** TBD — QE · **Writes** No
+- **Setup:** Homeowner A.
+- **Action:** read `households/{A}` (prov.).
+- **Expected:** allowed (positive control for M6; SA-001 "every member reads `households/{id}`").
+- **Don't assert:** payload contents (N2).
+
 ### Block P — Integration and derived figures
 
 #### TC-03-P1 — An invitation for an imported household goes to its contact email
 **Priority** P1 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** after A3; staging mail allow-list includes automation addresses.
 - **Action:** invite Automation Owner 001's household (REQ-004).
-- **Expected:** the invitation is addressed to automation-001@example.test.
+- **Expected:** the invitation record (and outgoing mail) is addressed to automation-001@example.test.
 - **Don't assert:** delivery.
 
 #### TC-03-P2 — An edited contact email is used by the next invitation
 **Priority** P1 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** Household F; set email zz-owner-f@example.test.
 - **Action:** invite Household F.
-- **Expected:** addressed to zz-owner-f@example.test.
+- **Expected:** the invitation is addressed to zz-owner-f@example.test.
 - **Don't assert:** delivery.
 
 #### TC-03-P3 — The join screen shows the current owner name after an edit
 **Priority** P2 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** Household F renamed "ZZ Test Owner India"; a printed code for it.
 - **Action:** No-Role User enters the code.
-- **Expected:** "You're joining Blk 12 Lot 12-A" with "ZZ Test Owner India".
+- **Expected:** "You're joining Blk 12 Lot 12-A" with "ZZ Test Owner India" (REQ-004 screen).
 - **Don't assert:** layout.
 
 #### TC-03-P4 — Editing a household doesn't reset its link status or member count
 **Priority** P1 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** Household A "Linked", one member.
-- **Action:** edit its mobile; Save.
-- **Expected:** pill still "Linked"; member count unchanged.
+- **Action:** edit its mobile; Save; read the household record.
+- **Expected:** link status still Linked; member count still 1.
 - **Don't assert:** fields not named.
 
 #### TC-03-P5 — A household with no email counts in REQ-004's "have no email" figure
 **Priority** P2 · **Type** Integration · **Layer** TBD — QE · **Writes** No
 - **Setup:** Household F (no email) and C12's household selected with one household that has an email.
-- **Action:** press "Invite selected".
-- **Expected:** "Send 1 invitations? 2 households have no email. Print their slips instead." (REQ-004 copy).
+- **Action:** start "Invite selected" (REQ-004).
+- **Expected:** 1 household sendable by email; 2 counted as having no email. The confirm wording ("Send 1 invitations? 2 households have no email. Print their slips instead.") is REQ-004 copy and belongs to TC-04.
 - **Don't assert:** singular grammar.
 
 #### TC-03-P6 — The heading count updates after add, import, deactivate and reactivate without a reload
 **Priority** P1 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** a known starting directory.
 - **Action:** add one; import 3; deactivate one; reactivate it.
-- **Expected:** "Homeowners · {n} households" follows each step.
+- **Expected:** "Homeowners · {n} households" follows each step (wording: K19).
 - **Lane:** exclusive — asserts the directory total.
 - **Don't assert:** whether inactive counts (gap Q18).
 
@@ -1593,18 +1896,18 @@ Each case asserts the request is refused with a permission error.
 
 ### Block Q — Back-compat
 
-#### TC-03-Q1 — The mock-up's 20 sample households never appear in the real directory
+#### TC-03-Q1 — The real directory holds none of the mock-up's 20 sample households
 **Priority** P2 · **Type** Back-compat · **Layer** TBD — QE · **Writes** No
 - **Setup:** fresh test project.
-- **Action:** Admin 1 opens Homeowners.
-- **Expected:** empty state, not sample rows.
+- **Action:** read `households` (prov.).
+- **Expected:** no household records. Empty-state screen: J9.
 - **Don't assert:** anything about the mock-up.
 
-#### TC-03-Q2 — A household with no phase opens and saves without choosing one
+#### TC-03-Q2 — An edit to a household with no phase saves and leaves the phase not set
 **Priority** P3 · **Type** Back-compat · **Layer** TBD — QE · **Writes** Yes
 - **Setup:** Household F (phase null).
-- **Action:** edit the mobile; Save.
-- **Expected:** form shows "Not set"; save succeeds; phase still null.
+- **Action:** edit the mobile without choosing a phase; Save; read the record.
+- **Expected:** save accepted; phase still null (prov.). "Not set" display: C27.
 - **Don't assert:** phase list contents.
 
 #### TC-03-Q3 — A household doc without link status or member count renders as "Not invited"
@@ -1639,25 +1942,27 @@ Each case asserts the request is refused with a permission error.
 
 ## Coverage summary
 
+r2 split 43 v1 cases by behaviour into 41 new cases (196 → 237). Ids from v1 are unchanged; new ids take the next free number in their block.
+
 | Block | Scope | Cases | P1 |
 |---|---|---|---|
-| A | Import: preview and happy path | 13 | 11 |
-| B | Import: file boundaries and negatives | 18 | 8 |
-| C | Field validation and lot-key normalisation | 22 | 10 |
-| D | Commit, idempotency, re-import, concurrency | 16 | 14 |
-| E | Rejected-rows report and download | 6 | 3 |
-| F | Add household | 9 | 6 |
-| G | Edit and stale edits | 12 | 6 |
-| H | Deactivate and reactivate | 14 | 5 |
-| J | List, search, paging | 14 | 4 |
-| K | Responsive, usability, UI/UX | 18 | 5 |
-| L | Navigation | 14 | 5 |
+| A | Import: preview and happy path | 14 | 11 |
+| B | Import: file boundaries and negatives | 24 | 8 |
+| C | Field validation and lot-key normalisation | 27 | 10 |
+| D | Commit, idempotency, re-import, concurrency | 21 | 15 |
+| E | Rejected-rows report and download | 7 | 3 |
+| F | Add household | 15 | 6 |
+| G | Edit and stale edits | 14 | 6 |
+| H | Deactivate and reactivate | 18 | 6 |
+| J | List, search, paging | 15 | 4 |
+| K | Responsive, usability, UI/UX, copy of record | 26 | 5 |
+| L | Navigation | 15 | 5 |
 | M | Role and security | 16 | 14 |
-| N | Data integrity and privacy | 11 | 5 |
+| N | Data integrity and privacy | 12 | 5 |
 | P | Integration and derived figures | 7 | 4 |
 | Q | Back-compat | 3 | 0 |
 | X | Exploratory | 3 | 0 |
-| **Total** | | **196** | **100** |
+| **Total** | | **237** | **102** |
 
 
 ## Requirement gaps for the BA
@@ -1667,19 +1972,19 @@ Each blocks a precise expected result. Cases that assume an answer are labelled
 
 | # | Question | Cases |
 |---|---|---|
-| Q1 | What are the maximum rows and file size for one import, and the copy when exceeded? | B17, B18 |
-| Q2 | What does the admin see for an empty file, a header-only file, a file with zero valid rows, a missing / renamed / reordered / extra column, or a non-comma separator? Is Import hidden, disabled, or "Import 0 households"? | B1, B2, B4, B12–B15 |
-| Q3 | Singular copy: "Import 1 household(s)", "1 household(s) ready", heading "1 household(s)"? | B3 |
-| Q4 | Encoding and line endings: is a UTF-8 BOM accepted (Excel "CSV UTF-8" writes one)? CR-only / mixed endings? Trailing blank lines? The refusal copy "Save the file as CSV UTF-8 and upload it again." is in the Sol Arch review but not REQ-003's copy table: confirm it. | B5, B6, B9, B10 |
-| Q5 | Does "Already in the directory, skipped" count in "{m} rows won't be imported" and in the finished banner, and is it in the rejected-rows download? (Gherkin 2 counts 4; mock-up 3C shows a separate "Already in the directory" tile.) When a lot is duplicated in the file *and* already exists, which reason is shown? | A3, A9, C20, E2 |
+| Q1 | What are the maximum rows and file size for one import, and the copy when exceeded? | B17, B18, B19 |
+| Q2 | What does the admin see for an empty file, a header-only file, a file with zero valid rows, a missing / renamed / reordered / extra column, or a non-comma separator? Is Import hidden, disabled, or "Import 0 households"? | B1, B2, B4, B12–B15, B19, B21, B23, D15 |
+| Q3 | Singular copy: "Import 1 household(s)", "1 household(s) ready", heading "1 household(s)"? | B3, K19 |
+| Q4 | Encoding and line endings: is a UTF-8 BOM accepted (Excel "CSV UTF-8" writes one)? CR-only / mixed endings? Trailing blank lines? The refusal copy "Save the file as CSV UTF-8 and upload it again." is in the Sol Arch review but not REQ-003's copy table: confirm it. | B5, B6, B9, B10, B20 |
+| Q5 | Does "Already in the directory, skipped" count in "{m} rows won't be imported" and in the finished banner, and is it in the rejected-rows download? (Gherkin 2 counts 4; mock-up 3C shows a separate "Already in the directory" tile.) When a lot is duplicated in the file *and* already exists, which reason is shown? | A3, A9, C20, E2, K20, K22 |
 | Q6 | Import run states: is there a `completed` / `failed` state, and how does an admin resume an interrupted import (SA says rerun continues; also says commit refuses unless `previewed`)? When two imports race, must the second report *every* row skipped, or may the rows interleave? | D6, D7 |
 | Q7 | Missing copy: owner name over 80 characters; several problems on one row (all reasons or first); does the import strip a leading `'` added by the escaped download? | C5, C21, E4 |
 | Q8 | Lot-key normalisation: are lot values trimmed, case-folded ("12-a" = "12-A") and leading zeros ignored ("012" = "12")? Block rules for "4A", 0, negatives, > 99. Accepted Phase values ("Phase 2", "2", "P2")? Plus decision 2 (phase in the key) still open. | C15–C18 |
-| Q9 | Inactive households: may they be edited? Does an inactive lot still block a new add / import of that lot, and should the message point to Reactivate? Is Deactivate on an inactive household refused or a no-op? Does a stale-edit check trip on deactivation? | D16, F9, G9, H10 |
+| Q9 | Inactive households: may they be edited? Does an inactive lot still block a new add / import of that lot, and should the message point to Reactivate? Is Deactivate on an inactive household refused or a no-op? Does a stale-edit check trip on deactivation? | D16, D21, F9, G9, H10 |
 | Q10 | After Reactivate, what is the link status, and does a cancelled invitation stay cancelled? | H8 |
 | Q11 | For an "Email failed" or "Invite expired" household that is deactivated, are Resend / Print slip offered? | H13 |
 | Q12 | Can one staff member see or download another staff member's import run and its rejected rows? | E6 |
-| Q13 | Does Cancel or a reload on the preview delete the run record, and what does reload show? | A2, L7 |
+| Q13 | Does Cancel or a reload on the preview delete the run record, and what does reload show? | A2, L7, L15 |
 | Q14 | Can Block / Lot be changed on edit? If so, what happens to the old lot key? | G11 |
 | Q15 | Audit read access: REQ-003 says board and treasurer read the change record; may admin office staff? The activity log screen is backlog story 06, so Gherkin 8's "activity log records" is verifiable only at record level in R1: confirm. | G2, M16 |
 | Q16 | Where are Edit, Deactivate and Reactivate reached from (row click, detail pop-up, menu)? Not in the mock-ups. | Smoke item 4, H-block |
