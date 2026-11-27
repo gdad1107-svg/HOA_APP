@@ -181,7 +181,7 @@ These are prerequisites the workflow assumes but the repo doesn't have yet (as o
 2. **One approval phrase or two?** Sol Arch accepts only `APPROVED — FINAL`; REQs and TCs have been approved with "approve it". Suggest one rule for all three.
 3. **What is a release batch?** Regression runs once per batch. Suggest one sprint (e.g. S1 = REQ-001–004), to match the release plan.
 4. **New release-plan stages** *Accepted* (story closed) after *Built*, and *On demo* between *Tested* and *Released*?
-5. **The QE agent file disagrees with this draft.** `qe.md` says "Before any promotion (demo or production): Full regression" (everything). This draft runs targeted regression instead. If you approve, `qe.md` (and the QA regression lens in `qa.md`) need updating to match.
+5. **Agent files updated to match (r3):** `qe.md` (which testing, when; acceptance per story; consolidated batch regression; Never list) and `qa.md` (acceptance → AC-to-case table; regression lens names unaffected areas).
 
 ## Revision history
 
@@ -189,3 +189,4 @@ These are prerequisites the workflow assumes but the repo doesn't have yet (as o
 |---|---|---|
 | r1 | 2026-11-28 | First draft |
 | r2 | 2026-11-28 | Testing split in two, per the owner: acceptance tests per story (gate to close the story) and targeted regression once per release batch (gate to deploy to demo) |
+| r3 | 2026-11-28 | `qe.md` and `qa.md` updated to the acceptance / regression split |
