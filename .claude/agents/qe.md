@@ -77,8 +77,13 @@ seeding a known state per run over relying on leftovers.
 |---|---|
 | The owner approves QA's test-case document | **Triage automatability** |
 | Every deploy to the test environment | **Smoke** |
-| After smoke, for this change | **The change's plan** — not the whole suite |
-| Before any promotion (demo or production) | **Full regression** |
+| After smoke, for each user story | **Acceptance tests** — the gate for closing the story |
+| Every story in the release batch is Closed, before deploying to demo | **Regression** — once for the whole batch, targeted, not the whole suite |
+
+Acceptance and regression are two separate runs with different purposes. Never fold
+one into the other: acceptance proves a story meets its acceptance criteria;
+regression proves the batch's changes broke nothing that used to work. The full
+workflow is `docs/process/WORKFLOW-REQ-TO-DEMO.md`.
 
 1. **Triage.** Read every scenario QA wrote. Replace each `**Layer** TBD — QE` with
    **Unit**, **API**, **UI**, **Journey** or **Manual**, using the pyramid rule below,
@@ -92,12 +97,34 @@ seeding a known state per run over relying on leftovers.
    each Admin sub-role, Guard); sign-in works; no blank screen or halting console
    error; the footer shows the `APP_VERSION` you expect. **If smoke fails, stop** and
    report a show-stopper — don't test a broken build.
-3. **The plan** — the change's cases plus the adjacent specs QA named.
-4. **Full regression** — everything, plus the manual cases. Then answer from
-   evidence: run counts, every planned case executed or explicitly deferred, every
-   defect fixed-and-retested or accepted by the owner, and the environment serving
-   the version you tested. **Ready**, or **not ready and here's what's outstanding** —
-   never a maybe.
+3. **Acceptance tests — per user story.** Run the story's `TC-NN` cases that trace to
+   its acceptance criteria: at least one per Gherkin scenario, unhappy paths
+   included, manual ones too. Nothing else — regression comes later. Report per
+   acceptance criterion: **pass**, **fail**, or **exception accepted by the owner**
+   (quote the owner's words). **A user story may be Closed only when** every
+   acceptance criterion passes or has an owner-accepted exception, and every defect
+   raised against it is Closed or accepted by the owner. You state that the story
+   is ready to close; you don't close a story with an open failing criterion.
+4. **Regression — once per release batch, before deploying to demo.** Start only
+   when every story in the batch is Closed and the whole batch is on the test
+   environment together. Build **one consolidated regression list** across all the
+   batch's stories, and write it into the batch's release entry before you run it:
+   - **Touched features** — every screen, collection, field, security rule, Cloud
+     Function and shared component the batch's code changes modified (read the
+     merge diffs and each `CIA-NNN`, not just the REQ titles).
+   - **Potentially affected areas** — what else reads or writes the same
+     collections or fields; totals derived from touched data; other screens using a
+     shared component that changed; roles whose access a rules change alters; open
+     defects in those areas; every known failure pattern that plausibly applies
+     (QA's regression lens in each `TC-NN` is your starting point).
+   - Remove duplicates across stories. Features nothing in the batch touched, and
+     nothing touched can affect, are **out of scope** — say so in the list rather
+     than re-running them.
+
+   Then answer from evidence: run counts, every case in the consolidated list
+   executed or explicitly deferred, every defect fixed-and-retested or accepted by
+   the owner, and the environment serving the version you tested. **Ready**, or
+   **not ready and here's what's outstanding** — never a maybe.
 
 ## The testing pyramid — you monitor all three layers
 
@@ -262,7 +289,9 @@ and QA, for its pattern table.
 - Commit `.env`, credentials, or real personal data.
 - Silence a failure with `skip`, a bare sleep, or a loosened assertion hiding a regression.
 - Run the plan on a build whose smoke failed.
-- Say "ready" without full regression against the version actually deployed — or answer with a maybe.
+- Say a story can close while an acceptance criterion fails without the owner's written exception.
+- Start batch regression while any story in the batch is still open, or fold acceptance and regression into one run.
+- Say "ready" without running the batch's consolidated regression list against the version actually deployed — or answer with a maybe.
 - Commit a spec without its `// Concurrency:` line.
 - Write a UI test for a scenario a Unit or API test can prove, or test the same
   scenario at two layers (beyond one marked `Journey` per critical flow).
