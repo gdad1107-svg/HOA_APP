@@ -172,31 +172,49 @@ All in the emulator seed or the staging test data. Never a real homeowner, never
 
 ---
 
+## Layer legend (QE)
+
+QE filled in each case's **Layer** at triage on 2026-11-28. Nothing else in a case was changed. The reasoning, locator contract, spec list, automation order and findings are in **QE triage** at the end. Rows are in [COVERAGE-MAP.md](COVERAGE-MAP.md).
+
+| Layer | Meaning here | Owner |
+|---|---|---|
+| **Unit** | Vitest on a plain module (no DOM, no Firebase, no network): copy mapping, validation, greeting, landing choice, the in-flight guard behind an injected auth port | Dev writes, QE reviews |
+| **API** | The Auth and Firestore emulators, called directly (SDK, REST, `@firebase/rules-unit-testing`) or through the app's own data modules in Node. No browser | QE |
+| **API (staging)** | The same kind of test, run on `hoa-portal-staging` because the emulator can't prove it (password policy, App Check). Read-only, or a disposable account only | QE |
+| **UI** | Playwright against the emulator-backed app: what only a browser shows, plus the wiring from a click to Auth | QE |
+| **Manual (staging)** | Run by hand on staging: real Google accounts, real inboxes, App Check with a real browser | QE |
+| **Manual (console)** | Read-only settings check in the Firebase console. On production, **only the owner** does it | Owner (production), QE (staging) |
+| **Manual** | A judgement call, a real phone keyboard, or an exploratory charter | QE |
+
+No **Journey** row is added for REQ-001. Sign-in is a gate in front of every other journey, so the existing journeys (VEH-J1 and the planned ones) prove it once they start from signed-in fixtures.
+
+---
+
 ## Block A — Sign in with Google (S1)
 
 ### TC-01-A1 — A linked homeowner signing in with Google lands on her dashboard, greeted by her first name
-**Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Happy path · **Layer** UI · **Writes** No
 - **Role / setup:** Homeowner, U-G, signed out.
 - **Action:** Open the portal. Press "Continue with Google". Choose U-G's account.
 - **Expected:** The dashboard opens with the heading "Welcome back, Maria".
 - **Don't assert:** dashboard figures; Google's own popup screens.
 
 ### TC-01-A2 — After Google sign-in, the header shows the linked lot
-**Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Happy path · **Layer** UI · **Writes** No
 - **Role / setup:** Homeowner, U-G, signed out.
 - **Action:** As A1.
 - **Expected:** The header reads "Blk 1 Lot 3".
 - **Don't assert:** any other header content.
 
 ### TC-01-A3 — The greeting uses the first word of the stored name
-**Priority** P3 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Boundary · **Layer** Unit · **Writes** No
 - **Role / setup:** Homeowner, U-G ("Maria ZZTest").
 - **Action:** Sign in.
 - **Expected:** "Welcome back, Maria", not the full name. (REQ-001 shows this for "Maria Santos" without stating the rule; see G-2.)
 - **Don't assert:** handling of single-word or empty names (F12, G15).
 
 ### TC-01-A4 — Google sign-in uses the popup flow, not a redirect *(provisional: SA-001 §8.4)*
-**Priority** P2 · **Type** Security / config · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Security / config · **Layer** Manual (staging) · **Writes** No
 - **Role / setup:** Homeowner, U-G. **Env: staging only**, in a browser that blocks third-party storage (current Chrome, Firefox, Safari defaults).
 - **Action:** Press "Continue with Google" and choose the account.
 - **Expected:** A popup opens and the portal page is signed in afterwards. If the build uses a redirect, it is served from the project's own `authDomain` and still signs in.
@@ -205,7 +223,7 @@ All in the emulator seed or the staging test data. Never a real homeowner, never
 ## Block B — Sign in with email and password (S2)
 
 ### TC-01-B1 — A linked homeowner signing in with email and password lands on his dashboard
-**Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Happy path · **Layer** UI · **Writes** No
 - **Role / setup:** Homeowner, U-P, signed out.
 - **Action:** Type U-P's email and password. Press "Sign in".
 - **Expected:** The dashboard for "Blk 4 Lot 12" opens.
@@ -214,77 +232,77 @@ All in the emulator seed or the staging test data. Never a real homeowner, never
 ## Block C — Wrong credentials do not reveal accounts (S3)
 
 ### TC-01-C1 — A wrong password shows the shared message
-**Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Negative · **Layer** UI · **Writes** No
 - **Role / setup:** Anyone, signed out. U-P exists.
 - **Action:** Type U-P's email and a wrong password. Press "Sign in".
 - **Expected:** "That email and password don't match. Try again, or reset your password." Not signed in.
 - **Don't assert:** the error code behind it.
 
 ### TC-01-C2 — After a wrong password the email stays in the field
-**Priority** P2 · **Type** Usability · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Usability · **Layer** UI · **Writes** No
 - **Role / setup:** As C1.
 - **Action:** As C1.
 - **Expected:** The email field still holds U-P's email.
 - **Don't assert:** the password field (N7).
 
 ### TC-01-C3 — An email with no account shows the same message as a wrong password
-**Priority** P1 · **Type** Security / negative · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security / negative · **Layer** UI · **Writes** No
 - **Role / setup:** Anyone, signed out. U-NONE. Enumeration protection on (R9 seed, or staging).
 - **Action:** Type U-NONE's address and any password. Press "Sign in".
 - **Expected:** Exactly the C1 message, in the same place, with no extra hint.
 - **Don't assert:** response timing.
 
 ### TC-01-C4 — After an unknown email, the email stays in the field
-**Priority** P3 · **Type** Usability · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Usability · **Layer** UI · **Writes** No
 - **Role / setup:** As C3.
 - **Action:** As C3.
 - **Expected:** The email field still holds U-NONE's address.
 - **Don't assert:** the password field.
 
 ### TC-01-C5 — The server refuses a wrong password and an unknown email identically *(provisional: SA-001 §8.4)*
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security · **Layer** API · **Writes** No
 - **Role / setup:** No app role (direct Auth call). Enumeration protection on: **staging**, or the emulator with R9's seed asserted first.
 - **Action:** Call sign-in for U-P with a wrong password, and for U-NONE, bypassing the page.
 - **Expected:** Both refusals are identical (same error, same shape). Neither says whether the email exists.
 - **Don't assert:** the error code's name (it differs between the REST API and SDK versions).
 
 ### TC-01-C6 — The page shows the shared message for every credential error code
-**Priority** P2 · **Type** Security · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Security · **Layer** Unit · **Writes** No
 - **Role / setup:** Anyone, signed out. Auth error mocked, one at a time, as `auth/invalid-credential`, `auth/invalid-login-credentials`, `auth/user-not-found`, `auth/wrong-password`.
 - **Action:** Submit the sign-in form for each.
 - **Expected:** Each shows the C1 message. (Guards against a page that maps old codes to different copy if enumeration protection is ever off.)
 - **Don't assert:** which code the live SDK returns.
 
 ### TC-01-C7 — An empty email is refused before any request
-**Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Negative · **Layer** Unit · **Writes** No
 - **Role / setup:** Anyone, signed out.
 - **Action:** Leave Email empty, type a password, press "Sign in".
 - **Expected:** An error under the Email field says what to do; no sign-in request is sent; the password is not cleared.
 - **Don't assert:** the wording (not in the copy of record, G-1).
 
 ### TC-01-C8 — An empty password is refused before any request
-**Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Negative · **Layer** Unit · **Writes** No
 - **Role / setup:** Anyone, signed out.
 - **Action:** Type an email, leave Password empty, press "Sign in".
 - **Expected:** An error under the Password field; no request; email kept.
 - **Don't assert:** the wording (G-1).
 
 ### TC-01-C9 — A malformed email is refused with a field error
-**Priority** P3 · **Type** Negative · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Negative · **Layer** Unit · **Writes** No
 - **Role / setup:** Anyone, signed out.
 - **Action:** Type `zz-owner-juan@` and a password. Press "Sign in".
 - **Expected:** An error under Email; no request; typing kept.
 - **Don't assert:** the wording (G-1).
 
 ### TC-01-C10 — An email typed with capitals still signs in
-**Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Boundary · **Layer** API · **Writes** No
 - **Role / setup:** Homeowner, U-P, signed out.
 - **Action:** Type U-P's email with capitals (`ZZ-Owner-Juan@…`) and the right password.
 - **Expected:** Signs in as U-P. **Assumption:** Firebase compares emails case-insensitively.
 - **Don't assert:** how the email is displayed afterwards.
 
 ### TC-01-C11 — An email typed with a trailing space still signs in
-**Priority** P3 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Boundary · **Layer** Unit · **Writes** No
 - **Blocked on G-4** (trimming not stated). QA expects trimming, because phone keyboards add the space.
 - **Role / setup:** Homeowner, U-P, signed out.
 - **Action:** Type U-P's email followed by a space, and the right password.
@@ -292,14 +310,14 @@ All in the emulator seed or the staging test data. Never a real homeowner, never
 - **Don't assert:** anything until G-4 is answered.
 
 ### TC-01-C12 — A Google-only account using the email form gets the shared message
-**Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Negative · **Layer** API · **Writes** No
 - **Role / setup:** Homeowner, U-G (Google only, no password), signed out.
 - **Action:** Type U-G's email and any password. Press "Sign in".
 - **Expected:** The C1 message. Whether to also hint "use Continue with Google" is gap G-17.
 - **Don't assert:** any hint until G-17 is answered.
 
 ### TC-01-C13 — No page decides what to show by asking Firebase which sign-in methods an email has
-**Priority** P3 · **Type** Security · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Security · **Layer** Unit · **Writes** No
 - **Role / setup:** Code review; no app role.
 - **Action:** Search the web app for `fetchSignInMethodsForEmail`.
 - **Expected:** Not used to branch any page (with enumeration protection on it returns nothing).
@@ -308,49 +326,49 @@ All in the emulator seed or the staging test data. Never a real homeowner, never
 ## Block D — Refusals from Firebase and the network (S5 and UX states)
 
 ### TC-01-D1 — "Too many attempts" shows its message
-**Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Negative · **Layer** Unit · **Writes** No
 - **Role / setup:** Anyone, signed out. Firebase's too-many-attempts error **mocked** for U-P's email (it cannot be triggered on demand).
 - **Action:** Press "Sign in".
 - **Expected:** "Too many attempts. Wait a while, or reset your password."
 - **Don't assert:** how many tries trigger it or how long it lasts.
 
 ### TC-01-D2 — After "Too many attempts" the email stays in the field
-**Priority** P2 · **Type** Usability · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Usability · **Layer** UI · **Writes** No
 - **Role / setup:** As D1.
 - **Action:** As D1.
 - **Expected:** U-P's email is still in the field.
 - **Don't assert:** the password field.
 
 ### TC-01-D3 — "Forgot password?" opens the reset page from the error state
-**Priority** P3 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Navigation · **Layer** UI · **Writes** No
 - **Role / setup:** As D1, after the message shows.
 - **Action:** Press "Forgot password?".
 - **Expected:** The reset page opens.
 - **Don't assert:** whether the email is carried over (G-7).
 
 ### TC-01-D4 — Signing in while offline shows the offline message
-**Priority** P2 · **Type** Negative / UI-UX · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Negative / UI-UX · **Layer** UI · **Writes** No
 - **Role / setup:** Homeowner, U-P, signed out; browser offline.
 - **Action:** Press "Sign in".
 - **Expected:** "You're offline. Connect to the internet to sign in." **Assumption:** the SDK reports a network error rather than hanging.
 - **Don't assert:** retry behaviour.
 
 ### TC-01-D5 — "Continue with Google" while offline shows the offline message
-**Priority** P3 · **Type** Negative · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Negative · **Layer** UI · **Writes** No
 - **Role / setup:** Homeowner, U-G, signed out; browser offline.
 - **Action:** Press "Continue with Google".
 - **Expected:** The D4 message; no popup stuck open.
 - **Don't assert:** whether a popup briefly opens.
 
 ### TC-01-D6 — After the offline message, the button is ready again and typing is kept
-**Priority** P3 · **Type** Usability · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Usability · **Layer** UI · **Writes** No
 - **Role / setup:** As D4.
 - **Action:** As D4, then reconnect.
 - **Expected:** "Sign in" is enabled; email and password are still typed; pressing it signs in.
 - **Don't assert:** automatic retry.
 
 ### TC-01-D7 — Creating an account while offline shows an offline message
-**Priority** P3 · **Type** Negative · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Negative · **Layer** UI · **Writes** No
 - **Blocked on G-15** (the offline copy says "…to sign in", which doesn't fit this page).
 - **Role / setup:** New homeowner, U-NEW details; offline.
 - **Action:** Press "Create account".
@@ -358,7 +376,7 @@ All in the emulator seed or the staging test data. Never a real homeowner, never
 - **Don't assert:** wording.
 
 ### TC-01-D8 — Asking for a reset link while offline shows an offline message
-**Priority** P3 · **Type** Negative · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Negative · **Layer** UI · **Writes** No
 - **Blocked on G-15.**
 - **Role / setup:** Anyone, signed out, on the reset page; offline.
 - **Action:** Press "Send reset link".
@@ -366,14 +384,14 @@ All in the emulator seed or the staging test data. Never a real homeowner, never
 - **Don't assert:** wording.
 
 ### TC-01-D9 — Closing the Google popup returns to a usable sign-in page
-**Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Negative · **Layer** UI · **Writes** No
 - **Role / setup:** Homeowner, U-G, signed out.
 - **Action:** Press "Continue with Google"; close the popup without choosing.
 - **Expected:** The Google button is enabled; no stuck in-flight state; not signed in.
 - **Don't assert:** a message (G-8).
 
 ### TC-01-D10 — A blocked Google popup tells the person how to continue
-**Priority** P2 · **Type** Negative / usability · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Negative / usability · **Layer** UI · **Writes** No
 - **Blocked on G-8** (no copy).
 - **Role / setup:** Homeowner, U-G, signed out; popups blocked for the site.
 - **Action:** Press "Continue with Google".
@@ -381,14 +399,14 @@ All in the emulator seed or the staging test data. Never a real homeowner, never
 - **Don't assert:** wording.
 
 ### TC-01-D11 — A disabled account is refused at sign-in and sees no household data
-**Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Negative · **Layer** API · **Writes** Yes
 - **Role / setup:** Homeowner. A **disposable copy** of U-P, linked to Household B, disabled in Auth.
 - **Action:** Sign in with its email and password.
 - **Expected:** Not signed in; no household data. Copy is gap G-5.
 - **Don't assert:** the error code (it may be `user-disabled` or the generic credential error when enumeration protection is on: Uncertain).
 
 ### TC-01-D12 — A homeowner disabled while signed in is signed out once the token refreshes
-**Priority** P2 · **Type** Stale reference · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Stale reference · **Layer** UI · **Writes** Yes
 - **Role / setup:** Homeowner. A disposable copy of U-P, signed in on the dashboard; then disabled in Auth.
 - **Action:** Force a token refresh (`getIdToken(true)`), then open another screen.
 - **Expected:** Signed out; sign-in page; no household data after the refresh. Landing copy is gap G-5.
@@ -397,70 +415,70 @@ All in the emulator seed or the staging test data. Never a real homeowner, never
 ## Block E — Resetting a forgotten password (S4)
 
 ### TC-01-E1 — Asking for a reset for an existing email shows the reset message
-**Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Happy path · **Layer** UI · **Writes** Yes
 - **Role / setup:** Homeowner, U-P, signed out.
 - **Action:** Press "Forgot password?", type U-P's email, press "Send reset link".
 - **Expected:** "If there's an account for {U-P's email}, we've sent a link to reset the password. Check your spam folder too."
 - **Don't assert:** whether the email arrived (E2).
 
 ### TC-01-E2 — Asking for a reset for an existing email creates exactly one reset link
-**Priority** P1 · **Type** Happy path (copy promises an outcome) · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Happy path (copy promises an outcome) · **Layer** UI · **Writes** Yes
 - **Role / setup:** As E1, emulator.
 - **Action:** As E1.
 - **Expected:** The emulator holds exactly one password-reset code for U-P.
 - **Don't assert:** the email's wording.
 
 ### TC-01-E3 — Asking for a reset for an unknown email shows the same message
-**Priority** P1 · **Type** Security / negative · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security / negative · **Layer** UI · **Writes** No
 - **Role / setup:** Anyone, signed out. U-NONE. Enumeration protection on (R9 seed, or staging).
 - **Action:** As E1 with U-NONE's address.
 - **Expected:** The E1 message with that address in it; no error.
 - **Don't assert:** response timing.
 
 ### TC-01-E4 — Asking for a reset for an unknown email sends nothing
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security · **Layer** API · **Writes** No
 - **Role / setup:** As E3.
 - **Action:** As E3.
 - **Expected:** No reset code exists for that address.
 - **Don't assert:** server logs.
 
 ### TC-01-E5 — Following the reset link sets a new password that signs in
-**Priority** P1 · **Type** Happy path / integration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Happy path / integration · **Layer** API · **Writes** Yes
 - **Role / setup:** Homeowner. A disposable copy of U-P, linked to Household B; reset link from E2.
 - **Action:** Open the link, set a new 8+ character password, sign in to the portal with it.
 - **Expected:** Household B's dashboard.
 - **Don't assert:** the wording of Firebase's reset page (not ours); link expiry.
 
 ### TC-01-E6 — After a reset the old password no longer signs in
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security · **Layer** API · **Writes** No
 - **Role / setup:** After E5, signed out.
 - **Action:** Sign in with the old password.
 - **Expected:** The C1 message.
 - **Don't assert:** the error code.
 
 ### TC-01-E7 — A password reset ends the account's other signed-in sessions
-**Priority** P2 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Security · **Layer** API · **Writes** Yes
 - **Role / setup:** Homeowner. A disposable copy of U-P signed in on a second browser; then E5 runs in the first.
 - **Action:** In the second browser, force a token refresh, then open a screen.
 - **Expected:** The second browser is signed out (a reset revokes refresh tokens).
 - **Don't assert:** when it happens without a forced refresh.
 
 ### TC-01-E8 — The reset page refuses a new password under 8 characters *(provisional: SA-001 §8.4)*
-**Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Boundary · **Layer** API (staging) · **Writes** No
 - **Role / setup:** Homeowner, disposable copy of U-P. **Env: staging only** (the emulator does not enforce the password policy).
 - **Action:** Open a reset link; set a 7-character password.
 - **Expected:** Refused.
 - **Don't assert:** Firebase's wording.
 
 ### TC-01-E9 — "Back to sign in" on the reset page returns to the sign-in page
-**Priority** P3 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Navigation · **Layer** UI · **Writes** No
 - **Role / setup:** Anyone, signed out, on the reset page.
 - **Action:** Press "Back to sign in".
 - **Expected:** The sign-in page.
 - **Don't assert:** carried-over values (G-7).
 
 ### TC-01-E10 — A Google-only account asking for a password reset
-**Priority** P2 · **Type** Negative / security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Negative / security · **Layer** API · **Writes** Yes
 - **Blocked on G-17.** Following the link may quietly add a password to a Google-only account.
 - **Role / setup:** Homeowner, a disposable copy of U-G (Google only).
 - **Action:** Ask for a reset for its email; open the link; set a password.
@@ -470,70 +488,70 @@ All in the emulator seed or the staging test data. Never a real homeowner, never
 ## Block F — Creating an account (S6)
 
 ### TC-01-F1 — Creating an account sends a verification email
-**Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Happy path · **Layer** UI · **Writes** Yes
 - **Role / setup:** New homeowner, U-NEW, emulator.
 - **Action:** Press "New here? Create an account". Type a name, U-NEW's email and an 8+ character password. Press "Create account".
 - **Expected:** The emulator holds exactly one verification code for U-NEW's address.
 - **Don't assert:** the email's wording.
 
 ### TC-01-F2 — A new account lands on "Enter your invite code"
-**Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Happy path · **Layer** UI · **Writes** Yes
 - **Role / setup:** As F1.
 - **Action:** As F1.
 - **Expected:** "Enter your invite code" (REQ-004 4B) opens.
 - **Don't assert:** the not-linked screen's wording (G-18).
 
 ### TC-01-F3 — A new account sees no household data on its landing screen
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security · **Layer** UI · **Writes** Yes
 - **Role / setup:** As F1.
 - **Action:** As F1, then look at the whole screen.
 - **Expected:** No lot label, balance, announcement, bell or menu other than invite-code entry and "Sign out".
 - **Don't assert:** the banner (F4).
 
 ### TC-01-F4 — An unverified account sees the verification banner with "Send again"
-**Priority** P2 · **Type** UI/UX · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** UI/UX · **Layer** UI · **Writes** Yes
 - **Role / setup:** New homeowner, U-NEW right after F1 (unverified).
 - **Action:** Look at the landing screen.
 - **Expected:** "Check your email to verify your address." with a "Send again" control.
 - **Don't assert:** where the banner sits (G-6).
 
 ### TC-01-F5 — "Send again" creates a new verification email
-**Priority** P2 · **Type** Happy path · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Happy path · **Layer** UI · **Writes** Yes
 - **Role / setup:** As F4, emulator.
 - **Action:** Press "Send again" once.
 - **Expected:** One more verification code exists for that address.
 - **Don't assert:** the confirmation wording or Firebase's rate-limit response (G-6).
 
 ### TC-01-F6 — The banner is gone once the email is verified
-**Priority** P2 · **Type** Happy path (derived state refreshes) · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Happy path (derived state refreshes) · **Layer** UI · **Writes** Yes
 - **Role / setup:** U-NEW after F1.
 - **Action:** Open the verification link; return to the portal and reload.
 - **Expected:** No banner.
 - **Don't assert:** whether it disappears without a reload (token refresh timing).
 
 ### TC-01-F7 — Creating an account creates no membership for the new account *(provisional: SA-001 §3, members only via `redeemInvite`)*
-**Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Data integrity · **Layer** API · **Writes** Yes
 - **Role / setup:** As F1.
 - **Action:** After F1, query `members` where `uid` = U-NEW's uid, and read `staff/{U-NEW uid}`.
 - **Expected:** No `members` document and no `staff` document for that uid.
 - **Don't assert:** counts across the whole database.
 
 ### TC-01-F8 — The new person record holds the typed name and the account email, and only allowed fields *(provisional: REQ-001 Sol Arch review, Data + SA-001 §4.2)*
-**Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Data integrity · **Layer** API · **Writes** Yes
 - **Role / setup:** As F1.
 - **Action:** Read `users/{uid}`.
 - **Expected:** `name` = the typed name; `email` = the Auth account's email; `createdAt` set; optional `phone`. No role, status or household field.
 - **Don't assert:** the `createdAt` value.
 
 ### TC-01-F9 — Signing up with capitals in the email stores the account's email, and the write succeeds
-**Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Data integrity · **Layer** API · **Writes** Yes
 - **Role / setup:** New homeowner, U-NEW typed as `ZZ-New-<run id>@<test domain>`.
 - **Action:** Create the account.
 - **Expected:** `users/{uid}` exists and its `email` equals the Auth token's email (the rule would refuse the typed value if it differed).
 - **Don't assert:** the letter case Firebase stores (Uncertain).
 
 ### TC-01-F10 — Signing up with a trailing space in the email stores the account's email
-**Priority** P3 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Boundary · **Layer** API · **Writes** Yes
 - **Blocked on G-4.**
 - **Role / setup:** New homeowner, U-NEW typed with a trailing space.
 - **Action:** Create the account.
@@ -541,14 +559,14 @@ All in the emulator seed or the staging test data. Never a real homeowner, never
 - **Don't assert:** anything until G-4 is answered.
 
 ### TC-01-F11 — If the person record can't be written after the account is created, the next sign-in repairs it
-**Priority** P2 · **Type** Data integrity / negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Data integrity / negative · **Layer** API · **Writes** Yes
 - **Role / setup:** New homeowner, U-NEW. Make the `users` write fail after the Auth account is created (go offline between the two calls, or close the tab).
 - **Action:** Sign in again later, online.
 - **Expected:** After that sign-in, `users/{uid}` exists with the account's email. What the person sees at the failure is gap G-21.
 - **Don't assert:** the message at the moment of failure.
 
 ### TC-01-F12 — A Google account with no display name gets a sensible greeting
-**Priority** P2 · **Type** Boundary (zero vs not set) · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Boundary (zero vs not set) · **Layer** Unit · **Writes** Yes
 - **Partly blocked on G-2** (where the name comes from).
 - **Role / setup:** Homeowner. Emulator fake Google user with no display name, linked to a test household.
 - **Action:** Sign in with Google.
@@ -556,14 +574,14 @@ All in the emulator seed or the staging test data. Never a real homeowner, never
 - **Don't assert:** the exact greeting until G-2 is answered.
 
 ### TC-01-F13 — "Continue with Google" on the create-account page lands a new person on invite-code entry
-**Priority** P2 · **Type** Happy path · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Happy path · **Layer** UI · **Writes** Yes
 - **Role / setup:** New homeowner. A new emulator Google user with no account.
 - **Action:** On "Create an account", press "Continue with Google".
 - **Expected:** "Enter your invite code"; no household data.
 - **Don't assert:** the banner (F14).
 
 ### TC-01-F14 — A new Google account arrives verified and shows no verification banner
-**Priority** P3 · **Type** UI/UX · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** UI/UX · **Layer** Manual (staging) · **Writes** Yes
 - **Role / setup:** As F13.
 - **Action:** As F13; read the Auth user.
 - **Expected:** `emailVerified` is true; no banner.
@@ -572,84 +590,84 @@ All in the emulator seed or the staging test data. Never a real homeowner, never
 ## Block G — Account-creation validation (S7, S8)
 
 ### TC-01-G1 — Signing up with an email that already has an account shows the message
-**Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Negative · **Layer** UI · **Writes** No
 - **Role / setup:** New homeowner. U-P exists.
 - **Action:** On "Create an account", type a name, U-P's email and a valid password. Press "Create account".
 - **Expected:** "There's already an account for this email. Sign in, or reset your password." (This reveals the email exists — accepted limitation, REQ-001 Story.)
 - **Don't assert:** the error code.
 
 ### TC-01-G2 — After the duplicate-email message, name and email are kept
-**Priority** P2 · **Type** Usability · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Usability · **Layer** UI · **Writes** No
 - **Role / setup:** As G1.
 - **Action:** As G1.
 - **Expected:** The name and email fields still hold what was typed.
 - **Don't assert:** the password field.
 
 ### TC-01-G3 — The duplicate sign-up creates no second account
-**Priority** P2 · **Type** Data integrity · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Data integrity · **Layer** API · **Writes** No
 - **Role / setup:** As G1.
 - **Action:** As G1, then list Auth users with U-P's email.
 - **Expected:** One account, unchanged.
 - **Don't assert:** anything about U-P's `users` doc beyond "unchanged".
 
 ### TC-01-G4 — "Sign in" from the duplicate-email message opens the sign-in page
-**Priority** P3 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Navigation · **Layer** UI · **Writes** No
 - **Role / setup:** As G1, after the message shows.
 - **Action:** Follow "Sign in".
 - **Expected:** The sign-in page.
 - **Don't assert:** whether the email is carried over (G-7).
 
 ### TC-01-G5 — "Reset your password" from the duplicate-email message opens the reset page
-**Priority** P3 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Navigation · **Layer** UI · **Writes** No
 - **Role / setup:** As G1, after the message shows.
 - **Action:** Follow the reset route.
 - **Expected:** The reset page.
 - **Don't assert:** whether the email is carried over (G-7).
 
 ### TC-01-G6 — A 7-character password shows "Use at least 8 characters"
-**Priority** P1 · **Type** Boundary / negative · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Boundary / negative · **Layer** Unit · **Writes** No
 - **Role / setup:** New homeowner, U-NEW details.
 - **Action:** On "Create an account", type a name, U-NEW's email and a 7-character password. Press "Create account".
 - **Expected:** "Use at least 8 characters" under the password field.
 - **Don't assert:** whether a request was sent (G8).
 
 ### TC-01-G7 — After a short password, name and email are kept
-**Priority** P2 · **Type** Usability · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Usability · **Layer** UI · **Writes** No
 - **Role / setup:** As G6.
 - **Action:** As G6.
 - **Expected:** Name and email still typed.
 - **Don't assert:** the password field.
 
 ### TC-01-G8 — A short password in the page creates no account
-**Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Negative · **Layer** Unit · **Writes** No
 - **Role / setup:** As G6.
 - **Action:** As G6, then look up U-NEW's email in Auth.
 - **Expected:** No account.
 - **Don't assert:** whether the page or the server stopped it.
 
 ### TC-01-G9 — Firebase refuses a 7-character password when the page check is skipped *(provisional: SA-001 §8.4)*
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security · **Layer** API (staging) · **Writes** No
 - **Role / setup:** No app role (direct Auth call). **Env: staging only** (the emulator does not enforce the policy; a 7-character sign-up succeeds there).
 - **Action:** Call account creation directly with a 7-character password.
 - **Expected:** Refused; no account exists afterwards.
 - **Don't assert:** the error code.
 
 ### TC-01-G10 — An 8-character password is accepted
-**Priority** P1 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Boundary · **Layer** Unit · **Writes** Yes
 - **Role / setup:** New homeowner, U-NEW.
 - **Action:** As G6 with exactly 8 characters.
 - **Expected:** Account created; lands on invite-code entry.
 - **Don't assert:** the banner.
 
 ### TC-01-G11 — A long passphrase with spaces and non-ASCII characters signs up and signs in
-**Priority** P3 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Boundary · **Layer** API · **Writes** Yes
 - **Role / setup:** New homeowner, U-NEW.
 - **Action:** Sign up with a 64-character passphrase containing spaces and "ñ"; sign out; sign in with it.
 - **Expected:** Both succeed.
 - **Don't assert:** the maximum length (4096 per Firebase's password policy).
 
 ### TC-01-G12 — Creating an account with no name is refused with a field error
-**Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Negative · **Layer** Unit · **Writes** No
 - **Blocked on G-1** (whether name is required, and its copy). QA expects it to be required: the admin office reads it.
 - **Role / setup:** New homeowner, U-NEW details.
 - **Action:** Leave "Your name" empty; fill the rest; press "Create account".
@@ -657,14 +675,14 @@ All in the emulator seed or the staging test data. Never a real homeowner, never
 - **Don't assert:** wording.
 
 ### TC-01-G13 — Signing up with an existing email in capitals shows the duplicate message
-**Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Boundary · **Layer** API · **Writes** No
 - **Role / setup:** New homeowner. U-P exists.
 - **Action:** Sign up with U-P's email in capitals.
 - **Expected:** The G1 message; no second account.
 - **Don't assert:** the error code.
 
 ### TC-01-G14 — Signing up with an existing email plus a trailing space shows the duplicate message
-**Priority** P3 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Boundary · **Layer** API · **Writes** No
 - **Blocked on G-4.**
 - **Role / setup:** As G13.
 - **Action:** Sign up with U-P's email followed by a space.
@@ -672,7 +690,7 @@ All in the emulator seed or the staging test data. Never a real homeowner, never
 - **Don't assert:** anything until G-4 is answered.
 
 ### TC-01-G15 — A one-character name and a very long name are handled
-**Priority** P3 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Boundary · **Layer** Unit · **Writes** Yes
 - **Blocked on G-1** (name limits).
 - **Role / setup:** New homeowner, two U-NEW accounts.
 - **Action:** Sign up with a one-character name; separately with a 200-character name.
@@ -680,7 +698,7 @@ All in the emulator seed or the staging test data. Never a real homeowner, never
 - **Don't assert:** anything until G-1 is answered.
 
 ### TC-01-G16 — A name containing markup shows as plain text in the greeting
-**Priority** P1 · **Type** Security (stored XSS) · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security (stored XSS) · **Layer** UI · **Writes** Yes
 - **Role / setup:** New homeowner, U-NEW named `<img src=x onerror=alert(1)>`, then linked to a test household.
 - **Action:** Sign in and open the dashboard.
 - **Expected:** The greeting shows the characters as text; no script runs; no image element is created.
@@ -691,42 +709,42 @@ All in the emulator seed or the staging test data. Never a real homeowner, never
 All of block H is **Env: staging only**. Firebase trusts Google as a provider only for `@gmail.com` addresses, and the emulator may not reproduce the takeover. Each case uses a fresh disposable fixture.
 
 ### TC-01-H1 — Google sign-in on an unverified Gmail password account signs in with Google
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security · **Layer** Manual (staging) · **Writes** Yes
 - **Role / setup:** Homeowner. Fresh U-GM-UV (unverified password account, team-owned Gmail, linked to Household C).
 - **Action:** Press "Continue with Google" and choose that Gmail account.
 - **Expected:** Signed in.
 - **Don't assert:** Google's screens.
 
 ### TC-01-H2 — After the Google takeover, the old password no longer signs in
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security · **Layer** Manual (staging) · **Writes** Yes
 - **Role / setup:** Homeowner. Fresh U-GM-UV; run H1's action as setup; sign out.
 - **Action:** Sign in with U-GM-UV's old password.
 - **Expected:** The C1 message.
 - **Don't assert:** the error code.
 
 ### TC-01-H3 — After the Google takeover, the account keeps its household
-**Priority** P1 · **Type** Security / integration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security / integration · **Layer** Manual (staging) · **Writes** Yes
 - **Role / setup:** Homeowner. Fresh U-GM-UV linked to Household C.
 - **Action:** Run H1's action.
 - **Expected:** Lands on Household C's dashboard.
 - **Don't assert:** how Firebase links the account internally (H4).
 
 ### TC-01-H4 — After the Google takeover, the uid is the same
-**Priority** P2 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Data integrity · **Layer** Manual (staging) · **Writes** Yes
 - **Role / setup:** Fresh U-GM-UV; note its uid.
 - **Action:** Run H1's action; read the uid.
 - **Expected:** The same uid. **Uncertain:** Firebase's docs don't say so; H3 is the check that matters. A different uid is reported to Sol Arch.
 - **Don't assert:** provider data beyond Google being present.
 
 ### TC-01-H5 — A verified Gmail password account signing in with Google stays one account
-**Priority** P2 · **Type** Security / data integrity · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Security / data integrity · **Layer** Manual (staging) · **Writes** Yes
 - **Role / setup:** Homeowner. Fresh U-GM-V (verified password account, team-owned Gmail).
 - **Action:** Press "Continue with Google"; sign out; sign in with the password.
 - **Expected:** One account for the address (no duplicate). **Uncertain:** whether the password still works afterwards; QE reports what happens to Sol Arch.
 - **Don't assert:** the password result.
 
 ### TC-01-H6 — Google sign-in on a non-Gmail address that has a password account doesn't sign into it silently
-**Priority** P2 · **Type** Security / negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Security / negative · **Layer** Manual (staging) · **Writes** Yes
 - **Blocked on G-16** for the message.
 - **Role / setup:** Homeowner. Fresh U-DOM-UV (password account on the team's own domain, which also has a Google account).
 - **Action:** Press "Continue with Google" and choose that address.
@@ -736,35 +754,35 @@ All of block H is **Env: staging only**. Firebase trusts Google as a provider on
 ## Block I — Signed in, not linked (S10)
 
 ### TC-01-I1 — A signed-in person with no household and no role sees the not-linked message
-**Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Happy path · **Layer** UI · **Writes** No
 - **Role / setup:** Not-linked account, U-N, signed out.
 - **Action:** Sign in as U-N.
 - **Expected:** "Your account isn't linked to a household yet. Enter the invite code from the admin office."
 - **Don't assert:** the banner (U-N is verified).
 
 ### TC-01-I2 — The not-linked person sees only invite-code entry and "Sign out"
-**Priority** P1 · **Type** Navigation / security · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Navigation / security · **Layer** UI · **Writes** No
 - **Role / setup:** As I1, at 375 px and at desktop width.
 - **Action:** Look for menus, the ☰ button, the notification bell, any role switch.
 - **Expected:** None of them; only the invite-code entry and "Sign out".
 - **Don't assert:** layout details.
 
 ### TC-01-I3 — The not-linked screen stays after a reload
-**Priority** P2 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Navigation · **Layer** UI · **Writes** No
 - **Role / setup:** As I1.
 - **Action:** Reload.
 - **Expected:** The same screen; no dashboard or menu flashes first.
 - **Don't assert:** load time.
 
 ### TC-01-I4 — The not-linked screen shows which account is signed in
-**Priority** P3 · **Type** Usability / round-trip · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Usability / round-trip · **Layer** UI · **Writes** No
 - **Role / setup:** As I1.
 - **Action:** Read the screen.
 - **Expected:** U-N's account email is shown (1G: "Signed in as {email}").
 - **Don't assert:** exact wording (not in the copy of record, G-1).
 
 ### TC-01-I5 — A not-linked person opening a household page address sees no household data
-**Priority** P2 · **Type** Security (UI) · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Security (UI) · **Layer** UI · **Writes** No
 - **Role / setup:** As I1; the address of a Household B page.
 - **Action:** Open that address directly.
 - **Expected:** The not-linked screen or the no-access page; no Household B data at any moment.
@@ -773,154 +791,154 @@ All of block H is **Env: staging only**. Firebase trusts Google as a provider on
 ## Block J — Access control and rules (S10, S11)
 
 ### TC-01-J1 — A homeowner opening another household's page sees "You don't have access to this page"
-**Priority** P1 · **Type** Security (UI) · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security (UI) · **Layer** UI · **Writes** No
 - **Role / setup:** Homeowner, U-G (Household A only); the address of a Household B page.
 - **Action:** Open that address directly.
 - **Expected:** "You don't have access to this page"; no Household B lot, name, balance or row at any moment.
 - **Don't assert:** network traffic (J2).
 
 ### TC-01-J2 — While on another household's page, no Household B document is read *(provisional: SA-001 §8.1 `isMember`)*
-**Priority** P1 · **Type** Security (rules) · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security (rules) · **Layer** API · **Writes** No
 - **Role / setup:** As J1, with U-G's token.
 - **Action:** Read Household B's documents and sub-records directly.
 - **Expected:** Every read is refused with a permission error.
 - **Don't assert:** the page's wording.
 
 ### TC-01-J3 — "Go to my dashboard" on the no-access page returns to her own household
-**Priority** P3 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Navigation · **Layer** UI · **Writes** No
 - **Role / setup:** As J1.
 - **Action:** Press "Go to my dashboard".
 - **Expected:** Household A's dashboard.
 - **Don't assert:** dashboard figures.
 
 ### TC-01-J4 — A not-linked account may query its own memberships and gets none *(provisional: Sol Arch to add the self-read to SA-001 §8.1)*
-**Priority** P1 · **Type** Security (rules) · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security (rules) · **Layer** API · **Writes** No
 - **Role / setup:** U-N's token.
 - **Action:** Query `members` where `uid == ` U-N's uid.
 - **Expected:** **Allowed**, returning no documents. (The route guard needs this; a permission error must not be what tells the app "not linked".)
 - **Don't assert:** query performance.
 
 ### TC-01-J5 — A not-linked account may read its own staff record and finds none *(provisional: ADR-004)*
-**Priority** P2 · **Type** Security (rules) · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Security (rules) · **Layer** API · **Writes** No
 - **Role / setup:** U-N's token.
 - **Action:** Read `staff/{U-N uid}`.
 - **Expected:** Allowed; the document does not exist.
 - **Don't assert:** anything about other `staff` docs (J8).
 
 ### TC-01-J6 — A not-linked account cannot read other people's membership documents *(provisional: SA-001 §8.1)*
-**Priority** P1 · **Type** Security (rules) · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security (rules) · **Layer** API · **Writes** No
 - **Role / setup:** U-N's token; Household A's membership for U-G.
 - **Action:** Read that `members` doc; query `members` for Household A.
 - **Expected:** Both refused.
 - **Don't assert:** error text.
 
 ### TC-01-J7 — A not-linked account cannot read any household or its records *(provisional: SA-001 §8.1)*
-**Priority** P1 · **Type** Security (rules) · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security (rules) · **Layer** API · **Writes** No
 - **Role / setup:** U-N's token; Households A and B with sub-records.
 - **Action:** Read a `households` doc and a household sub-record.
 - **Expected:** Refused.
 - **Don't assert:** error text.
 
 ### TC-01-J8 — A not-linked account cannot read other people's staff records *(provisional: ADR-004)*
-**Priority** P1 · **Type** Security (rules) · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security (rules) · **Layer** API · **Writes** No
 - **Role / setup:** U-N's token; `staff/{U-TR uid}`.
 - **Action:** Read it; list `staff`.
 - **Expected:** Both refused.
 - **Don't assert:** error text.
 
 ### TC-01-J9 — A not-linked account cannot read announcements *(provisional: SA-001 §8.1, "rules deny everything else")*
-**Priority** P2 · **Type** Security (rules) · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Security (rules) · **Layer** API · **Writes** No
 - **Role / setup:** U-N's token; a published announcement.
 - **Action:** Read it.
 - **Expected:** Refused.
 - **Don't assert:** error text.
 
 ### TC-01-J10 — Signed-out requests are refused *(provisional: SA-001 §8.1)*
-**Priority** P1 · **Type** Security (rules) · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security (rules) · **Layer** API · **Writes** No
 - **Role / setup:** No auth token.
 - **Action:** Read `users`, `households`, `members`, `staff`, `config/settings`.
 - **Expected:** All refused.
 - **Don't assert:** `config/branding` (it may be public; see M2 and the Sol Arch list).
 
 ### TC-01-J11 — A person can create their own person record with the allowed fields *(provisional: REQ-001 Sol Arch review, Data)*
-**Priority** P1 · **Type** Security (rules, allowed cell) · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security (rules, allowed cell) · **Layer** API · **Writes** Yes
 - **Role / setup:** A new account's token.
 - **Action:** Create `users/{own uid}` with `name`, `email` (= token email), `phone`, `createdAt` (= server time).
 - **Expected:** Allowed.
 - **Don't assert:** the stored timestamp's value.
 
 ### TC-01-J12 — Creating one's own person record with an extra field is refused
-**Priority** P1 · **Type** Security (rules) · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security (rules) · **Layer** API · **Writes** No
 - **Role / setup:** A new account's token.
 - **Action:** Create `users/{own uid}` with the allowed fields plus `role` (and, separately, `householdId`).
 - **Expected:** Refused; no document exists afterwards.
 - **Don't assert:** error text.
 
 ### TC-01-J13 — Adding a role field to one's own existing person record is refused
-**Priority** P1 · **Type** Security (rules) · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security (rules) · **Layer** API · **Writes** No
 - **Role / setup:** U-N's token; `users/{U-N uid}` exists.
 - **Action:** Update it, adding `role: "treasurer"` (and, separately, `staffRole`).
 - **Expected:** Refused; the stored doc is unchanged (assert the refusal, not "nothing changed").
 - **Don't assert:** error text.
 
 ### TC-01-J14 — Setting a different email than the account's is refused
-**Priority** P1 · **Type** Security (rules) · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security (rules) · **Layer** API · **Writes** No
 - **Role / setup:** U-N's token.
 - **Action:** Update `users/{own uid}.email` to U-P's address.
 - **Expected:** Refused.
 - **Don't assert:** error text.
 
 ### TC-01-J15 — A `createdAt` that isn't the server time is refused *(provisional: Sol Arch to add to SA-001)*
-**Priority** P2 · **Type** Security (rules) · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Security (rules) · **Layer** API · **Writes** No
 - **Role / setup:** A new account's token.
 - **Action:** Create `users/{own uid}` with `createdAt` a year ago.
 - **Expected:** Refused.
 - **Don't assert:** error text.
 
 ### TC-01-J16 — A person can read their own person record
-**Priority** P2 · **Type** Security (rules, allowed cell) · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Security (rules, allowed cell) · **Layer** API · **Writes** No
 - **Role / setup:** U-P's token.
 - **Action:** Read `users/{U-P uid}`.
 - **Expected:** Allowed.
 - **Don't assert:** field values.
 
 ### TC-01-J17 — A person can update their own name and phone
-**Priority** P2 · **Type** Security (rules, allowed cell) · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Security (rules, allowed cell) · **Layer** API · **Writes** Yes
 - **Role / setup:** A disposable copy of U-P's token.
 - **Action:** Update `name` and `phone` on its own `users` doc.
 - **Expected:** Allowed.
 - **Don't assert:** which screen offers this (none in REQ-001).
 
 ### TC-01-J18 — A person cannot delete their own person record
-**Priority** P2 · **Type** Security (rules) · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Security (rules) · **Layer** API · **Writes** No
 - **Role / setup:** U-P's token.
 - **Action:** Delete `users/{U-P uid}`.
 - **Expected:** Refused.
 - **Don't assert:** error text.
 
 ### TC-01-J19 — Nobody signed in as a homeowner can list the people collection
-**Priority** P1 · **Type** Security (rules) · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security (rules) · **Layer** API · **Writes** No
 - **Role / setup:** U-P's token and U-N's token.
 - **Action:** List `users`.
 - **Expected:** Refused for both.
 - **Don't assert:** admin office reads (TC-03).
 
 ### TC-01-J20 — A homeowner cannot read another household's person's record
-**Priority** P1 · **Type** Security (rules) · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security (rules) · **Layer** API · **Writes** No
 - **Role / setup:** U-G's token (Household A); U-P's uid (Household B).
 - **Action:** Read `users/{U-P uid}`.
 - **Expected:** Refused.
 - **Don't assert:** error text.
 
 ### TC-01-J21 — A homeowner cannot write another person's record
-**Priority** P1 · **Type** Security (rules) · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security (rules) · **Layer** API · **Writes** No
 - **Role / setup:** U-G's token; U-P's uid.
 - **Action:** Update `users/{U-P uid}`; separately, create over it.
 - **Expected:** Both refused; U-P's doc unchanged.
 - **Don't assert:** error text.
 
 ### TC-01-J22 — A member of the same household reading your person record
-**Priority** P3 · **Type** Security (rules) · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Security (rules) · **Layer** API · **Writes** No
 - **Blocked on Sol Arch:** SA-001 §8.2 ("visible to own household and staff") and REQ-001's review (person and admin office only) disagree.
 - **Role / setup:** Two members of Household A.
 - **Action:** One reads the other's `users` doc.
@@ -928,7 +946,7 @@ All of block H is **Env: staging only**. Firebase trusts Google as a provider on
 - **Don't assert:** anything until decided.
 
 ### TC-01-J23 — A guard or board account cannot read any person record *(provisional: SA-001 §8.1)*
-**Priority** P2 · **Type** Security (rules) · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Security (rules) · **Layer** API · **Writes** No
 - **Role / setup:** Guard (U-GD) and Board (U-BD) tokens.
 - **Action:** Read `users/{U-P uid}`.
 - **Expected:** Refused for both.
@@ -939,21 +957,21 @@ A removed staff member's stale token is covered by **TC-02** (REQ-002 decision 1
 ## Block K — Signing out (S12)
 
 ### TC-01-K1 — "Sign out" lands on the sign-in page
-**Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Happy path · **Layer** UI · **Writes** No
 - **Role / setup:** Homeowner, U-G, signed in on the dashboard.
 - **Action:** Choose "Sign out" in the account menu.
 - **Expected:** The sign-in page.
 - **Don't assert:** any toast.
 
 ### TC-01-K2 — Pressing Back after signing out shows the sign-in page
-**Priority** P1 · **Type** Navigation / security · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Navigation / security · **Layer** UI · **Writes** No
 - **Role / setup:** Homeowner, U-G; visited two screens, then signed out (desktop browser).
 - **Action:** Press Back several times.
 - **Expected:** The sign-in page each time.
 - **Don't assert:** the URL shown.
 
 ### TC-01-K3 — On a phone browser, Back after signing out never shows household data, even briefly
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security · **Layer** UI · **Writes** No
 - **Role / setup:** As K2 in a mobile browser with the back-forward cache (real phone or emulation that keeps bfcache).
 - **Action:** Press Back.
 - **Expected:** No household data at any moment; the sign-in page.
@@ -961,35 +979,35 @@ A removed staff member's stale token is covered by **TC-02** (REQ-002 decision 1
 - **Don't assert:** animation timing.
 
 ### TC-01-K4 — After signing out, no household data is left in browser storage
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security · **Layer** UI · **Writes** No
 - **Role / setup:** Homeowner, U-G signed in, dashboard loaded.
 - **Action:** Sign out; inspect `localStorage`, `sessionStorage`, IndexedDB and Cache Storage for the origin.
 - **Expected:** No lot label, balance or household name anywhere.
 - **Don't assert:** Firebase's own auth keys (removed by sign-out; not household data).
 
 ### TC-01-K5 — Firestore uses its memory-only cache *(provisional: SA-001 §8.4)*
-**Priority** P2 · **Type** Security / config · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Security / config · **Layer** UI · **Writes** No
 - **Role / setup:** Code review and a signed-in session.
 - **Action:** Check the Firestore initialisation; look for a Firestore IndexedDB database after loading the dashboard.
 - **Expected:** No persistent cache is enabled; no Firestore IndexedDB database exists.
 - **Don't assert:** cache size.
 
 ### TC-01-K6 — A second homeowner signing in on the same tab, without a reload, never sees the first one's data
-**Priority** P1 · **Type** Security (data leak across households) · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security (data leak across households) · **Layer** UI · **Writes** No
 - **Role / setup:** Two homeowners, U-G then U-P, same tab. U-G signs in, opens the dashboard, signs out.
 - **Action:** Without reloading, U-P signs in.
 - **Expected:** At no moment (including while loading) does Household A's lot, name or any figure show; only Blk 4 Lot 12.
 - **Don't assert:** how the app clears its memory (a reload or a Firestore shutdown on sign-out are both fine).
 
 ### TC-01-K7 — The same, with a reload between the two people
-**Priority** P2 · **Type** Security · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Security · **Layer** UI · **Writes** No
 - **Role / setup:** As K6, with a page reload after U-G signs out.
 - **Action:** U-P signs in.
 - **Expected:** As K6.
 - **Don't assert:** as K6.
 
 ### TC-01-K8 — Signing out in one tab signs out the other open tab
-**Priority** P2 · **Type** Concurrency · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Concurrency · **Layer** UI · **Writes** No
 - **Role / setup:** Homeowner, U-G signed in, two tabs on the dashboard.
 - **Action:** Sign out in tab 1; click a menu item in tab 2.
 - **Expected:** Tab 2 shows the sign-in page and loads no further household data. (Firebase's default `local` persistence syncs tabs — confirm on the emulator.)
@@ -998,14 +1016,14 @@ A removed staff member's stale token is covered by **TC-02** (REQ-002 decision 1
 ## Block L — Staying signed in (S13)
 
 ### TC-01-L1 — A homeowner who did not sign out lands on her dashboard the next day
-**Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Happy path · **Layer** UI · **Writes** No
 - **Role / setup:** Homeowner, U-G signs in; the browser is closed. Move the device clock past midnight **local time (Asia/Manila)**, built from the local date, not UTC.
 - **Action:** Reopen the browser; open the portal.
 - **Expected:** Household A's dashboard; no sign-in page. **Assumption:** Firebase local persistence.
 - **Don't assert:** token lifetimes; behaviour after a week (T4).
 
 ### TC-01-L2 — Reloading any screen keeps the session and the screen
-**Priority** P2 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Navigation · **Layer** UI · **Writes** No
 - **Role / setup:** Homeowner, U-G, on a dashboard sub-screen.
 - **Action:** Reload.
 - **Expected:** Same screen, still signed in, no sign-in page flash. (Replaces NAV-04's meaning.)
@@ -1014,21 +1032,21 @@ A removed staff member's stale token is covered by **TC-02** (REQ-002 decision 1
 ## Block M — Navigation and routing
 
 ### TC-01-M1 — A signed-out person opening any portal address sees the sign-in page and no data
-**Priority** P1 · **Type** Navigation / security · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Navigation / security · **Layer** UI · **Writes** No
 - **Role / setup:** Signed out.
 - **Action:** Open the root, a dashboard address and an admin address.
 - **Expected:** The sign-in page each time; no screen content or staff menu flashes first.
 - **Don't assert:** the final URL.
 
 ### TC-01-M2 — The sign-in heading shows the HOA's name while signed out *(provisional: SA-001 §9 branding)*
-**Priority** P2 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** UI/UX · **Layer** UI · **Writes** No
 - **Role / setup:** Signed out, each brand build (Greenfield-style and Gentri Heights).
 - **Action:** Open the sign-in page.
 - **Expected:** "Sign in to {that HOA's name}", with the name filled in, never a placeholder or blank.
 - **Don't assert:** where the branding comes from (public read or bundled; Sol Arch to decide).
 
 ### TC-01-M3 — After signing in from a deep link, the person reaches the page they asked for
-**Priority** P3 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Navigation · **Layer** UI · **Writes** No
 - **Blocked on G-11.**
 - **Role / setup:** Homeowner, U-P signed out; a deep link to a Household B screen.
 - **Action:** Open the link, sign in.
@@ -1036,56 +1054,56 @@ A removed staff member's stale token is covered by **TC-02** (REQ-002 decision 1
 - **Don't assert:** anything until G-11 is answered.
 
 ### TC-01-M4 — Sign-in and create-account link to each other
-**Priority** P2 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Navigation · **Layer** UI · **Writes** No
 - **Role / setup:** Signed out.
 - **Action:** "New here? Create an account" → "Already have an account? Sign in".
 - **Expected:** Each opens the named page; nothing is submitted.
 - **Don't assert:** carried-over values.
 
 ### TC-01-M5 — Sign-in and the reset page link to each other
-**Priority** P2 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Navigation · **Layer** UI · **Writes** No
 - **Role / setup:** Signed out.
 - **Action:** "Forgot password?" → "Back to sign in".
 - **Expected:** Each opens the named page; nothing is submitted.
 - **Don't assert:** carried-over values (G-7).
 
 ### TC-01-M6 — The browser's Back button moves back through sign-in, create-account and reset
-**Priority** P3 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Navigation · **Layer** UI · **Writes** No
 - **Role / setup:** Signed out, after M4 and M5's steps.
 - **Action:** Press Back repeatedly.
 - **Expected:** Each previous page in turn; nothing submitted.
 - **Don't assert:** history length.
 
 ### TC-01-M7 — A signed-in homeowner opening the sign-in address goes to the dashboard
-**Priority** P2 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Navigation · **Layer** UI · **Writes** No
 - **Role / setup:** Homeowner, U-G, signed in.
 - **Action:** Open the sign-in address.
 - **Expected:** Household A's dashboard.
 - **Don't assert:** whether the sign-in page flashes first for a moment (it holds no data).
 
 ### TC-01-M8 — A signed-in not-linked person opening the sign-in address goes to the not-linked screen
-**Priority** P3 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Navigation · **Layer** UI · **Writes** No
 - **Role / setup:** Not-linked account, U-N, signed in.
 - **Action:** Open the sign-in address.
 - **Expected:** The not-linked screen.
 - **Don't assert:** as M7.
 
 ### TC-01-M9 — Reloading the sign-in, create-account and reset pages keeps the person there
-**Priority** P3 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Navigation · **Layer** UI · **Writes** No
 - **Role / setup:** Signed out, on each page in turn.
 - **Action:** Reload.
 - **Expected:** The same page.
 - **Don't assert:** typed values after a reload.
 
 ### TC-01-M10 — "Sign out" can be reached at 375 px
-**Priority** P2 · **Type** Navigation / responsive · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Navigation / responsive · **Layer** UI · **Writes** No
 - **Role / setup:** Homeowner, U-G on the dashboard, phone profile.
 - **Action:** Find and use "Sign out".
 - **Expected:** Reachable in at most two taps; signs out.
 - **Don't assert:** whether it sits inside the ☰ menu (not stated).
 
 ### TC-01-M11 — While the role loads, no staff menu appears and then disappears
-**Priority** P3 · **Type** UI/UX / security · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** UI/UX / security · **Layer** UI · **Writes** No
 - **Role / setup:** Homeowner (U-G) and not-linked (U-N), slow network.
 - **Action:** Sign in; watch the menu area.
 - **Expected:** A skeleton (or nothing) until the role is known; never a staff menu that then disappears (REQ-002 States).
@@ -1096,42 +1114,42 @@ A removed staff member's stale token is covered by **TC-02** (REQ-002 decision 1
 Role for this block: **anyone, signed out**, on the sign-in, create-account and reset pages, unless stated.
 
 ### TC-01-N1 — Every field has a visible label
-**Priority** P2 · **Type** Usability · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Usability · **Layer** UI · **Writes** No
 - **Setup:** Each page.
 - **Action:** Inspect Email, Password and "Your name".
 - **Expected:** A visible label tied to each field (not a placeholder alone).
 - **Don't assert:** label styling.
 
 ### TC-01-N2 — "Show password" reveals the password and hides it again
-**Priority** P2 · **Type** Usability · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Usability · **Layer** UI · **Writes** No
 - **Setup:** Sign-in page, a password typed.
 - **Action:** Press "Show password" twice.
 - **Expected:** The password shows, then hides.
 - **Don't assert:** the hide label's wording (G-1).
 
 ### TC-01-N3 — The password toggle is labelled in text and announces its state
-**Priority** P2 · **Type** Usability · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Usability · **Layer** UI · **Writes** No
 - **Setup:** As N2, with a screen reader or the accessibility tree.
 - **Action:** Press the toggle.
 - **Expected:** The control has a visible text label (not an icon only) and exposes its state (pressed, or a label change).
 - **Don't assert:** wording of the hidden state (G-1).
 
 ### TC-01-N4 — Errors are announced
-**Priority** P2 · **Type** Usability · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Usability · **Layer** UI · **Writes** No
 - **Setup:** Trigger C1, G1 and G6.
 - **Action:** Listen with a screen reader, or inspect the role.
 - **Expected:** Each error is in a `role="alert"` region and is read out.
 - **Don't assert:** placement (N5, N6).
 
 ### TC-01-N5 — Field errors sit under their field
-**Priority** P2 · **Type** Usability · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Usability · **Layer** UI · **Writes** No
 - **Setup:** Trigger G6 and C7.
 - **Action:** Look at the page.
 - **Expected:** Each message sits directly under its field.
 - **Don't assert:** colours.
 
 ### TC-01-N6 — Errors that concern two fields are placed where the BA decides
-**Priority** P3 · **Type** Usability · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Usability · **Layer** UI · **Writes** No
 - **Blocked on G-12** (the mock-up puts C1 and G1 above the form; REQ-001 says "under the field").
 - **Setup:** Trigger C1 and G1.
 - **Action:** Look at the page.
@@ -1139,91 +1157,91 @@ Role for this block: **anyone, signed out**, on the sign-in, create-account and 
 - **Don't assert:** anything until G-12 is answered.
 
 ### TC-01-N7 — The password stays typed after a wrong-password error
-**Priority** P3 · **Type** Usability · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Usability · **Layer** UI · **Writes** No
 - **Setup:** Trigger C1.
 - **Action:** Look at the password field.
 - **Expected:** Still filled (REQ-001: "typing is never cleared by an error"; mock-up 1D). Security note for the owner: some sites clear it; REQ-001 chose not to.
 - **Don't assert:** the masked characters.
 
 ### TC-01-N8 — Every tap target is at least 44 × 44 px
-**Priority** P2 · **Type** Usability · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Usability · **Layer** UI · **Writes** No
 - **Setup:** Each page at 375 px.
 - **Action:** Measure Continue with Google, Sign in, Show password, Forgot password?, Create an account, Create account, Send reset link, Back to sign in, Send again.
 - **Expected:** Each is at least 44 × 44 px.
 - **Don't assert:** exact sizes.
 
 ### TC-01-N9 — The Google button meets 4.5:1 contrast and says "Continue with Google" in text
-**Priority** P3 · **Type** Usability · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Usability · **Layer** UI · **Writes** No
 - **Setup:** Sign-in and create-account pages.
 - **Action:** Check contrast and the button's text.
 - **Expected:** Text contrast at least 4.5:1; the words "Continue with Google" in text, not only the logo.
 - **Don't assert:** Google's logo colours.
 
 ### TC-01-N10 — Fields carry the autocomplete values password managers need
-**Priority** P2 · **Type** Usability · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Usability · **Layer** UI · **Writes** No
 - **Setup:** Sign-in and create-account pages.
 - **Action:** Inspect the fields.
 - **Expected:** Sign-in: `email`, `current-password`. Create account: `name`, `email`, `new-password`.
 - **Don't assert:** other attributes.
 
 ### TC-01-N11 — The email field opens the email keyboard on phones
-**Priority** P3 · **Type** Usability · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Usability · **Layer** UI · **Writes** No
 - **Setup:** Each page with an email field.
 - **Action:** Inspect the field (or tap it on a phone).
 - **Expected:** `type="email"` (and `inputmode="email"`).
 - **Don't assert:** the keyboard layout itself.
 
 ### TC-01-N12 — While signing in, the button reads "Signing in…" and is disabled
-**Priority** P2 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** UI/UX · **Layer** UI · **Writes** No
 - **Role / setup:** Homeowner, U-P; auth response slowed.
 - **Action:** Press "Sign in".
 - **Expected:** "Signing in…", disabled, announced; back to "Sign in" after an error.
 - **Don't assert:** the in-flight label for "Create account" (G-1) or Google (G-20).
 
 ### TC-01-N13 — Sign-in and account creation work with the keyboard alone
-**Priority** P2 · **Type** Usability · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Usability · **Layer** UI · **Writes** No
 - **Role / setup:** Homeowner, U-P; a new U-NEW for the create path.
 - **Action:** Tab through each form and press Enter to submit.
 - **Expected:** Logical order (Google → Email → Password → Show password → Forgot password? → Sign in → Create an account); visible focus; no trap; Enter submits once.
 - **Don't assert:** focus ring styling.
 
 ### TC-01-N14 — Pasting into the email and password fields is allowed (WCAG 2.2 SC 3.3.8)
-**Priority** P2 · **Type** Usability · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Usability · **Layer** UI · **Writes** No
 - **Setup:** Sign-in page.
 - **Action:** Paste an email and a password.
 - **Expected:** Both are pasted.
 - **Don't assert:** clipboard behaviour of the browser.
 
 ### TC-01-N15 — The same words are used everywhere
-**Priority** P3 · **Type** UI/UX (same concept, different word) · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** UI/UX (same concept, different word) · **Layer** Unit · **Writes** No
 - **Setup:** Every page in REQ-001, signed in and out.
 - **Action:** Read every button, link, menu item and message.
 - **Expected:** "Sign in" / "Sign out", never "Log in" / "Log out"; "invite code" spelled the same on 1G and 4B.
 - **Don't assert:** wording outside REQ-001's pages.
 
 ### TC-01-N16 — The sign-in pages use the mock-up's green top bar and card
-**Priority** P3 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** UI/UX · **Layer** Manual · **Writes** No
 - **Setup:** Each page.
 - **Action:** Compare with mock-up 1A.
 - **Expected:** The same top bar and card style.
 - **Don't assert:** pixel values.
 
 ### TC-01-N17 — The sign-in page reflows at 320 px and at 200 % zoom
-**Priority** P3 · **Type** Usability · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Usability · **Layer** UI · **Writes** No
 - **Setup:** Sign-in page.
 - **Action:** View at 320 px wide; then at 200 % zoom on desktop.
 - **Expected:** No content lost; no horizontal scroll.
 - **Don't assert:** layout details.
 
 ### TC-01-N18 — After an error or a page change, focus moves to the error or the new heading
-**Priority** P3 · **Type** Usability · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Usability · **Layer** UI · **Writes** No
 - **Setup:** Trigger C1; then move from sign-in to create account.
 - **Action:** Note where focus is.
 - **Expected:** On the error, then on the new page's heading.
 - **Don't assert:** scroll position.
 
 ### TC-01-N19 — Every static string in the copy of record appears as written
-**Priority** P2 · **Type** UI/UX (copy) · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** UI/UX (copy) · **Layer** UI · **Writes** No
 - **Setup:** Sign-in page and create-account page.
 - **Action:** Read them.
 - **Expected:** "Sign in to {HOA name}", "Continue with Google", "or use your email", "Email", "Password", "Show password", "Sign in", "Forgot password?", "New here? Create an account" exactly as in REQ-001's copy of record.
@@ -1234,35 +1252,35 @@ Role for this block: **anyone, signed out**, on the sign-in, create-account and 
 Role for this block: **anyone, signed out**, unless stated.
 
 ### TC-01-O1 — On a real phone profile, the sign-in page uses the phone layout
-**Priority** P1 · **Type** Responsive · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Responsive · **Layer** UI · **Writes** No
 - **Setup:** Phone emulation with `isMobile` (Pixel 5, 375 × 812), **not** a narrowed desktop window (that hides DEF-001).
 - **Action:** Open the sign-in page; read `innerWidth`.
 - **Expected:** Layout width 375; one card; readable text without zoom; the viewport meta tag is present.
 - **Don't assert:** font sizes.
 
 ### TC-01-O2 — No horizontal scroll at 375 px
-**Priority** P2 · **Type** Responsive · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Responsive · **Layer** UI · **Writes** No
 - **Setup:** As O1, on the sign-in, create-account, reset and not-linked (U-N) pages.
 - **Action:** Check the page's scroll width.
 - **Expected:** No wider than the screen on any of them.
 - **Don't assert:** vertical length.
 
 ### TC-01-O3 — With the keyboard open, the primary button can be reached
-**Priority** P3 · **Type** Responsive · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Responsive · **Layer** Manual · **Writes** No
 - **Setup:** A real phone or simulator with an on-screen keyboard.
 - **Action:** Focus the password field; try to reach "Sign in".
 - **Expected:** Reachable without closing the keyboard (scroll is fine).
 - **Don't assert:** exact position.
 
 ### TC-01-O4 — The sign-in page works in landscape on a phone
-**Priority** P3 · **Type** Responsive · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Responsive · **Layer** UI · **Writes** No
 - **Setup:** Phone profile rotated to landscape.
 - **Action:** Sign in as U-P.
 - **Expected:** All controls usable; no horizontal scroll; signs in.
 - **Don't assert:** layout details.
 
 ### TC-01-O5 — On a desktop the sign-in page shows a single centred card
-**Priority** P3 · **Type** Responsive · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Responsive · **Layer** UI · **Writes** No
 - **Setup:** 1280 px wide.
 - **Action:** Open the sign-in page.
 - **Expected:** One card, centred.
@@ -1271,42 +1289,42 @@ Role for this block: **anyone, signed out**, unless stated.
 ## Block P — Double taps and two sessions
 
 ### TC-01-P1 — Double-tapping "Sign in" sends exactly one request
-**Priority** P2 · **Type** Concurrency · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Concurrency · **Layer** Unit · **Writes** No
 - **Role / setup:** Homeowner, U-P.
 - **Action:** Double-tap "Sign in".
 - **Expected:** One sign-in request.
 - **Don't assert:** the disabled state (N12).
 
 ### TC-01-P2 — Double-tapping "Create account" creates exactly one account and one person record
-**Priority** P1 · **Type** Concurrency / data integrity · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Concurrency / data integrity · **Layer** UI · **Writes** Yes
 - **Role / setup:** New homeowner, U-NEW.
 - **Action:** Double-tap "Create account".
 - **Expected:** One Auth user, one `users` doc, one verification code; no "already an account" message shown.
 - **Don't assert:** timing.
 
 ### TC-01-P3 — The same email signed up in two tabs at once creates one account
-**Priority** P2 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Concurrency · **Layer** API · **Writes** Yes
 - **Role / setup:** New homeowner, U-NEW, two tabs or two devices.
 - **Action:** Press "Create account" in both at about the same time.
 - **Expected:** One account; the other tab shows the G1 message.
 - **Don't assert:** which tab wins.
 
 ### TC-01-P4 — Double-tapping "Continue with Google" opens one popup
-**Priority** P3 · **Type** Concurrency · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Concurrency · **Layer** UI · **Writes** No
 - **Role / setup:** Homeowner, U-G.
 - **Action:** Double-tap "Continue with Google"; complete the popup.
 - **Expected:** One popup; signed in; no "popup closed" style error left on the page.
 - **Don't assert:** the in-flight label (G-20).
 
 ### TC-01-P5 — Double-tapping "Send reset link" sends one request
-**Priority** P3 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Concurrency · **Layer** Unit · **Writes** Yes
 - **Role / setup:** Homeowner, U-P, on the reset page.
 - **Action:** Double-tap "Send reset link".
 - **Expected:** One reset request; one reset code.
 - **Don't assert:** the message's timing.
 
 ### TC-01-P6 — Double-tapping "Send again" sends one verification request
-**Priority** P3 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Concurrency · **Layer** Unit · **Writes** Yes
 - **Role / setup:** As F4.
 - **Action:** Double-tap "Send again".
 - **Expected:** One new verification code.
@@ -1315,42 +1333,42 @@ Role for this block: **anyone, signed out**, unless stated.
 ## Block Q — Integration with the other REQs and the existing app
 
 ### TC-01-Q1 — The important-announcement pop-up does not appear on the sign-in page
-**Priority** P2 · **Type** Integration (modal mid-flow) · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Integration (modal mid-flow) · **Layer** UI · **Writes** No
 - **Role / setup:** Signed out; an unacknowledged important announcement exists (as NAV-05).
 - **Action:** Open the portal.
 - **Expected:** No pop-up; the sign-in form is usable.
 - **Don't assert:** the banner.
 
 ### TC-01-Q2 — After sign-in the pop-up shows once on the dashboard and doesn't block "Sign out"
-**Priority** P2 · **Type** Integration · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Integration · **Layer** UI · **Writes** No
 - **Role / setup:** Homeowner, U-G; as Q1.
 - **Action:** Sign in; then sign out while the pop-up is up (or after closing it).
 - **Expected:** The pop-up shows once on the dashboard; "Sign out" still works.
 - **Don't assert:** the pop-up's wording.
 
 ### TC-01-Q3 — A not-linked person never sees the announcement pop-up
-**Priority** P2 · **Type** Integration / security · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Integration / security · **Layer** UI · **Writes** No
 - **Role / setup:** Not-linked, U-N; as Q1.
 - **Action:** Sign in.
 - **Expected:** No pop-up on the not-linked or invite-code screens.
 - **Don't assert:** anything else on the screen.
 
 ### TC-01-Q4 — Each staff sub-role lands on the staff view, not the not-linked screen
-**Priority** P2 · **Type** Integration · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Integration · **Layer** Unit · **Writes** No
 - **Role / setup:** Treasurer (U-TR), admin office (U-AD), board (U-BD), each signed out.
 - **Action:** Sign in as each.
 - **Expected:** The staff dashboard for that role (REQ-002); never the not-linked screen.
 - **Don't assert:** the staff menus (TC-02).
 
 ### TC-01-Q5 — A treasurer who is also a homeowner gets the view switch
-**Priority** P3 · **Type** Integration · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Integration · **Layer** Unit · **Writes** No
 - **Role / setup:** Treasurer + homeowner, U-TRH.
 - **Action:** Sign in.
 - **Expected:** The staff view with the "Treasurer | My household" switch (2B).
 - **Don't assert:** the switch's behaviour (TC-02).
 
 ### TC-01-Q6 — A guard account's landing in R1
-**Priority** P3 · **Type** Integration · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Integration · **Layer** Unit · **Writes** No
 - **Blocked on G-19** (no guard screens released in R1).
 - **Role / setup:** Guard, U-GD.
 - **Action:** Sign in.
@@ -1358,35 +1376,35 @@ Role for this block: **anyone, signed out**, unless stated.
 - **Don't assert:** anything until G-19 is answered.
 
 ### TC-01-Q7 — An invite link's code survives Google sign-in
-**Priority** P1 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Integration · **Layer** UI · **Writes** Yes
 - **Role / setup:** New homeowner (a new emulator Google user); a REQ-004 invite link `…/join#<code>` for a test household.
 - **Action:** Open the link signed out; press "Continue with Google"; complete the popup.
 - **Expected:** The confirm-lot screen (4C) opens with the code filled in, without typing it.
 - **Don't assert:** redeeming (TC-04).
 
 ### TC-01-Q8 — An invite link's code survives creating an account by email
-**Priority** P1 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Integration · **Layer** UI · **Writes** Yes
 - **Role / setup:** New homeowner, U-NEW; an invite link as Q7.
 - **Action:** Open the link signed out; "Create an account" by email.
 - **Expected:** 4C opens with the code filled in.
 - **Don't assert:** redeeming (TC-04).
 
 ### TC-01-Q9 — The name typed at sign-up is the one the admin office sees
-**Priority** P2 · **Type** Integration / round-trip · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Integration / round-trip · **Layer** UI · **Writes** Yes
 - **Role / setup:** New homeowner U-NEW signs up as "Lito ZZTest" and redeems an invite for ZZ Test Household E; admin office U-AD.
 - **Action:** U-AD opens Household E's detail.
 - **Expected:** "Lito ZZTest" under "People with portal access", same spelling.
 - **Don't assert:** other detail fields.
 
 ### TC-01-Q10 — A name containing markup shows as plain text to the admin office
-**Priority** P2 · **Type** Security (stored XSS) · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Security (stored XSS) · **Layer** UI · **Writes** Yes
 - **Role / setup:** As G16's account, linked to Household E; admin office U-AD.
 - **Action:** U-AD opens Household E's detail and the directory.
 - **Expected:** The name shows as text in both; no script runs.
 - **Don't assert:** truncation.
 
 ### TC-01-Q11 — A homeowner whose membership is removed while signed in loses the household on the next read *(provisional: ADR-004 `exists(members/...)`)*
-**Priority** P2 · **Type** Stale reference · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Stale reference · **Layer** UI · **Writes** Yes
 - **Role / setup:** Homeowner. A disposable account linked to a disposable household, signed in on the dashboard; admin removes the membership (REQ-004).
 - **Action:** The homeowner opens another screen.
 - **Expected:** The read is refused; the not-linked screen; no household data after the removal.
@@ -1400,63 +1418,63 @@ Cross-reference only: owned by **TC-02** (REQ-002 decision 1, "at once"; ADR-004
 These check settings, not code. Each runs on **`hoa-portal-staging`** and on the emulator seed where stated. On each **production** project they are **read-only console inspections by the owner** before it takes real users: no sign-ins, no test data. Role for this block: **Firebase console operator** (not an app role).
 
 ### TC-01-R1 — Email enumeration protection is on
-**Priority** P1 · **Type** Security / config · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security / config · **Layer** Manual (console) · **Writes** No
 - **Setup:** Console access to each project.
 - **Action:** Open Authentication settings.
 - **Expected:** Email enumeration protection is on.
 - **Don't assert:** other settings.
 
 ### TC-01-R2 — The password policy is Require with a minimum of 8
-**Priority** P1 · **Type** Security / config · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security / config · **Layer** Manual (console) · **Writes** No
 - **Setup:** As R1.
 - **Action:** Open the password policy.
 - **Expected:** Enforcement Require; minimum length 8. Whether "force upgrade on sign-in" is on is the decision in G-13.
 - **Don't assert:** other character requirements (REQ-001 sets none).
 
 ### TC-01-R3 — Authorised domains list only that project's own domains
-**Priority** P1 · **Type** Security / config · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security / config · **Layer** Manual (console) · **Writes** No
 - **Setup:** As R1.
 - **Action:** Open Authorised domains.
 - **Expected:** No staging or `localhost` domain on a production project; no production domain on staging.
 - **Don't assert:** Firebase's default domains for that same project.
 
 ### TC-01-R4 — The Google provider is enabled
-**Priority** P2 · **Type** Config · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Config · **Layer** Manual (console) · **Writes** No
 - **Setup:** As R1.
 - **Action:** Open Sign-in providers.
 - **Expected:** Email/Password and Google enabled; no other provider (no phone).
 - **Don't assert:** the support email shown.
 
 ### TC-01-R5 — "One account per email address" is set
-**Priority** P1 · **Type** Security / config · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security / config · **Layer** Manual (console) · **Writes** No
 - **Setup:** As R1.
 - **Action:** Open the account-linking setting.
 - **Expected:** One account per email address (H1–H6 and P3 depend on it). Sol Arch is adding it to SA-001 §8.4.
 - **Don't assert:** anything else.
 
 ### TC-01-R6 — With App Check enforced, sign-in and the first dashboard read still work *(provisional: SA-001 §8.3)*
-**Priority** P2 · **Type** Security / integration · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Security / integration · **Layer** Manual (staging) · **Writes** No
 - **Setup:** Staging, App Check registered and enforced; homeowner U-P. (Emulator runs use the App Check debug provider.)
 - **Action:** Sign in and load the dashboard.
 - **Expected:** Both work.
 - **Don't assert:** App Check metrics.
 
 ### TC-01-R7 — With App Check enforced, a request with no App Check token is refused
-**Priority** P2 · **Type** Security · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Security · **Layer** API (staging) · **Writes** No
 - **Setup:** As R6.
 - **Action:** Read a Firestore document with a valid sign-in token but no App Check token.
 - **Expected:** Refused.
 - **Don't assert:** the error text.
 
 ### TC-01-R8 — Reset and verification emails arrive in a test inbox on staging
-**Priority** P2 · **Type** Integration (copy promises an email) · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Integration (copy promises an email) · **Layer** Manual (staging) · **Writes** Yes
 - **Setup:** Staging; a real test inbox on the team's domain.
 - **Action:** Ask for a reset; create an account.
 - **Expected:** Both emails arrive. Note whether they land in the inbox or spam (SA-001 Q7, sending domain, is open).
 - **Don't assert:** delivery time.
 
 ### TC-01-R9 — The emulator seed turns email enumeration protection on
-**Priority** P1 · **Type** Config (test precondition) · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Config (test precondition) · **Layer** API · **Writes** No
 - **Setup:** The emulator's Auth config or exported `config.json` (`enableImprovedEmailPrivacy`).
 - **Action:** Start the emulator from the seed; sign in with U-NONE and any password.
 - **Expected:** The refusal is the same as for a wrong password (not "email not found"). C3, C5, E3, E4 run on the emulator only after this passes.
@@ -1465,14 +1483,14 @@ These check settings, not code. Each runs on **`hoa-portal-staging`** and on the
 ## Block S — Back-compat
 
 ### TC-01-S1 — A role left in browser storage by the mock-up does not choose the role in the real app *(provisional: SA-001 §11.2)*
-**Priority** P2 · **Type** Back-compat / security · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Back-compat / security · **Layer** UI · **Writes** No
 - **Role / setup:** Homeowner, U-G. On the real app's origin, pre-seed `localStorage` with the mock-up's stored state including `UI.role = "admin"`.
 - **Action:** Sign in.
 - **Expected:** Household A's homeowner dashboard; no admin screen or menu.
 - **Don't assert:** whether the old key is deleted. Applies only if the real app is ever served on an origin that hosted the mock-up.
 
 ### TC-01-S2 — An account whose password predates the 8-character policy
-**Priority** P3 · **Type** Back-compat · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Back-compat · **Layer** Manual (staging) · **Writes** Yes
 - **Blocked on G-13.** **Env: staging only.**
 - **Role / setup:** Homeowner. A staging account created with a 6-character password before the policy was set to Require.
 - **Action:** Sign in.
@@ -1482,25 +1500,25 @@ These check settings, not code. Each runs on **`hoa-portal-staging`** and on the
 ## Block T — Exploratory charters
 
 ### TC-01-T1 — 20 minutes: signing in from links opened inside phone apps
-**Priority** P2 · **Type** Exploratory · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Exploratory · **Layer** Manual · **Writes** No
 - **Role / setup:** Homeowner, U-G and U-P, on a real Android phone. Staging.
 - **Charter:** Open the portal link from Facebook Messenger, Gmail, Viber and SMS. Try "Continue with Google" and email sign-in in each app's built-in browser. Look for: Google refusing to sign in inside an embedded browser, a popup that never returns, the session landing in the app's browser instead of Chrome, the invite code lost.
 - **Don't assert:** pass/fail; report findings (feeds G-14).
 
 ### TC-01-T2 — 15 minutes: one shared family phone, two homeowners
-**Priority** P2 · **Type** Exploratory · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Exploratory · **Layer** Manual · **Writes** No
 - **Role / setup:** Homeowners U-G and U-P, one phone.
 - **Charter:** Take turns: sign in, browse, sign out, switch to Google, use Back, the app switcher, and a home-screen shortcut. Look for any glimpse of the other household's data or a session that didn't end.
 - **Don't assert:** pass/fail; report findings.
 
 ### TC-01-T3 — 15 minutes: slow and flaky network
-**Priority** P3 · **Type** Exploratory · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Exploratory · **Layer** Manual · **Writes** No
 - **Role / setup:** Homeowner U-P and new U-NEW accounts.
 - **Charter:** Throttle to slow 3G and toggle offline mid-request on sign-in, create account, reset and "Send again". Look for stuck "Signing in…", duplicate accounts, a missing `users` doc, lost typing, and errors that don't say what to do.
 - **Don't assert:** pass/fail; report findings.
 
 ### TC-01-T4 — 15 minutes: staying signed in on an iPhone over weeks
-**Priority** P3 · **Type** Exploratory · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Exploratory · **Layer** Manual · **Writes** No
 - **Role / setup:** Homeowner U-G on an iPhone (Safari), once as a normal tab and once added to the home screen. Staging.
 - **Charter:** Safari deletes script-written storage (where the session lives) after 7 days of Safari use without visiting the site, unless the app is on the home screen. Homeowners sign in once or twice a month. Check what a homeowner sees after more than 7 days away, in both set-ups. Report to Sol Arch (SA-001 risk).
 - **Don't assert:** pass/fail; report findings.
@@ -1579,3 +1597,158 @@ Sol Arch's review lists these as theirs to settle in SA-001; the cases that depe
 | **Total** | | **181** | **59** | **16** |
 
 Every Gherkin scenario S1–S13 has at least one runnable case (Acceptance table). Every mandatory type is covered: negative (C, D, G, J), boundary (A3, C10, F9, F12, G6, G10, G11, G13, L1), usability (N), navigation (M, K2, I2, J3).
+
+---
+
+## QE triage
+
+*QE-owned. Written at triage, 2026-11-28, against TC-01 v1.1 (owner-approved, `db9245e`). QA owns everything above this line; QE changed only each case's **Layer** field and added the layer legend.*
+
+### Shape
+
+| Layer | Cases | Of the 159 automated | Notes |
+|---|---|---|---|
+| Unit | 21 | 13% | 5 blocked: C11, F12 (partly runnable), G12, G15, Q6 |
+| API | 44 | 28% | 41 on the emulator, 3 on staging (E8, G9, R7). 4 blocked: E10, F10, G14, J22 |
+| UI | 94 | 59% | 5 blocked: D7, D8, D10, M3, N6 |
+| Manual | 22 | — | 11 on staging, 5 console, 6 judgement / real phone / exploratory. 2 blocked: H6, S2 |
+| **Total** | **181** | | 16 blocked, as in QA's summary |
+
+**The UI share is far above the 70 / 20 / 10 target**, and that is expected for this requirement: REQ-001 is mostly pages, focus, labels, routing and what a signed-out browser can see (blocks K, M, N, O). Its logic is thin and lives in Firebase. QE is raising it with Sol Arch anyway, with the cases that can move down (see *For Sol Arch* below). Keep the UI suite fast by batching: most UI cases are short assertions after one sign-in, and the specs group them so one page load serves several cases.
+
+### Where each case went, and why
+
+- **Unit (21).** Everything that is a rule about inputs: the copy for each Auth error code (C6, D1), field validation and its "no request is sent" half (C7–C9, G6, G8, G10, and blocked C11, G12, G15), the greeting's first name (A3, F12), the landing choice for each staff role (Q4–Q6), the in-flight guard for double taps (P1, P5, P6), and two source scans (C13 no `fetchSignInMethodsForEmail`; N15 no "Log in" / "Log out" and one spelling of "invite code"). These need Dev to build the seams listed under *Unit scenarios for Dev*.
+- **API (44).** What Firebase or the rules decide: identical refusals (C5), case-insensitive email (C10, G13), Google-only account on the email form (C12), disabled account (D11), duplicate and concurrent sign-up (G3, P3), unicode passphrase (G11), reset effects (E4–E7, E10), what account creation writes (F7–F11), and every rules cell in block J. R9 runs **first**, as a Playwright project dependency: C3, C5, E3 and E4 do not start unless the emulator seed's enumeration protection is proven on.
+- **UI (94).** What only the browser shows or does: every page's messages and kept typing, offline, the Google popup (emulator fake Google user), routing and Back, storage after sign-out, two tabs, focus and keyboard, tap targets, the phone profile, the pop-up and invite-link integration. **E2, F1, F5 stay UI on purpose:** they guard the "copy promises what the code doesn't do" failure shape, so the click must be real and the proof is the emulator's out-of-band code store.
+- **Manual (22), with reasons:**
+  - **A4, H1–H6, F14 (staging, real Google).** Google blocks automated browsers and the team Gmail accounts carry 2-step verification, so real Google sign-in is never scripted. One staging session runs all eight. Disposable fixtures are recreated before it.
+  - **R6 (staging).** App Check with reCAPTCHA scores an automated browser as a bot; a CI debug token would prove nothing about real users. A person signs in on staging with App Check enforced.
+  - **R8 (staging).** Needs real email delivered to a real test inbox.
+  - **S2 (staging, blocked on G-13).** Needs an account made before the policy was set to Require; making one means changing staging's policy and back, which is a console change, not a test step.
+  - **R1–R5 (console).** Settings, not behaviour. On production these are the owner's read-only console checks before go-live; on staging QE does the same read.
+  - **N16** is a look-and-feel judgement; **O3** needs a real on-screen keyboard; **T1–T4** are exploratory charters.
+
+### Staging and the emulator
+
+- **Tagged Env: staging only by QA (10):** A4, E8, G9, H1–H6, S2. Kept as tagged. E8 and G9 are automated on staging (E8 builds its reset link with the Admin SDK's `generatePasswordResetLink`, so no email is sent); the other 8 are manual.
+- **Also on staging by their setup:** R6, R7, R8, T1, T4, and R1–R5's staging read. R7 is automated, read-only.
+- **R9 is the emulator seed precondition** for C3, C5, E3, E4 (above).
+- **Block R on production:** owner only, console only, read-only. No QE spec ever has a production host in its allow-list.
+- **Staging specs** live in `tests/specs/staging/`, get their own Playwright project, and their environment guard lists only the staging host. That host comes from SA-001 / ADR-005 (Draft); the guard is not written until it is approved.
+
+### Unit scenarios for Dev
+
+Dev writes these with the auth feature; QE reviews them against this list. Each needs a seam the code must have:
+
+| Module (anticipated, SA-001 §9) | Cases | Seam it needs |
+|---|---|---|
+| `web/src/features/auth/auth-messages.js` | C6, D1 | `authErrorMessage(code)`: every credential code → the shared C1 copy; `auth/too-many-requests` → D1's copy |
+| `web/src/features/auth/validate.js` | C11, G6, G10, G12, G15 | `validateSignIn(form)`, `validateSignUp(form)` returning field errors. C11, G12, G15 wait on G-4 / G-1 |
+| `web/src/features/auth/auth-controller.js` | C7, C8, C9, G8, P1, P5, P6 | Submit handlers taking an **injected auth port**: no port call when validation fails; one call when invoked twice while in flight |
+| `web/src/features/auth/greeting.js` | A3, F12 | `greetingName(user, person)`: first word; never "", "undefined" or "null" |
+| `web/src/app/landing.js` | Q4, Q5, Q6 | `resolveLanding({ signedIn, memberships, staff, verified })` → screen id, plus whether the view switch shows |
+| `web/src/features/auth/source-checks.test.js` | C13, N15 | Scans `web/src/`; needs the user-visible copy kept in one copy module |
+
+### Locator contract (asked of Dev)
+
+Ship these on the real app's auth screens. If a name changes, tell QE.
+
+| Screen | Element | Hook |
+|---|---|---|
+| Every screen | Heading | `data-testid="screen-<view>"` on the `<h1>` (already asked in `tests/README.md`) |
+| Every screen | Footer build id | `data-testid="app-version"` showing `APP_VERSION` |
+| Sign in (1A) | Heading "Sign in to {HOA}" | `data-testid="screen-sign-in"` |
+| | Continue with Google | `data-action="google-sign-in"` (same hook on create-account) |
+| | Email, Password | `data-testid="signin-email"`, `data-testid="signin-password"` |
+| | Show password | `data-action="toggle-password"` |
+| | Forgot password? | `data-action="go-reset"` |
+| | Sign in | `data-action="sign-in"` |
+| | New here? Create an account | `data-action="go-create-account"` |
+| All auth forms | Form-level error (`role="alert"`) | `data-testid="form-error"` |
+| | Field error under a field | `data-testid="error-<field>"` (`error-email`, `error-password`, `error-name`) |
+| Create account (1F) | Your name, Email, Password | `data-testid="signup-name"`, `signup-email`, `signup-password` |
+| | Create account | `data-action="create-account"` |
+| | Already have an account? Sign in | `data-action="go-sign-in"` |
+| | Links inside the duplicate-email message | `data-action="dup-sign-in"`, `data-action="dup-reset"` |
+| Reset (1E) | Email, Send reset link | `data-testid="reset-email"`, `data-action="send-reset"` |
+| | Confirmation message | `data-testid="reset-confirmation"` |
+| | Back to sign in | `data-action="back-to-sign-in"` |
+| Not linked (1G) | Screen, "Signed in as {email}" | `data-testid="screen-not-linked"`, `data-testid="signed-in-as"` |
+| Invite code (4B), confirm lot (4C) | Screen, code field | `data-testid="screen-invite-code"`, `data-testid="screen-confirm-lot"`, `data-testid="invite-code"` (REQ-004 may own the names) |
+| No access (2C) | Screen, Go to my dashboard | `data-testid="screen-no-access"`, `data-action="go-my-dashboard"` |
+| Signed-in shell | Verification banner, Send again | `data-testid="verify-banner"`, `data-action="resend-verification"` |
+| | Greeting, header lot label | `data-testid="greeting"`, `data-testid="header-lot"` |
+| | Account menu, Sign out | `data-action="account-menu"`, `data-action="sign-out"` |
+| | Nav while the role loads; staff nav | `data-testid="nav-skeleton"`, `data-testid="nav-staff"` |
+| Routes | Sign-in, create-account, reset, not-linked | Stable paths, named by Dev (for M1, M7–M9) |
+
+### Spec files
+
+**New (planned, none written yet):**
+
+| File | Layer | Cases |
+|---|---|---|
+| `tests/specs/api/auth-emulator-seed.spec.js` | API | R9 (runs first; others depend on it) |
+| `tests/specs/api/auth-credentials.spec.js` | API | C5, C10, C12, D11, G3, G11, G13, G14, P3 |
+| `tests/specs/api/auth-reset.spec.js` | API | E4, E5, E6, E7, E10 |
+| `tests/specs/api/account-creation.spec.js` | API | F7, F8, F9, F10, F11 |
+| `tests/specs/api/rules-access.spec.js` | API | J2, J4–J10 |
+| `tests/specs/api/rules-users.spec.js` | API | J11–J23 |
+| `tests/specs/staging/auth-policy.staging.spec.js` | API (staging) | E8, G9 |
+| `tests/specs/staging/app-check.staging.spec.js` | API (staging) | R7 |
+| `tests/specs/ui/sign-in.spec.js` | UI | A1, A2, B1, C1–C4, D2–D6, D9, D10, D12, P4 |
+| `tests/specs/ui/password-reset.spec.js` | UI | E1, E2, E3, E9, D8 |
+| `tests/specs/ui/create-account.spec.js` | UI | F1–F6, F13, G1, G2, G4, G5, G7, G16, D7, P2 |
+| `tests/specs/ui/not-linked.spec.js` | UI | I1–I5, M8, Q3 |
+| `tests/specs/ui/auth-routing.spec.js` | UI | J1, J3, M1–M7, M9, M11, L2, S1 |
+| `tests/specs/ui/sign-out.spec.js` | UI | K1–K8, L1, M10 |
+| `tests/specs/ui/auth-a11y.spec.js` | UI | N1–N14, N17–N19 |
+| `tests/specs/ui/auth-phone.spec.js` | UI (`mobile` project) | O1, O2, O4, O5 |
+| `tests/specs/ui/auth-integration.spec.js` | UI | Q1, Q2, Q7–Q11 |
+
+**Smoke:** B1, I1, M1 and M2 carry the `@smoke` tag in their own specs (the TC's two new smoke items), rather than being copied into `smoke.spec.js`.
+
+**Changed (when the real app exists):**
+
+- `smoke.spec.js`: every role item starts from a signed-in fixture (homeowner, treasurer, admin office, board, guard) instead of the role switch.
+- `navigation.spec.js`: NAV-02 (role switch) retires; NAV-01 becomes "a homeowner fixture lands on the dashboard"; NAV-04's reload check is replaced by L2. NAV-07 / NAV-08 re-run under `mobile` with O1 (DEF-001).
+- `vehicle-registration.spec.js`: VEH-J1 signs the homeowner and admin in.
+- Support: signed-in fixtures per role in `tests/fixtures/test.js`; an emulator helper (out-of-band codes, Admin SDK for disposable accounts); `playwright.config.js` gains `api` and `staging` projects; `.env.example` gains every fixture's email and password variable (names only).
+
+### Automation order (highest consequence first)
+
+1. **Harness:** environment guard per project, emulator helpers, signed-in fixtures, **R9**.
+2. **Data isolation in rules:** J2, J4–J23 (13 of the 59 P1s).
+3. **Data visible to the wrong person in the browser:** K3, K4, K6, J1, M1, I5, F3, G16.
+4. **Account enumeration:** C5, C6, C3, E3, E4.
+5. **Core paths, with the existing suite re-baselined at the same time** (the TC's top regression risk): B1, A1, A2, I1, M2, F1, F2, K1, K2, L1, L2.
+6. **Account data integrity:** F7–F9, F11, P2, P3, G3, Q10.
+7. **Reset:** E1, E2, E5, E6, E7.
+8. **Integration:** Q7, Q8, Q1–Q3, Q9, Q11.
+9. **Error and offline states, validation units:** blocks C, D, G remainder.
+10. **Usability, phones, navigation:** blocks N, O, M remainder.
+11. **Staging:** G9, E8, R7, then the manual staging session (A4, H1–H6, F14, R6, R8) and the owner's console checklist (R1–R5) before go-live.
+
+### Implementation status
+
+2026-11-28: **nothing automated.** The real app doesn't exist (only the mock-ups `index.html` and `gentri-heights/index.html`, which have no sign-in), and Dev waits on SA-001 approval. Every row is **Planned**, or **Blocked** on the gap it names. No spec, fixture or config was written at triage.
+
+### Findings for QA
+
+These are QE's reading of the cases, for QA to accept or reject. QE did not change the cases.
+
+1. **F14 can't be proven on the emulator.** The emulator's fake Google sign-in lets the tester tick "email verified" or not, so "a new Google account arrives verified" would only test the tester. QE placed F14 in the manual staging Google session; QA may want to tag it **Env: staging only**.
+2. **G15 holds two behaviours:** the name-length rule (Unit, once G-1 is answered) and "the greeting doesn't break at 375 px" (UI). Split it when G-1 is answered; QE has it at Unit for now.
+3. **Q11 mixes a rules refusal with a re-route.** QE took it at UI (a disposable account and household prove both). The rule on its own, a stale token refused after a `members` doc is removed, belongs at API; check that TC-04, which owns membership removal, has that case.
+4. **C7–C9 each add "typing kept" to a validation rule.** QE proves the rule and "no request" at Unit, and relies on G7 (UI) for "fields kept after a client-side error". If QA sees a reason sign-in's form would behave differently from create-account's, add a UI case.
+5. **Emulator parity is assumed in four API / UI cases:** C10 (email case), D11 (disabled account's code), D12 (disabled account on a forced refresh), E7 (refresh tokens revoked by a reset). If the emulator doesn't match production on any of them, QE reports it and the case moves to staging. Consider marking them *Assumption*, as D4 and L1 are.
+6. **K3 relies on Playwright's Chromium keeping the back-forward cache.** The spec will assert that the page really came from bfcache (`pageshow` with `persisted`), so it can't pass vacuously. If Playwright can't keep it, K3 becomes Manual on a real phone.
+7. **R6 is Manual, not automated:** App Check's reCAPTCHA marks an automated browser as a bot, and a debug token would bypass what R6 is meant to prove.
+
+### For Sol Arch
+
+- **The UI share (59%).** Candidates to move down if templates can be unit-tested without a browser (for example, `lit-html` rendered to a string): N1, N3, N10, N11, N19, I2, I4. That would bring UI to about 55%. Sign-in will stay UI-heavy; later requirements (dues, ledger, passes) should bring the overall shape back toward 70 / 20 / 10.
+- **Test folders.** SA-001 r3 (components table, "Tests" row) names `tests/rules/` and `tests/e2e/`; the repo's suite already uses `tests/specs/ui/`. QE planned `tests/specs/api/`, `tests/specs/staging/` and `tests/specs/ui/`. Settle one layout in SA-001.
+- **The staging host** for the staging environment guard's allow-list (ADR-005).
+- **The API runner:** Playwright's test runner (one runner for the suite) or Vitest with `@firebase/rules-unit-testing` (SA-001 §8). QE has no preference beyond one coverage map.
