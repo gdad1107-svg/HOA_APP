@@ -12,3 +12,5 @@
 **Decision (proposed).** Option 1. Provider chosen by the owner on cost; the HOA's sending domain needs SPF/DKIM/DMARC.
 
 **Consequences.** ~100 lines of function code and tests; a small provider bill or free tier; admin screens show "queued / sent / failed", never "delivered".
+
+**Revision r2 (2026-11-28, after the REQ-004 review).** "Failed" covers only a refusal by the provider when the message is handed over. A later bounce, such as a mailbox that does not exist, is reported only through the provider's events (a webhook), and this decision does not include them. Adding them costs about 0.5–1 extra day once the provider is chosen; the owner is deciding whether to include them in invite step 2. When a mail document carries a secret, such as an invite code, the secret is removed after hand-off. The function paces sending to the provider's limits, and the status stays "queued" in the meantime.

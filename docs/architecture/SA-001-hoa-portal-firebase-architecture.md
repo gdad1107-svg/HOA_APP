@@ -9,9 +9,9 @@
 | **Inputs received** | 1. Business context: README + backend plan. 2. Functional scope: the mock-up. 3. NFRs: scale (623+ households) and running cost ($0–15/month), both from `backend-plan.md`. Privacy and backups are named as work in area I. **Availability, performance, recovery targets and browser/device support: `NOT PROVIDED`.** 4. Integrations: none named beyond email. **Bank or e-wallet integration: `NOT PROVIDED`** (assumed none). 5. Constraints: Firebase Hosting, Firebase Authentication and Firestore, with email "using Firebase" (owner). **Budget, timeline and team: `NOT PROVIDED`** beyond the backend-plan estimates. 6. Stakeholders: the owner approves this document. **Client approvers (Gentri Heights board) and the client's Data Protection Officer: `NOT PROVIDED`.** |
 | **Status** | **Draft.** This becomes final only when the owner writes exactly `APPROVED — FINAL`. |
 | **Author / date** | Sol Arch, 2026-11-27 |
-| **Revision** | r1, 2026-11-27: first draft |
+| **Revision** | r1, 2026-11-27: first draft. r2, 2026-11-28: follow-ups from the Sol Arch reviews of REQ-001 to REQ-004 (branch `docs/req-001-004`, commit `9b9ecd3`). Changed: staff removal check (§8.1, ADR-004), function list (§3), new collections and fields (§4.2), lot key, invite expiry and code handling, Auth go-live checklist (§8.4), email "failed" meaning (ADR-002), sale-privacy risk R-16, phase 1 estimate (§12). Items that depend on owner decisions due 2026-11-29 are marked **(provisional)** |
 
-Related records, all Draft: [ADR-001](adr/ADR-001-firebase-platform.md) (Firebase platform and region), [ADR-002](adr/ADR-002-email-delivery.md) (email delivery), [ADR-003](adr/ADR-003-frontend-stack.md) (frontend stack), [ADR-004](adr/ADR-004-roles-and-household-linking.md) (roles and household linking), [ADR-005](adr/ADR-005-projects-and-environments.md) (projects and environments). Standards: [CODING-STANDARDS.md](CODING-STANDARDS.md). Lessons: [LEARNINGS.md](LEARNINGS.md) (L-001 to L-003).
+Related records, all Draft: [ADR-001](adr/ADR-001-firebase-platform.md) (Firebase platform and region), [ADR-002](adr/ADR-002-email-delivery.md) (email delivery), [ADR-003](adr/ADR-003-frontend-stack.md) (frontend stack), [ADR-004](adr/ADR-004-roles-and-household-linking.md) (roles and household linking), [ADR-005](adr/ADR-005-projects-and-environments.md) (projects and environments). Standards: [CODING-STANDARDS.md](CODING-STANDARDS.md). Lessons: [LEARNINGS.md](LEARNINGS.md) (L-001 to L-005).
 
 ---
 
@@ -156,7 +156,9 @@ The router loads only the screens for the signed-in role. Hiding a screen is a c
 | Notifications to many people (announcements) | Client write of one announcement doc, checked by rules. **No fan-out** | See section 4.4, item 8 |
 | Expenses, settings, amenity prices | Client write, admin-only by rules. A trigger keeps monthly totals | Simple admin CRUD (create, read, update, delete) |
 | Audit log | **Function / trigger only** | Clients cannot write their own audit trail |
-| Role assignment, household linking | **Function** (`linkHousehold`, `setRole`) | Custom claims can only be set with the Admin SDK |
+| Role assignment | **Function** (`setRole`), called from a developer script in R1 and from a Staff page later | Custom claims can only be set with the Admin SDK. Also writes `staff/{uid}`. Revokes refresh tokens only on a removal or downgrade, never on a grant. Refuses to remove the last treasurer (counted inside a transaction over `staff`) |
+| Invites and household linking | **Function** (`createInvites`, `checkInvite`, `redeemInvite`, `removeMember`, `cancelInvite`) | Codes are hashed, single-use and rate-limited. Redeeming creates the `members` doc in a transaction. Keeps `households.linkStatus` and `memberCount` |
+| Household directory and import | **Function** (`previewHouseholdImport`, `commitHouseholdImport`, `createHousehold`, `updateHousehold` with `seenUpdatedAt`, `setHouseholdActive`) | Clients never write households: totals, lot-key uniqueness and audit are server-only |
 
 ---
 
@@ -193,6 +195,10 @@ Every entity below was taken from the mock-up's `seed()` function (`index.html` 
 erDiagram
   HOUSEHOLDS ||--o{ MEMBERS : "has"
   USERS ||--o{ MEMBERS : "belongs via"
+  USERS ||--o| STAFF : "may hold role"
+  HOUSEHOLDS ||--o{ INVITES : "invited by"
+  INVITES ||--o| MEMBERS : "redeemed into"
+  HOUSEHOLDS ||--|| HOUSEHOLD_CONTACTS : "contacts"
   HOUSEHOLDS ||--o{ BILLS : "billed"
   HOUSEHOLDS ||--o{ PAYMENTS : "submits"
   PAYMENTS ||--o| RECEIPTS : "approved into"
@@ -213,9 +219,15 @@ erDiagram
 
   HOUSEHOLDS {
     string id PK "auto id"
-    string lotKey UK "e.g. B04-L12, unique via lots/{lotKey}"
+    string lotKey UK "B04-L12 or P1-B04-L12, unique via lots/{lotKey}"
     string lotLabel "Blk 4 Lot 12"
+    int block
+    string lot "allows suffix, e.g. 12-A"
+    string phase "or null"
     string displayName
+    array searchTokens "lower-case name words"
+    string linkStatus "kept by invite functions"
+    int memberCount "kept by invite functions"
     int billedCentavos "kept by functions"
     int paidCentavos "kept by functions"
     int balanceCentavos "kept by functions"
@@ -228,14 +240,39 @@ erDiagram
     string name
     string email
     string phone
-    string staffRole "none / admin / treasurer / board / guard (mirror of claim)"
+  }
+  STAFF {
+    string uid PK "Auth uid, written only by setRole"
+    string role "admin / treasurer / board / guard"
+    string displayName
+    string grantedBy
+    string requestRef "board's written request"
+    timestamp grantedAt
   }
   MEMBERS {
     string id PK "householdId_uid"
     string householdId FK
     string uid FK
     string relation "owner / co-owner / tenant / family"
-    bool canPay
+    string inviteId FK
+    string invitedBy
+    timestamp linkedAt
+  }
+  INVITES {
+    string codeHash PK "keyed hash of the code"
+    string householdId FK
+    string channel "email / print"
+    string sentTo "email or null"
+    string relation
+    timestamp expiresAt "expired is derived, not stored"
+    string status "active / used / replaced / cancelled"
+    string usedBy
+    string mailId
+  }
+  HOUSEHOLD_CONTACTS {
+    string householdId PK "staff-only"
+    string contactEmail
+    string contactMobile
   }
   BILLS {
     string id PK "period_householdId, deterministic"
@@ -347,7 +384,16 @@ erDiagram
   }
 ```
 
-Collections not drawn above, to keep the diagram readable: `vehicles`, `tickets` + `updates`, `notices`, `reportRequests`, `expenses`, `notifications`, `counters/{or|sticker|ticket|rr|gp}`, `billingRuns/{period}`, `auditLog`, `mail`, `lots/{lotKey}` (uniqueness index), `invites`.
+Collections not drawn above, to keep the diagram readable: `vehicles`, `tickets` + `updates`, `notices`, `reportRequests`, `expenses`, `notifications`, `counters/{or|sticker|ticket|rr|gp}`, `billingRuns/{period}`, `auditLog`, `mail`, `lots/{lotKey}` (uniqueness index, functions only), `importRuns/{id}` (staff only; rejected rows hold personal data and are deleted by the daily job after 30 days, DPO to confirm), `inviteAttempts/{uid}` (functions only; 5 refused codes per 15 minutes per account; old windows deleted daily).
+
+**Notes on the r2 additions:**
+
+- **`householdContacts` is separate from `households`** because every member of a household reads `households/{id}`. After a sale the new owner would otherwise see the previous owner's email and mobile, and guards must not see contacts. Admin and treasurer read it; nobody else.
+- **`staff/{uid}` replaces `users.staffRole`.** `users/{uid}` is written by the person themselves, so a role field there leaves one rules mistake between a homeowner and staff access. `staff` is written only by `setRole`. It is also what makes a removal take effect at once (§8.1).
+- **`members.canPay` is dropped** until the payments REQ needs it (it had no writer or reader).
+- **Lot key (provisional, ask the admin office before the import is built):** `B04-L12` assumes block numbers are unique across the subdivision. If phases reuse block numbers, the key is `P1-B04-L12`. Lot suffixes such as `12-A` are allowed. Re-keying after the import means rewriting every document, so this is settled first.
+- **Invite codes:** the code exists in plain text only when it is created. It is shown or printed once, emailed once, and then removed from the `mail` document after hand-off to the provider. So reprinting always makes new codes and the old unused code stops working. The email link carries the code after `#`, so it never reaches server logs.
+- **Indexes** (`firestore.indexes.json`): `households` (`active`, `block`, `lot`) for the default list and block search; `households` (`active`, `searchTokens` array-contains, `lotKey`) for name search; `invites` (`householdId`, `status`, `createdAt` desc). Search uses these indexed queries, 50 rows per page, never a scan of all households in the browser (623 reads per page open would exceed the free daily reads at normal office use).
 
 **Storage paths** (all private, access by rule or signed URL):
 
@@ -574,15 +620,15 @@ Only NFRs actually received are listed. Others are `NOT PROVIDED` (see the Assum
 | Role | Signs in with | Can | Must not | Enforced by |
 |---|---|---|---|---|
 | Homeowner (household member) | Email+password or Google. Invited by admin | See and act on own household only: dues, bookings, vehicles, tickets, passes, report requests. Read announcements | See other households, staff screens, guest ID photos | Rules: `isMember(householdId)` via `members/{hh}_{uid}` |
-| Admin (office staff) | Email+password + 2-step verification (if available on the chosen auth tier) | Run operations: approvals (if the client allows), tickets, notices, announcements, settings | Change OR numbers. Edit closed months. Read raw ID photos without a logged view | Claim `role: admin`, functions for privileged writes |
+| Admin (office staff) | Email+password, verified email. 2-step verification with an authenticator app (TOTP) if the owner adopts it (§8.4) | Run operations: approvals (if the client allows), tickets, notices, announcements, settings | Change OR numbers. Edit closed months. Read raw ID photos without a logged view | Claim `role: admin`, functions for privileged writes |
 | Treasurer | as Admin | Approve payments, void receipts, record expenses, close months | — | Claim `role: treasurer` |
 | Board | as Admin | Read financial reports and approvals (read-only unless the client decides otherwise) | Write | Claim `role: board` |
 | Guard | Individual account on a gate device (recommended), or a gate-post account (client decision) | Verify passes, check in and out, capture ID photo | Browse passes, households or finances. Read old ID photos except through the logged function | Claim `role: guard`. Gate actions are function-only |
 | Guest | No account | — | — | The pass token is the only credential |
 
-**Custom claims vs role documents** ([ADR-004](adr/ADR-004-roles-and-household-linking.md)): staff role in a **custom claim**. It is small, rarely changes, and rules can check it without a read. The claim payload limit is 1,000 bytes (firebase.google.com/docs/auth/admin/custom-claims, fetched 2026-11-27). **Household membership in `members` documents**, because one person can belong to several lots and a lot can have several people. A claim change takes effect only when the user's token refreshes. `setRole` therefore also forces sign-out (revokes refresh tokens), so a removed admin loses access within the hour or at once.
+**Custom claims vs role documents** ([ADR-004](adr/ADR-004-roles-and-household-linking.md)): staff role in a **custom claim**. It is small, rarely changes, and rules can check it without a read. The claim payload limit is 1,000 bytes (firebase.google.com/docs/auth/admin/custom-claims, fetched 2026-11-27). **Household membership in `members` documents**, because one person can belong to several lots and a lot can have several people. A claim change takes effect only when the user's ID token refreshes, and **revoking refresh tokens does not stop Firestore rules accepting the ID token the person already holds**, which stays valid for up to an hour. So revocation alone does not make a removal bite at once. **Recommended (provisional, owner choosing "at once" vs "within 1 hour"):** staff rules check both the `role` claim **and** a server-written `staff/{uid}` document with the same role (`isStaff()` = claim matches and `get(staff/{uid}).role` matches). That costs about one extra document read per staff request, and a removed or downgraded person is refused on their next request. `setRole` deletes or updates `staff/{uid}` and revokes refresh tokens only on a removal or downgrade, never on a grant, and refuses to remove the last treasurer. Callable functions check the same document. If the owner picks "within 1 hour", rules check the claim only and the removal takes effect when the token expires. Homeowner removal is already immediate either way, because rules check that the `members` document exists.
 
-**Household linking:** admin creates the household (lot) and an **invite** (single-use code, 7-day expiry, sent by email or printed). The homeowner signs up and enters the code, and `redeemInvite` creates the `members` doc in a transaction that refuses an expired or used invite. **Nobody gets household access by matching an email or phone number**: shared family emails and phones are common. A signed-in user with no membership and no role sees only an "ask the admin office for your invite code" screen, and rules deny everything else.
+**Household linking:** admin creates the household (lot) and an **invite** (single-use code, stored as a keyed hash, sent by email or printed). **Expiry is per channel, as settings (provisional): 7 days for email, 30 days for a printed slip, ending at the end of the day in Asia/Manila.** One active invite per household and recipient (an email, or "print"). `checkInvite` shows the lot and owner name on a confirm screen before `redeemInvite`, and both count towards the attempt limit. The homeowner signs up and enters the code, and `redeemInvite` creates the `members` doc in a transaction that refuses an expired or used invite. **Nobody gets household access by matching an email or phone number**: shared family emails and phones are common. A signed-in user with no membership and no role sees only an "ask the admin office for your invite code" screen, and rules deny everything else.
 
 **Firestore rules approach:** deny by default. Helper functions `isStaff()`, `hasRole(r)`, `isMember(hh)`. Clients may create only documents whose `householdId` they belong to, only in the starting status (`pending`, `Open`, `Submitted`), with a closed list of allowed fields. They can never set `status` past the start, `orNo`, `sticker`, totals or audit fields. Every status-gated clause is tested against every prior status. The rules are tested with `@firebase/rules-unit-testing` on the emulator in CI. SonarQube cannot read rules, so these tests are the only check.
 
@@ -606,7 +652,21 @@ Also, all requester to confirm: name a DPO; set a breach-response procedure, inc
 - **Secrets:** email provider key in Secret Manager. Never in the repo, the client config or logs. The Firebase web config is public by design. Security comes from rules and App Check.
 - **Backups and recovery:** PITR plus daily backup (section 7). Choose the Firestore location carefully, because **it cannot be changed after creation**. Wrong region means a new project.
 - **Audit:** every approval, void, role change, ID-photo view, ID-photo deletion run and settings change goes into `auditLog`.
-- **Observability:** structured logs from functions, without personal data. Alert policies on function error rate, a `billingRuns/{period}` not `completed` by 02:00, `mail` documents in `failed`, and the retention job not having run in 26 hours. A weekly admin "system health" card reads those.
+- **Observability:** structured logs from functions, without personal data. Alert policies on function error rate, a `billingRuns/{period}` not `completed` by 02:00, `mail` documents in `failed`, and the retention job not having run in 26 hours. A weekly admin "system health" card reads those. Every `setRole` call alerts the owner (rare, so each one is worth seeing).
+
+### 8.4 Authentication settings (go-live checklist, every Firebase project)
+
+These are project settings, not code, so they can drift between staging and production. They go on a per-project go-live checklist ([ADR-005](adr/ADR-005-projects-and-environments.md)), checked before each project takes real users.
+
+| Setting | Value | Why |
+|---|---|---|
+| Email enumeration protection | On (default for projects created on or after 15 Sep 2023) | A wrong password and an unknown email return the same error |
+| Password policy | Require, minimum 8 characters | Firebase's default minimum is 6. The browser check alone is advice. Whether the policy needs the Identity Platform upgrade: check in the console |
+| Verification email | Sent at account creation (free) | Makes the "Google sign-in takes over an unverified password account" case rarer, and staff 2-step needs a verified email |
+| Google sign-in | Popup flow, or our own `authDomain` | Redirect sign-in breaks in browsers that block third-party storage unless the app is served from `firebaseapp.com` |
+| Firestore web cache | Memory-only in R1 (the default) | A persistent cache would leave household data on a shared phone after sign-out |
+| Authorised domains | Only that project's own domains | A test domain must never be authorised on production |
+| Staff 2-step verification (if adopted) | **Firebase Authentication with Identity Platform** upgrade; TOTP (authenticator app), not SMS; verified email required; Admin SDK 11.6.0+, Web SDK 9.19.1+ | MFA is available only after the upgrade. TOTP has no per-message charge. Pricing lists Identity Platform as no-cost up to 50K monthly active users on Blaze, but **whether MFA itself is charged is Uncertain** (the Identity Platform pricing page did not load on 2026-11-28). Check in the console, confirm whether the upgrade can be undone, and do it in staging first. Enforcement by `setRole` plus a token check, to be proven on the emulator. Size: +1–1.5 days |
 
 ---
 
@@ -676,6 +736,8 @@ Project names state their role, so nobody mistakes the live site for the test si
 | R-13 | **Cost surprise** from unbounded reads or SMS | Low | Medium | Budget alert, no SMS sign-in, read-count tests | Owner |
 | R-14 | **Vendor lock-in** to Firestore | Certain | Low | Accepted by the owner's stack choice. Scheduled backups and exports give a way out. Domain logic in plain modules | Owner |
 | R-15 | **Time-zone errors** in due dates, pass validity, schedules | Medium | Medium | All business dates computed in `Asia/Manila` in `shared/domain/dates.js` with tests around midnight and month-end | Dev |
+| R-16 | **Previous owner's records visible after a sale** (RA 10173). Bills and payments stay with the lot, so a new owner, once linked, would see the previous owner's receipts (with their name) and uploaded payment screenshots (which can show their e-wallet name and number) | High once a lot is sold | High (privacy) | Options: members see records from their `linkedAt` date only, or proofs are visible only to the uploader and staff. Contacts are already split into `householdContacts`. **Must be decided before the payments REQ (EPIC-003).** Maps to proportionality; requester and DPO to confirm | Owner + client DPO |
+| R-17 | **A removed staff member keeps access for up to an hour** if rules check the role claim only (revoking tokens does not stop the current ID token) | Medium | High (finance access) | `staff/{uid}` double check in rules (§8.1), stale-token rules tests | Owner (at once vs 1 hour) |
 
 ### 11.2 Risk checklist (each item answered)
 
@@ -725,14 +787,16 @@ Added by this review:
 | Phase | Delivers | Areas | Estimate with Claude Code (person-days, from `backend-plan.md`) | Needs decided first |
 |---|---|---|---|---|
 | 0 | Decisions 6, 7, 11. Projects, region, Blaze + budget alert, repo skeleton, SonarQube project | A (part) | inside A: 2–3 | Q6, Q7, Q11 |
-| 1 | Foundation: Vite app shell from the mock-up CSS, emulator, CI, deploy pipeline. Sign-in, invites, roles, `members`, rules + rules tests | A, B, J (shell) | A 2–3 + B 4–6 | Q2 (structure only), Q8 |
+| 1 | Foundation: Vite app shell from the mock-up CSS, emulator, CI, deploy pipeline. Sign-in, roles, household directory and import, invites, `members`, rules + rules tests | A, B, J (shell), plus the import (R-8) | A 2–3 + **REQ-001 to REQ-004 ≈ 16–23** (r1 said B 4–6; see note) | Q2 (structure only), Q8, lot-key format, staff removal timing |
 | 2 | **Money core:** billing run, ledger totals, payment submit and approval, gap-free OR + PDF, voids. Mail function + provider. Dues screens wired | C, H (email), J (dues) | C 7–10 + H 1.5–3 | Q1, Q3, Q4, Q12 |
 | 3 | Amenities with slot locks. Vehicles + stickers. Tickets. Report requests | D, E, J | D 2–3 + E 2–4 | Q3 |
 | 4 | Collections and notices (aging, escalation, letter PDFs, email). Accounting: expenses, monthly totals, month close, board report | F, G, J | F 2–3 + G 4–6 | Q5, Q9 |
 | 5 | Guest passes and guard app: live camera, ID photos, retention job, visitor log | (extra line in plan) | +6–10 | Q8, Q10 |
 | 6 | Hardening: App Check enforce, PITR + backups + restore drill, alerts, privacy notice, DPO review. Full regression, pilot with a few households, then bulk onboarding | I, K | I 3–5 + K 7–10 | DPO sign-off |
 
-Total, consistent with the plan: **~40–60 person-days + 6–10 for the gate**, excluding onboarding and data migration (R-8). J (4–7) is spread across phases 1–4.
+r1 total, from the plan: **~40–60 person-days + 6–10 for the gate**, excluding onboarding and data migration (R-8). J (4–7) is spread across phases 1–4.
+
+**r2 note on phase 1.** The first four requirements were sized by Sol Arch on 2026-11-28: sign-in 2–3 (+1–1.5 for staff 2-step), roles 3–4, household directory and import 5–7, invites 4–5 + 2–3 for email (about 1.5 of that is the shared mail function from area H). That is about **16–23 days**, against r1's B 4–6. The gap is mostly the household import, which the backend plan excluded (R-8), plus the rules test matrix and invite safety. Expect the overall total to move up by a similar amount; the later phases will be re-sized as their REQs are reviewed.
 
 ---
 
@@ -752,5 +816,5 @@ Total, consistent with the plan: **~40–60 person-days + 6–10 for the gate**,
 | A-10 | Usage figures in the cost estimate (300 sessions a day, 60 reads per session, 50 gate visits a day, image sizes) are estimates, not measurements | Recheck after the pilot |
 | A-11 | Monthly dues are a flat amount per household (mock-up `monthlyDues: 1800`, line 527). Lot-size or per-sqm dues are not supported | Billing model change |
 | A-12 | One gate ("Main Gate", mock-up line 1104). Multiple gates are a field, not a redesign | Minor |
-| A-13 | Two-step verification for staff depends on the Firebase Authentication tier in use. To be confirmed during phase 1 | Use strong passwords + short sessions instead |
+| A-13 | Staff two-step verification needs the Identity Platform upgrade and uses TOTP (§8.4). Its cost is not yet confirmed; owner decides whether to adopt it | Use strong passwords, verified email and the `staff/{uid}` removal check instead |
 | A-14 | Team: one developer working with Claude Code, as in the backend plan's second estimate column. Timeline and budget `NOT PROVIDED` | Re-plan |

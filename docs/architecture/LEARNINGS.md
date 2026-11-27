@@ -19,3 +19,15 @@ Owner: Sol Arch. Read before every review; cite by `L-NNN`.
 - **Why it happened:** project ids are permanent and were chosen before their roles settled.
 - **The rule now:** HOA projects are named `hoa-portal-staging` and `hoa-<client>-prod`; aliases match; deploy workflows print the target project and require approval for any `-prod`. Lives in ADR-005 and CS-6.
 - **Applies to:** project creation, `.firebaserc`, CI/CD.
+
+### L-004 — Revoking tokens doesn't stop Firestore rules accepting the current ID token (2026-11-28)
+- **What happened:** SA-001 r1 §8.1 and ADR-004 said that `setRole` revokes refresh tokens, so a removed admin loses access "within the hour or at once". The REQ-002 review found that revoking stops new tokens, but rules keep accepting the ID token already issued until it expires, up to an hour later.
+- **Why it happened:** "revoke" reads as "sign out now". Firebase checks revocation only where code asks for it (`verifyIdToken(token, true)`), and rules cannot ask.
+- **The rule now:** Anything that must lose access at once is checked in rules against a server-written document (`staff/{uid}`, `members/...`), never against a claim alone. Rules tests include a removed role with a stale token. This lives in SA-001 §8.1 and ADR-004.
+- **Applies to:** staff roles, and any future permission based on a claim.
+
+### L-005 — A hashed invite code exists in plain text only when it is created (2026-11-28)
+- **What happened:** In the REQ-004 review, invite codes are stored as a keyed hash used as the document id, so the system can never show or reprint an existing code.
+- **Why it happened:** hashing makes a leaked database useless for joining a household. The cost is that the plain code exists only in the call that creates it, the email hand-off and the printed slip.
+- **The rule now:** Printing always makes new codes, and the old unused code stops working; the screen says so. The code is removed from the `mail` document after hand-off. Email links carry it after `#`, which keeps it out of server logs. The printed PDF says "Delete this file after printing". This lives in SA-001 §4.2 and §8.1.
+- **Applies to:** invites, and any future one-time code or token.
