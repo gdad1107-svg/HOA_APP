@@ -1,0 +1,1246 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HOA Portal Backlog</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a working backlog — summary strip, filter bar, release lanes of story cards, then the epic dependency map, review findings and open decisions. */
+:root{
+  --bg:#F5F8F6; --surface:#FFFFFF; --sunk:#EAF0EC; --fg:#13241B; --muted:#5A6D62; --line:#D7E2DB;
+  --accent:#1C7A4A; --accent-soft:#E2F1E8; --on-accent:#FFFFFF;
+  --must:#B42318; --must-bg:#FDECEA; --should:#8F5B00; --should-bg:#FFF4DC; --could:#1F5E8C; --could-bg:#E6F0F8;
+  --kw:#1C7A4A; --kw2:#8F5B00; --str:#7A3E9D; --code-bg:#F2F6F3;
+  --f-display:"Space Grotesk",system-ui,sans-serif; --f-body:Inter,system-ui,-apple-system,"Segoe UI",sans-serif; --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1612; --surface:#15201A; --sunk:#1B2A22; --fg:#E4EEE8; --muted:#9BB0A3; --line:#2A3D32;
+  --accent:#4FBF85; --accent-soft:#183326; --on-accent:#0B1610;
+  --must:#F7877D; --must-bg:#3A1C1A; --should:#F2C063; --should-bg:#33280F; --could:#7DB8E8; --could-bg:#132A3B;
+  --kw:#6FD39E; --kw2:#F2C063; --str:#D3A6F0; --code-bg:#111B16; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1612; --surface:#15201A; --sunk:#1B2A22; --fg:#E4EEE8; --muted:#9BB0A3; --line:#2A3D32;
+  --accent:#4FBF85; --accent-soft:#183326; --on-accent:#0B1610;
+  --must:#F7877D; --must-bg:#3A1C1A; --should:#F2C063; --should-bg:#33280F; --could:#7DB8E8; --could-bg:#132A3B;
+  --kw:#6FD39E; --kw2:#F2C063; --str:#D3A6F0; --code-bg:#111B16; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.55;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 64px}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.2}
+h1{font-size:clamp(1.7rem,4vw,2.3rem);font-weight:700}
+h2{font-size:1.35rem;font-weight:600}
+h3{font-size:1.05rem;font-weight:600}
+p{margin:0}
+.eyebrow{font-size:.74rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.lede{color:var(--muted);max-width:68ch}
+header.top{display:flex;flex-direction:column;gap:10px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 18px;color:var(--muted);font-size:.86rem}
+.meta b{color:var(--fg);font-weight:600}
+
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+.stat .v{font-family:var(--f-display);font-size:1.7rem;font-weight:700;font-variant-numeric:tabular-nums}
+.stat .l{font-size:.8rem;color:var(--muted)}
+.stat .bar{display:flex;height:6px;border-radius:3px;overflow:hidden;margin-top:6px;background:var(--sunk)}
+.stat .bar i{display:block}
+
+.how{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.how div{background:var(--sunk);border-radius:10px;padding:14px 16px;font-size:.9rem;display:flex;flex-direction:column;gap:4px}
+.how b{font-family:var(--f-display);font-size:.95rem}
+
+.filters{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:inherit;font-size:.84rem;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:6px 12px;cursor:pointer;min-height:36px}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:600}
+.chip:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+select,input[type=search]{font:inherit;font-size:.86rem;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:8px;padding:7px 10px;min-height:36px}
+input[type=search]{flex:1;min-width:160px}
+.count{font-size:.84rem;color:var(--muted);margin-left:auto}
+
+.release{display:flex;flex-direction:column;gap:12px}
+.rel-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;padding-bottom:6px;border-bottom:2px solid var(--accent)}
+.rel-h .tag{font-family:var(--f-mono);font-size:.8rem;background:var(--accent);color:var(--on-accent);padding:2px 8px;border-radius:4px;font-weight:600}
+.rel-h p{color:var(--muted);font-size:.9rem;flex-basis:100%}
+
+.story{background:var(--surface);border:1px solid var(--line);border-radius:10px;min-width:0}
+.story>summary{list-style:none;cursor:pointer;padding:14px 16px;display:grid;grid-template-columns:auto 1fr auto;gap:4px 14px;align-items:start}
+.story>summary::-webkit-details-marker{display:none}
+.rank{font-family:var(--f-mono);font-size:.82rem;color:var(--muted);padding-top:2px;font-variant-numeric:tabular-nums;min-width:3.2em}
+.rank b{display:block;color:var(--fg);font-size:1rem}
+.s-main{min-width:0;display:flex;flex-direction:column;gap:4px}
+.s-title{font-family:var(--f-display);font-weight:600;font-size:1.02rem}
+.s-as{color:var(--muted);font-size:.9rem}
+.s-as em{font-style:normal;color:var(--fg)}
+.pills{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;align-items:flex-start}
+.pill{font-size:.74rem;font-weight:600;border-radius:999px;padding:2px 9px;white-space:nowrap;border:1px solid transparent}
+.p-Must{background:var(--must-bg);color:var(--must)}
+.p-Should{background:var(--should-bg);color:var(--should)}
+.p-Could{background:var(--could-bg);color:var(--could)}
+.p-size{background:var(--sunk);color:var(--muted);font-family:var(--f-mono)}
+.p-epic{border-color:var(--line);color:var(--muted)}
+.p-new{background:var(--accent-soft);color:var(--accent)}
+.p-dec{background:var(--should-bg);color:var(--should)}
+.deps{grid-column:2/4;display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.8rem;color:var(--muted)}
+.deps a{font-family:var(--f-mono);color:var(--accent);text-decoration:none;border-bottom:1px dotted var(--accent)}
+.chev{transition:transform .15s}
+.story[open] .chev{transform:rotate(90deg)}
+.s-body{padding:0 16px 16px;display:flex;flex-direction:column;gap:12px;border-top:1px solid var(--line);padding-top:14px}
+.note{font-size:.88rem;background:var(--sunk);border-radius:8px;padding:10px 12px}
+.note b{font-weight:600}
+.gherkin{margin:0;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-family:var(--f-mono);font-size:.8rem;line-height:1.6;overflow-x:auto;white-space:pre;color:var(--fg)}
+.gherkin .k{color:var(--kw);font-weight:600}
+.gherkin .k2{color:var(--kw2);font-weight:600}
+.gherkin .q{color:var(--str)}
+.empty{padding:24px;text-align:center;color:var(--muted);background:var(--surface);border:1px dashed var(--line);border-radius:10px}
+
+section.block{display:flex;flex-direction:column;gap:12px}
+.map{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;overflow-x:auto}
+.map pre.mermaid{margin:0;min-width:640px}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.88rem;min-width:620px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--sunk);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.n{font-family:var(--f-mono);color:var(--muted);white-space:nowrap}
+td .refs{font-family:var(--f-mono);font-size:.8rem;color:var(--accent)}
+.foot{color:var(--muted);font-size:.84rem}
+@media (max-width:640px){
+  .story>summary{grid-template-columns:auto 1fr}
+  .pills{grid-column:1/3;justify-content:flex-start}
+  .deps{grid-column:1/3}
+}
+@media (prefers-reduced-motion:reduce){.chev{transition:none}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <span class="eyebrow">Business analysis · HOA portal mock-up review</span>
+    <h1>HOA Portal Backlog</h1>
+    <p class="lede">Every feature in the clickable mock-up (Homeowner, Admin and Guard views), broken into user stories with Gherkin acceptance criteria, then put in priority and dependency order. Stories marked <b>Not in mock-up</b> are gaps the real app needs that the mock-up skips.</p>
+    <div class="meta"><span>Source: <b>HOA_APP/index.html</b> (generic) and <b>gentri-heights/index.html</b> (branded copy, same features)</span><span>Prepared <b>Nov 27, 2026</b></span><span>Status: <b>Draft for owner review</b></span></div>
+  </header>
+
+  <div class="strip" id="strip"></div>
+
+  <div class="how">
+    <div><b>Priority (MoSCoW)</b><span><b style="color:var(--must)">Must</b>: the portal fails its main job without it. <b style="color:var(--should)">Should</b>: high value, can follow a release later. <b style="color:var(--could)">Could</b>: worth building once the core is in use.</span></div>
+    <div><b>Releases</b><span>R1 lets homeowners pay dues and get a receipt. Each later release builds only on what came before it, so any release can be the last one without leaving something half-built.</span></div>
+    <div><b>Order inside a release</b><span>The rank number is build order: a story never comes before a story it depends on. <b>Needs</b> lists those stories. <b>Unblocks</b> lists the stories waiting on it.</span></div>
+    <div><b>Size</b><span>S is up to 1 day, M is 2–3 days and L is 4–6 days of build and test with Claude Code, roughly in line with <i>docs/backend-plan.md</i>. Sol Arch should confirm these sizes.</span></div>
+  </div>
+
+  <div class="filters" role="search">
+    <div class="seg" id="fRel" role="group" aria-label="Release"></div>
+    <div class="seg" id="fPri" role="group" aria-label="Priority"></div>
+    <select id="fEpic" aria-label="Epic"></select>
+    <input type="search" id="fQ" placeholder="Search stories and criteria" aria-label="Search stories">
+    <button class="chip" id="fOpen" type="button" aria-pressed="false">Expand all</button>
+    <span class="count" id="fCount"></span>
+  </div>
+
+  <div id="lanes" class="wrap" style="gap:28px"></div>
+
+  <section class="block">
+    <h2>Epic dependency map</h2>
+    <p class="lede">Arrows point from what must exist first to what it unlocks. Access and households come first because every other feature hangs off a signed-in person linked to a lot.</p>
+    <div class="map"><pre class="mermaid">
+flowchart LR
+  ACC["Access and households<br/>R1"] --> BIL["Billing and statement<br/>R1"]
+  BIL --> PAY["Payments and receipts<br/>R1"]
+  ACC --> COM["Announcements and notifications<br/>R1"]
+  COM --> PAY
+  PAY --> COL["Collections and notices<br/>R2"]
+  PAY --> ACT["Accounting and fund<br/>R2"]
+  COM --> REQ["Requests and complaints<br/>R2"]
+  ACT --> DSH["Admin dashboard and reports<br/>R2–R3"]
+  COL --> DSH
+  ACC --> VEH["Vehicles<br/>R3"]
+  ACC --> AMN["Amenity booking<br/>R3"]
+  COL -. pause booking .-> AMN
+  PAY --> REC["Records and certificates<br/>R3"]
+  COL --> REC
+  ACT -. if calculated .-> BRD["Board financial report<br/>R3"]
+  ACC --> GATE["Guest passes and gate<br/>R4 add-on"]
+  VEH -. plates .-> GATE
+</pre></div>
+  </section>
+
+  <section class="block">
+    <h2>What the review found</h2>
+    <p class="lede">Ranked by how often people will run into it. Each one is covered by a story above, which says what to fix.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>#</th><th>Finding in the mock-up</th><th>Who it hurts</th><th>Covered by</th></tr></thead>
+      <tbody id="findings"></tbody>
+    </table></div>
+  </section>
+
+  <section class="block">
+    <h2>Decisions the HOA board needs to make</h2>
+    <p class="lede">These stories can't be finished until each one is decided. The first five come from <i>docs/backend-plan.md</i>. The rest came up in this review.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>#</th><th>Decision</th><th>Why it matters</th><th>Blocks</th></tr></thead>
+      <tbody id="decisions"></tbody>
+    </table></div>
+  </section>
+
+  <p class="foot">Next step: once you approve the order, Sol Arch reviews feasibility and sizes, then the R1 stories become REQ documents with UX notes and mockups. Names and figures in the criteria are the mock-up's sample data, not real residents.</p>
+</div>
+
+<script>
+const EPICS={ACC:'Access and households',BIL:'Billing and statement',PAY:'Payments and receipts',COM:'Announcements and notifications',COL:'Collections and notices',ACT:'Accounting and fund',DSH:'Admin dashboard and reports',REQ:'Requests and complaints',VEH:'Vehicles',AMN:'Amenity booking',REC:'Records and certificates',BRD:'Board financial report',GATE:'Guest passes and gate'};
+const RELEASES={1:['R1','Pay dues online','The smallest release that replaces the current process: households are on the portal, get billed, pay by QR, the treasurer approves, and an official receipt comes out. It also adds announcements so the HOA can tell residents the portal exists.'],
+2:['R2','Collect and account','Follow up on unpaid dues with the four-letter notice sequence, record expenses, keep the fund balance, and handle residents’ requests and complaints.'],
+3:['R3','Community services and records','Vehicle stickers, amenity booking, the admin reports, and certificates and records that homeowners request.'],
+4:['R4','Gate add-on','Guest passes and the guard’s phone app. backend-plan.md prices this separately at +6–10 days, so it ships last and only if the board wants it.']};
+
+const S=[
+/* ---------------- R1 ---------------- */
+{n:1,rel:1,epic:'ACC',pri:'Must',size:'M',gap:true,title:'Sign in to the portal',
+ as:'homeowner',want:'sign in with my email or Google account',so:'only I can see my household’s account',
+ deps:[],dec:['D1'],
+ note:'The mock-up has no sign-in: a role switch and a “Viewing as” picker let anyone see any household. Every other story depends on this one.',
+ ac:`Feature: Signing in
+
+  Scenario: An invited homeowner signs in for the first time
+    Given Maria Santos was invited as "maria@example.com" for Blk 1 Lot 3
+    When she signs in with that email
+    Then she lands on her dashboard headed "Welcome back, Maria"
+    And the header reads "Blk 1 Lot 3"
+
+  Scenario: An email with no household cannot get in
+    Given no household is linked to "stranger@example.com"
+    When that person signs in
+    Then they see "This email isn't linked to a household yet. Ask the admin office for an invitation."
+    And no household data is shown
+
+  Scenario: A homeowner cannot open another household's page
+    Given Maria is signed in
+    When she opens the address of the statement for Blk 4 Lot 12
+    Then she sees "You don't have access to this page"
+
+  Scenario: Signing out on a shared phone
+    Given Maria is signed in
+    When she chooses "Sign out"
+    Then pressing Back shows the sign-in page, not her statement`},
+
+{n:2,rel:1,epic:'ACC',pri:'Must',size:'M',gap:true,title:'Roles and permissions enforced on the server',
+ as:'treasurer',want:'each person to see and do only what their role allows',so:'homeowners, guards and board members cannot change records that aren’t theirs',
+ deps:[1],dec:['D4'],
+ note:'Roles: Homeowner, Treasurer (admin), Admin office staff, Board member (read-only finance), Guard. A control hidden on screen is not the same as one the server refuses; Sol Arch confirms the rules.',
+ ac:`Feature: Roles
+
+  Scenario Outline: Each role sees only its own menu
+    Given a user with the role <role>
+    When they sign in
+    Then the menu shows "<shown>"
+    And the menu does not show "<hidden>"
+
+    Examples:
+      | role      | shown      | hidden     |
+      | Homeowner | Dues & Payments | Approvals |
+      | Guard     | Scan Pass  | Accounting |
+      | Treasurer | Approvals  | Scan Pass  |
+      | Board     | Reports    | Approvals  |
+
+  Scenario: A refused action is refused by the server, not only hidden
+    Given a guard is signed in
+    When their device sends a request to approve a pending payment
+    Then the request is refused
+    And the payment still reads "Pending approval"
+
+  Scenario: Removing someone's admin role takes effect at once
+    Given an admin office staff member is signed in on the Approvals page
+    When the treasurer removes their admin role
+    Then their next action shows "You no longer have access to this page"`},
+
+{n:3,rel:1,epic:'ACC',pri:'Must',size:'M',gap:true,title:'Household directory: add, edit and import',
+ as:'admin office staff member',want:'to add, edit and import households with lot, owner name and contact details',so:'billing reaches every lot in the subdivision',
+ deps:[2],dec:['D3'],
+ note:'The mock-up shows a fixed list of 20 sample homeowners with search and a detail pop-up, but no way to add or change one. backend-plan.md sizes the real portal at 623+ households.',
+ ac:`Feature: Household directory
+
+  Scenario: Import the household list
+    Given a spreadsheet with 623 rows of lot, owner name, email and mobile number
+    When the admin imports it
+    Then the Homeowners page reads "623 households"
+
+  Scenario: Bad rows are reported, not imported
+    Given the spreadsheet has a row with no lot and two rows for "Blk 2 Lot 7"
+    When the admin imports it
+    Then a summary lists those 3 rows with the reason for each
+    And none of them is imported
+    And every other row is imported
+
+  Scenario: Correct a contact number
+    Given Blk 4 Lot 12 has mobile "0917 555 0101"
+    When the admin changes it to "0917 555 0199" and saves
+    Then the Homeowners list shows "0917 555 0199" for Blk 4 Lot 12
+
+  Scenario: Search a long list
+    Given 623 households
+    When the admin types "blk 4" in "Search name or lot"
+    Then only Block 4 households are listed
+    And the rest of the page does not reload while typing`},
+
+{n:4,rel:1,epic:'ACC',pri:'Must',size:'S',gap:true,title:'Invite a homeowner and link them to a lot',
+ as:'admin office staff member',want:'to send each household an invitation',so:'the right person is linked to the right lot',
+ deps:[1,3],dec:['D3'],
+ ac:`Feature: Linking an account to a lot
+
+  Scenario: An invitation links the account to the lot
+    Given Blk 2 Lot 7 has email "ana@example.com" and no linked account
+    When the admin sends the invitation and Ana signs in from it
+    Then the Homeowners list shows Blk 2 Lot 7 as "Linked"
+
+  Scenario: An old invitation is replaced
+    Given an invitation for Blk 2 Lot 7 was sent 15 days ago and never used
+    When the admin presses "Resend invitation"
+    Then the old link shows "This invitation has expired"
+    And a new invitation goes to "ana@example.com"
+
+  Scenario: A sold lot is unlinked without losing its history
+    Given Blk 2 Lot 7 is sold
+    When the admin unlinks Ana's account from Blk 2 Lot 7
+    Then Ana no longer sees that lot's statement
+    And the lot's bills and payments stay on the lot`},
+
+{n:5,rel:1,epic:'ACC',pri:'Must',size:'S',gap:true,title:'Privacy notice and consent',
+ as:'homeowner',want:'to know what personal data the HOA keeps and why, and agree to it',so:'my data is handled under the Data Privacy Act',
+ deps:[1],
+ note:'backend-plan.md area I lists Data Privacy Act work. The gate add-on stores guests’ ID photos, which makes this more important.',
+ ac:`Feature: Privacy notice
+
+  Scenario: The first sign-in asks for consent
+    Given Juan signs in for the first time
+    Then he sees the privacy notice before his dashboard
+    And "Continue" stays disabled until he ticks "I have read and agree"
+
+  Scenario: Consent is recorded
+    When Juan agrees on Dec 1, 2026
+    Then his household record shows "Privacy notice accepted Dec 1, 2026"
+
+  Scenario: An updated notice asks again
+    Given the HOA publishes a new version of the notice
+    When Juan next signs in
+    Then he sees the new notice and must agree before continuing`},
+
+{n:6,rel:1,epic:'ACC',pri:'Must',size:'S',gap:true,title:'Activity log of money and record changes',
+ as:'board member',want:'every approval, rejection, void and edit recorded with who did it and when',so:'disputes can be settled from the record',
+ deps:[2],
+ note:'The mock-up’s “Recent activity” list has dates but no person or time, and anyone could clear it.',
+ ac:`Feature: Activity log
+
+  Scenario: An approval is recorded with person and time
+    Given the treasurer approves Carlo Mendoza's ₱1,800.00 payment at 9:14 AM
+    Then the activity log shows "HOA Treasurer approved ₱1,800.00 from Blk 5 Lot 1 (OR-00093)" with the date and 9:14 AM
+
+  Scenario: No one can edit or delete the log
+    Given an admin is signed in
+    Then the activity log shows no edit or delete controls
+    And a request to change a log entry is refused by the server`},
+
+{n:7,rel:1,epic:'BIL',pri:'Must',size:'S',title:'Dues rate and QR payment settings',
+ as:'treasurer',want:'to set the monthly dues, upload the QR Ph code, and set the payee name and payment instructions',so:'homeowners pay the right amount into the right account',
+ deps:[2],
+ ac:`Feature: Dues and payment settings
+
+  Scenario: A new rate applies from the next billing run only
+    Given dues are ₱1,800 and November 2026 is already billed
+    When the treasurer changes the monthly dues to ₱2,000 and saves
+    Then the November bills still read ₱1,800.00
+    And the December 2026 billing run bills ₱2,000.00 per household
+
+  Scenario: Uploading the real QR code
+    When the treasurer uploads the association's QR Ph image
+    Then homeowners see it on Dues & Payments labelled "SCAN TO PAY"
+    And the "SAMPLE QR" label is gone
+
+  Scenario: An invalid rate is not saved
+    When the treasurer clears the monthly dues and presses "Save settings"
+    Then the field shows "Enter the monthly dues in pesos, more than ₱0"
+    And the saved rate is unchanged`},
+
+{n:8,rel:1,epic:'BIL',pri:'Must',size:'M',title:'Monthly billing run',
+ as:'treasurer',want:'to bill one month’s dues to every household in one step',so:'every statement is current on the 1st of the month',
+ deps:[3,7],dec:['D2','D8'],
+ note:'The mock-up’s “Generate December 2026 billing” button can be pressed twice. The real version must refuse a second run for the same month.',
+ ac:`Feature: Monthly billing
+
+  Scenario: Bill the next month
+    Given the last billed month is November 2026 and there are 623 households
+    When the treasurer presses "Generate December 2026 billing" and confirms
+    Then 623 bills of ₱1,800.00 for December 2026 are created, each due Dec 31, 2026
+    And the button now reads "Generate January 2027 billing"
+
+  Scenario: A month is never billed twice
+    When the treasurer presses the button twice quickly, or on two devices at once
+    Then exactly 623 bills exist for December 2026
+    And the button reads "Saving…" and is disabled until the run finishes
+
+  Scenario: A household added mid-month
+    Given December 2026 is billed
+    When the admin adds Blk 8 Lot 2 on Dec 10
+    Then the admin is asked "Bill Blk 8 Lot 2 for December 2026?" before any bill is created`},
+
+{n:9,rel:1,epic:'BIL',pri:'Must',size:'M',title:'Statement of account',
+ as:'homeowner',want:'to see each month billed, what I paid, and my balance',so:'I know exactly what I owe and since when',
+ deps:[8],dec:['D2'],
+ note:'The mock-up uses wide tables. Most homeowners will use a phone, so the statement and payment history need a card layout at 375 px.',
+ ac:`Feature: Statement of account
+
+  Scenario: Payments apply to the oldest month first
+    Given Roberto was billed ₱1,800 for each month from June to November 2026
+    And ₱5,400 of his payments are approved
+    Then June, July and August read "Paid"
+    And September and October read "Overdue" and November reads "Unpaid"
+    And the balance reads ₱5,400.00
+
+  Scenario: A payment waiting for approval does not lower the balance
+    Given Grace has ₱3,600 waiting for approval
+    Then her balance is unchanged
+    And the statement shows "₱3,600.00 awaiting approval"
+
+  Scenario: Download the statement
+    When the homeowner presses "Download PDF"
+    Then the PDF lists the same months, amounts and balance as the screen
+
+  Scenario: Readable on a phone
+    Given a screen 375 px wide
+    Then each month shows as a card with period, due date, billed, paid and status
+    And the page does not scroll sideways`},
+
+{n:10,rel:1,epic:'PAY',pri:'Must',size:'M',title:'Submit a QR payment for approval',
+ as:'homeowner',want:'to send the reference number and screenshot after I pay by QR',so:'the treasurer can match it to the collection account',
+ deps:[7,9],
+ ac:`Feature: Submitting a payment
+
+  Scenario: Submit a payment
+    Given Carlo owes ₱1,800.00
+    When he enters ₱1,800.00, reference "4012883219554", attaches the screenshot and presses "Submit for approval"
+    Then his payment history shows ₱1,800.00 "Pending approval" with "Waiting for the treasurer"
+    And the treasurer's Approvals badge goes up by 1
+
+  Scenario: Pressing twice creates one payment
+    When Carlo presses "Submit for approval" twice quickly
+    Then one payment is created
+    And the button reads "Saving…" and is disabled until the save finishes
+
+  Scenario: A reference number that was already used
+    Given reference "4012883219554" belongs to an approved payment
+    When anyone submits it again
+    Then they see "This reference number was already submitted on Nov 25, 2026. Check the number on your screenshot."
+    And nothing is saved
+
+  Scenario: A missing screenshot keeps what was typed
+    When Carlo presses "Submit for approval" without a screenshot
+    Then "Attach the screenshot of your payment confirmation" shows under that field
+    And the amount and reference he typed are still there`},
+
+{n:11,rel:1,epic:'COM',pri:'Must',size:'S',title:'In-app notifications',
+ as:'homeowner',want:'a bell that tells me when something about my account changes',so:'I don’t have to keep checking each page',
+ deps:[2],
+ ac:`Feature: Notifications
+
+  Scenario: Unread notifications are counted
+    Given Juan has 2 unread notifications
+    Then the bell shows "2"
+    When he opens the bell and presses "Mark all read"
+    Then the count is gone
+
+  Scenario: Notifications are private
+    Given Juan has a notification "Booking approved: Swimming Pool, Dec 5"
+    When Maria opens her bell
+    Then she does not see Juan's notification
+
+  Scenario: Nothing yet
+    Given a new homeowner with no notifications
+    When they open the bell
+    Then it reads "No notifications yet."`},
+
+{n:12,rel:1,epic:'PAY',pri:'Must',size:'L',title:'Approve or reject a payment',
+ as:'treasurer',want:'to check each submitted payment against the collection account, then approve or reject it',so:'the books only count money that actually arrived',
+ deps:[6,10,11],dec:['D4'],
+ note:'backend-plan.md: receipt numbers must have no gaps, which needs a Cloud Function, not browser code.',
+ ac:`Feature: Payment approval
+
+  Scenario: Approve a payment
+    Given Carlo's ₱1,800.00 payment is pending and the last receipt issued is OR-00092
+    When the treasurer opens the screenshot and presses "Approve"
+    Then the payment reads "Approved" with receipt number OR-00093
+    And Carlo's balance drops by ₱1,800.00
+    And Carlo gets the notification "Payment approved: ₱1,800.00, OR-00093"
+
+  Scenario: Rejecting needs a reason
+    When the treasurer presses "Reject" on Carlo's payment
+    Then "Reject" stays disabled until a reason is picked or typed
+    When they pick "Amount does not match the screenshot" and confirm
+    Then Carlo's history shows "Rejected: Amount does not match the screenshot"
+    And his balance is unchanged
+
+  Scenario: Two admins approve the same payment at once
+    Given two admins have Carlo's pending payment open
+    When both press "Approve"
+    Then exactly one receipt number is issued
+    And the second admin sees "This payment was already approved by HOA Treasurer"
+
+  Scenario: Receipt numbers have no gaps
+    Given 200 payments are approved by several admins over a month
+    Then the receipt numbers run in order with none skipped or repeated
+
+  Scenario: A typed rejection reason is not lost
+    Given the treasurer has typed a rejection reason
+    When they click outside the dialog
+    Then the dialog stays open with the reason still typed`},
+
+{n:13,rel:1,epic:'PAY',pri:'Must',size:'M',title:'Official receipt PDF',
+ as:'homeowner',want:'an official receipt for every approved payment',so:'I have proof of payment for my records',
+ deps:[12],dec:['D5'],
+ ac:`Feature: Official receipt
+
+  Scenario: Download a receipt
+    Given payment OR-00093 for ₱1,800.00 is approved
+    When Carlo presses "Receipt PDF"
+    Then the PDF shows OR-00093, "One Thousand Eight Hundred Pesos Only" and the reference number
+    And it shows "Applied to: Association dues · October 2026  ₱1,800.00"
+
+  Scenario: An overpayment becomes a credit
+    Given Juan owes ₱1,800.00 and pays ₱2,000.00
+    When his payment is approved
+    Then his receipt shows "Advance payment (credit)  ₱200.00"
+    And his statement balance reads "₱200.00 credit"
+
+  Scenario: The same receipt every time
+    Given OR-00093 was downloaded on Nov 27
+    When the treasurer downloads it again on Dec 15
+    Then the receipt number, amounts and date issued are the same`},
+
+{n:14,rel:1,epic:'PAY',pri:'Should',size:'M',gap:true,title:'Void an approved payment',
+ as:'treasurer',want:'to void a payment I approved by mistake, with a reason',so:'the books are corrected without losing or reusing the receipt number',
+ deps:[12,13],
+ note:'The mock-up has no way to undo an approval. backend-plan.md area C includes voids.',
+ ac:`Feature: Voiding a payment
+
+  Scenario: Void a payment approved by mistake
+    Given OR-00093 for ₱1,800.00 was approved by mistake
+    When the treasurer chooses "Void", enters "Duplicate of OR-00090" and confirms
+    Then OR-00093 reads "Void" in Accounting and in Carlo's payment history
+    And Carlo's balance goes back up by ₱1,800.00
+    And the next receipt issued is OR-00094, not OR-00093
+
+  Scenario: A voided receipt is marked
+    When anyone downloads OR-00093 after it is voided
+    Then the PDF is stamped "VOID" with the date and reason
+
+  Scenario: Voiding needs a reason
+    When the treasurer chooses "Void" and leaves the reason blank
+    Then "Void payment" stays disabled`},
+
+{n:15,rel:1,epic:'BIL',pri:'Should',size:'S',title:'Homeowner dashboard',
+ as:'homeowner',want:'a home page with my balance, anything overdue, and links to what I do most',so:'I see what needs my attention as soon as I sign in',
+ deps:[9,11],
+ note:'Build the balance tile in R1. The booking, request and vehicle tiles appear as those features ship, so the dashboard never links to a feature that isn’t there yet.',
+ ac:`Feature: Homeowner dashboard
+
+  Scenario: An account with overdue dues
+    Given Roberto has 2 months overdue totalling ₱3,600.00
+    When he opens the dashboard
+    Then he sees "2 months overdue · ₱3,600.00" with a "Pay now" button
+
+  Scenario: A fully paid account
+    Given Maria's balance is ₱0.00
+    Then the balance tile reads "₱0.00" and "You are fully paid"
+    And there is no overdue warning
+
+  Scenario: Only tiles for released features
+    Given amenity booking is not released yet
+    Then the dashboard shows no "Next booking" tile`},
+
+{n:16,rel:1,epic:'COM',pri:'Should',size:'S',title:'Post an announcement',
+ as:'admin office staff member',want:'to post an announcement that every homeowner sees as a banner',so:'news reaches everyone without a group chat',
+ deps:[2],
+ ac:`Feature: Announcements
+
+  Scenario: Post an announcement
+    When the admin posts "Christmas party sign-ups are open"
+    Then every homeowner sees it as a banner at the top of their pages
+    And it is listed under Announcements
+
+  Scenario: A homeowner dismisses the banner
+    When Juan presses × on the banner
+    Then the banner is gone for Juan only
+    And the announcement is still listed under Announcements
+
+  Scenario: Deleting asks first
+    When the admin presses "Delete" on an announcement
+    Then they see "Delete this announcement? Homeowners will no longer see it."
+    And nothing is deleted until they confirm`},
+
+{n:17,rel:1,epic:'COM',pri:'Should',size:'S',title:'Important announcement shown on sign-in',
+ as:'admin office staff member',want:'to mark an announcement as important so it pops up when homeowners sign in',so:'urgent notices like water interruptions are actually read',
+ deps:[16],
+ ac:`Feature: Important announcement pop-up
+
+  Scenario: A must-read pop-up
+    Given "Water interruption, Phase 2 on Dec 1" is marked Important
+    When a homeowner who hasn't read it signs in
+    Then a pop-up shows it before the dashboard
+    And it closes only when they press "Got it"
+
+  Scenario: Shown once per homeowner
+    Given Juan pressed "Got it"
+    When he signs in again
+    Then the pop-up does not appear
+
+  Scenario: The admin sees who has read it
+    Given 120 of 623 households pressed "Got it"
+    Then the admin sees "Seen by 120 of 623 households" on that announcement`},
+
+/* ---------------- R2 ---------------- */
+{n:18,rel:2,epic:'COL',pri:'Must',size:'S',title:'Delinquent accounts list',
+ as:'treasurer',want:'a list of households with overdue months, the furthest behind first',so:'I know who to follow up and how far behind they are',
+ deps:[9,12],dec:['D2'],
+ ac:`Feature: Delinquent accounts
+
+  Scenario: An unpaid month becomes overdue after its due date
+    Given November 2026 dues are due Nov 30, 2026
+    And Blk 3 Lot 2 has not paid November
+    When it is Dec 1, 2026
+    Then Blk 3 Lot 2 is listed under Delinquent accounts
+    And the Homeowners list shows it as "Delinquent"
+
+  Scenario: Paying the overdue amount removes the household
+    Given Blk 3 Lot 2 is delinquent by ₱1,800.00
+    When a ₱1,800.00 payment from Blk 3 Lot 2 is approved
+    Then Blk 3 Lot 2 is no longer listed
+    And the Homeowners list shows it as "Good standing"
+
+  Scenario: Furthest behind first
+    Given Blk 3 Lot 2 is 3 months overdue and Blk 1 Lot 3 is 1 month overdue
+    Then Blk 3 Lot 2 is listed above Blk 1 Lot 3`},
+
+{n:19,rel:2,epic:'COM',pri:'Should',size:'M',gap:true,title:'Email for key events',
+ as:'homeowner',want:'an email when a payment is approved or rejected, a notice is issued, or a record I asked for is ready',so:'I hear about it even if I don’t open the portal',
+ deps:[11],
+ note:'The app can only confirm an email was handed to the mail service, not that it arrived. Screens must say “sent” or “queued”, never “delivered”.',
+ ac:`Feature: Email notifications
+
+  Scenario: Payment approved
+    When the treasurer approves Carlo's payment
+    Then an email to Carlo is sent with the subject "Payment received: OR-00093"
+    And the activity log shows "Email sent to Blk 5 Lot 1"
+
+  Scenario: A bounced email is flagged
+    Given the mail service reports that Carlo's address bounced
+    Then the Homeowners list shows "Email bounced" on Blk 5 Lot 1
+
+  Scenario: Announcements can be turned off but notices cannot
+    When Carlo turns off "Announcement emails"
+    Then he gets no announcement emails
+    And he still gets emails for payment decisions and notices`},
+
+{n:20,rel:2,epic:'COL',pri:'Must',size:'M',title:'Send the next notice in the escalation',
+ as:'treasurer',want:'to send the next letter in the sequence (Reminder, 1st Notice, 2nd Notice, Final Demand)',so:'follow-up is consistent and on record',
+ deps:[18],
+ note:'In the mock-up a notice is only recorded. Sending it by email depends on story 19.',
+ ac:`Feature: Collection notices
+
+  Scenario: The next step is chosen for the treasurer
+    Given Blk 3 Lot 2 last received a 2nd Notice
+    Then its button reads "Send Final Demand"
+
+  Scenario: Preview before sending
+    When the treasurer presses "Send Final Demand" for Blk 3 Lot 2
+    Then a letter preview shows the balance, each unpaid month, and a deadline 10 days from today
+    When they confirm
+    Then the notice appears in Notice history
+    And the homeowner sees it under "Notices received" with "View letter"
+
+  Scenario: Final Demand is the last step
+    Given Blk 3 Lot 2 already received a Final Demand
+    Then its button reads "Resend Final Demand"
+
+  Scenario: Pressing twice sends one notice
+    When the treasurer confirms twice quickly
+    Then one notice is recorded`},
+
+{n:21,rel:2,epic:'COL',pri:'Should',size:'S',title:'Send notices to several households at once',
+ as:'treasurer',want:'to send each selected household its next notice in one action',so:'the monthly follow-up takes minutes instead of an afternoon',
+ deps:[20],
+ ac:`Feature: Bulk notices
+
+  Scenario: Send to the selected households
+    Given 12 delinquent households are ticked
+    When the treasurer presses "Send next notice to selected"
+    Then they see "Send 12 notices?" with a count of each notice type
+    When they confirm
+    Then each household gets its own next notice
+
+  Scenario: Nothing selected
+    When the treasurer presses "Send next notice to selected" with nothing ticked
+    Then they see "Select at least one account first."`},
+
+{n:22,rel:2,epic:'ACT',pri:'Must',size:'M',title:'Record an expense',
+ as:'treasurer',want:'to record each expense with its date, category, vendor, amount and a photo of the receipt',so:'the fund balance shows what was actually spent',
+ deps:[2,6],
+ note:'The mock-up deletes an expense for good. Money records should be voided with a reason so the books keep a trail.',
+ ac:`Feature: Expenses
+
+  Scenario: Record an expense
+    When the treasurer saves ₱7,500.00 to "AquaFix Pool Services" for "Pool pump repair" on Sep 18, 2026 under "Repairs & maintenance"
+    Then it appears under Expenses for September 2026
+    And the September fund summary's expenses go up by ₱7,500.00
+
+  Scenario: Void instead of delete
+    When the treasurer voids that expense with the reason "Entered twice"
+    Then it shows crossed out as "Void" with the reason
+    And it is left out of every total
+    And the activity log records who voided it
+
+  Scenario: A required field is missing
+    When the treasurer saves without a vendor
+    Then "Enter who was paid" shows under Vendor and the other fields keep what was typed`},
+
+{n:23,rel:2,epic:'ACT',pri:'Must',size:'S',title:'Collections by month',
+ as:'treasurer',want:'to see every dues receipt and amenity fee collected in a month, with totals',so:'I can reconcile the month against the bank account',
+ deps:[12],
+ ac:`Feature: Monthly collections
+
+  Scenario: The month's totals match its receipts
+    Given 17 dues payments totalling ₱30,600.00 were approved in November 2026
+    When the treasurer opens Accounting, Collections for November 2026
+    Then 17 receipts are listed and the total reads ₱30,600.00
+
+  Scenario: Deposits are not income
+    Given a Function Room booking with a ₱2,500 fee and a ₱1,000 deposit was approved in November
+    Then November's amenity fees include ₱2,500.00
+    And the ₱1,000.00 deposit is not counted as income
+
+  Scenario: Voided payments are excluded
+    Given OR-00093 was voided
+    Then it shows as "Void" and is left out of the total`},
+
+{n:24,rel:2,epic:'ACT',pri:'Should',size:'M',title:'Fund summary and closing a month',
+ as:'treasurer',want:'the fund balance for each month and the ability to close a finished month',so:'the numbers I report to the board stop changing after I report them',
+ deps:[22,23],
+ ac:`Feature: Fund summary
+
+  Scenario: Closing balance
+    Given October 2026 opens at ₱185,000.00 with ₱30,600.00 dues, ₱850.00 amenity fees and ₱28,600.00 expenses
+    Then the October fund summary shows a closing balance of ₱187,850.00
+    And November opens at ₱187,850.00
+
+  Scenario: A closed month can't be changed
+    Given the treasurer closed October 2026
+    When anyone records an expense dated Oct 20, 2026
+    Then they see "October 2026 is closed. Date this in an open month, or ask the board to reopen October."
+    And nothing is saved`},
+
+{n:25,rel:2,epic:'DSH',pri:'Should',size:'S',title:'Admin operations dashboard',
+ as:'treasurer',want:'one page with this month’s collections, receivables, expenses and pending approvals',so:'I can see where things stand without opening every page',
+ deps:[18,23,24],
+ ac:`Feature: Admin dashboard
+
+  Scenario: Tiles match the pages they summarise
+    When the treasurer opens the Dashboard
+    Then "Collected · November 2026" equals the total in Accounting, Collections for November 2026
+    And "Receivables" equals the sum of every household's balance due
+
+  Scenario: Pending approvals
+    Given 3 payments, 3 bookings and 2 vehicles are waiting
+    Then the "Pending approvals" tile reads 8 with "3 payments · 3 bookings · 2 vehicles"
+
+  Scenario: A new portal
+    Given nothing has been collected yet
+    Then the chart shows "No collections recorded yet" instead of empty bars`},
+
+{n:26,rel:2,epic:'REQ',pri:'Should',size:'S',title:'Log a request or complaint',
+ as:'homeowner',want:'to report a maintenance, security or neighbour problem with a photo',so:'the admin office has it in writing and I can follow its progress',
+ deps:[1,11],
+ ac:`Feature: Logging a request
+
+  Scenario: Submit a request
+    When Bea submits "Clogged drainage on Acacia St." under Maintenance with a photo
+    Then it appears under My requests as T-105 "Open"
+    And its timeline reads "Request submitted."
+    And the admin's Requests & Complaints badge goes up by 1
+
+  Scenario: Details are required
+    When Bea submits without details
+    Then "Describe what happened, where, and since when" shows under Details
+    And the subject she typed is kept
+
+  Scenario: A large photo
+    When Bea attaches a 9 MB photo
+    Then it is resized before upload and the request is saved`},
+
+{n:27,rel:2,epic:'REQ',pri:'Should',size:'S',title:'Assign, update and resolve a request',
+ as:'admin office staff member',want:'to assign a request, post progress updates and resolve it',so:'homeowners can see their problem is being handled',
+ deps:[26],
+ ac:`Feature: Managing requests
+
+  Scenario: Assign and update
+    Given T-103 "Videoke past 10 PM on Blk 5" is Open
+    When the admin assigns it to "Security", sets "In Progress" and adds "Guard will check on Saturday night"
+    Then the homeowner's timeline shows that update with the date
+    And the homeowner gets a notification "T-103 update: Guard will check on Saturday night"
+
+  Scenario: Resolving needs a note
+    When the admin sets T-103 to "Resolved" with no note
+    Then "Say how it was resolved" shows and the status does not change
+
+  Scenario: Filter by status
+    When the admin picks "Open"
+    Then only Open requests are listed and the chip shows how many`},
+
+/* ---------------- R3 ---------------- */
+{n:28,rel:3,epic:'VEH',pri:'Should',size:'S',title:'Register a vehicle',
+ as:'homeowner',want:'to register my vehicle with its plate and an optional OR/CR photo',so:'I get an HOA sticker for gate entry',
+ deps:[1],
+ ac:`Feature: Vehicle registration
+
+  Scenario: Register a vehicle
+    When Juan registers "ABC 1234", a white Toyota Vios car
+    Then it is listed under Registered vehicles as "Pending approval"
+
+  Scenario: A plate registered to another household
+    Given "ABC 1234" is approved for Blk 4 Lot 12
+    When a homeowner at another lot registers "ABC 1234"
+    Then they see "This plate is already registered to another household. Contact the admin office."
+
+  Scenario: Withdraw a pending registration
+    When Juan presses "Withdraw" on a pending vehicle and confirms
+    Then it is no longer listed`},
+
+{n:29,rel:3,epic:'VEH',pri:'Should',size:'S',title:'Approve a vehicle and assign a sticker',
+ as:'admin office staff member',want:'to approve a vehicle and give it the next sticker number',so:'every sticker matches exactly one approved vehicle',
+ deps:[28,11],
+ ac:`Feature: Vehicle approval
+
+  Scenario: Approve
+    Given the next sticker number is #0460
+    When the admin approves "NFT 3390"
+    Then it reads "Approved · Sticker #0460" for the homeowner
+    And the next vehicle approved gets #0461
+
+  Scenario: Two approvals at once never share a sticker
+    When two admins approve two different vehicles at the same moment
+    Then the vehicles get different sticker numbers
+
+  Scenario: Reject with a reason
+    When the admin rejects "312 QWE" with "Plate does not match the OR/CR"
+    Then the homeowner sees that reason under the vehicle`},
+
+{n:30,rel:3,epic:'AMN',pri:'Should',size:'S',title:'Set up amenities',
+ as:'treasurer',want:'to set each amenity’s fee, deposit, guest limit, time slots and whether it can be booked',so:'bookings follow the board’s rules',
+ deps:[2],
+ ac:`Feature: Amenity setup
+
+  Scenario: A price change applies to new bookings only
+    Given a pending Function Room booking at ₱2,500
+    When the treasurer changes the Function Room fee to ₱3,000
+    Then the pending booking still reads ₱2,500.00
+    And new Function Room bookings show ₱3,000.00
+
+  Scenario: Close an amenity for repairs
+    When the treasurer unticks "Bookable" for the Swimming Pool
+    Then homeowners no longer see the Swimming Pool when booking
+    And existing approved pool bookings are listed for the admin to contact`},
+
+{n:31,rel:3,epic:'AMN',pri:'Should',size:'L',title:'Book an amenity',
+ as:'homeowner',want:'to pick an amenity, a date and an open slot and request it',so:'I can reserve the pool, function room or courts without going to the office',
+ deps:[30],dec:['D7'],
+ note:'In the mock-up the homeowner pays the fee before the booking is approved, and nothing says what happens to that money if the booking is rejected. Decision D7.',
+ ac:`Feature: Booking an amenity
+
+  Scenario: Request an open slot
+    Given the Pickleball Court has 07:00–08:00 open on Nov 29, 2026
+    When Juan picks it for 4 guests and presses "Request booking"
+    Then My bookings shows it as "Pending approval"
+    And other homeowners see that slot as "On hold"
+
+  Scenario: Two homeowners request the same slot
+    Given Juan and Ana both have 07:00–08:00 on Nov 29 open on screen
+    When both press "Request booking"
+    Then one request is saved
+    And the other sees "Someone just requested this slot. Pick another one."
+
+  Scenario: Past dates and full days
+    Then dates before today cannot be picked
+    And a day with every slot taken is marked "Fully booked"
+
+  Scenario: Too many guests
+    When Juan enters 12 guests for the Pickleball Court, which allows 8
+    Then he sees "The Pickleball Court allows up to 8 guests"`},
+
+{n:32,rel:3,epic:'AMN',pri:'Should',size:'M',title:'Approve or reject a booking',
+ as:'admin office staff member',want:'to approve or reject booking requests, warned about slot conflicts and overdue accounts',so:'no slot is double-booked',
+ deps:[31,11],
+ ac:`Feature: Booking approval
+
+  Scenario: Approve
+    When the admin approves Carmela's Function Room booking for Dec 19, 13:00–17:00
+    Then she gets the notification "Booking approved: Function Room, Dec 19, 13:00–17:00"
+    And the ₱2,500.00 fee counts as amenity income in the month it was approved
+
+  Scenario: A slot already taken
+    Given another approved booking holds the same amenity, date and slot
+    Then that request shows "Slot conflict"
+    And its "Approve" button is disabled
+
+  Scenario: Reject with a reason
+    When the admin rejects with "Slot is reserved for an HOA event"
+    Then the homeowner sees that reason under the booking
+    And the slot is open again`},
+
+{n:33,rel:3,epic:'AMN',pri:'Should',size:'S',title:'Cancel a booking',
+ as:'homeowner',want:'to cancel a booking I no longer need',so:'the slot is free for someone else',
+ deps:[31],
+ ac:`Feature: Cancelling a booking
+
+  Scenario: Cancel an upcoming booking
+    When Juan presses "Cancel" on his Dec 5 pool booking
+    Then he sees "Cancel this booking? The slot opens up for other homeowners. Refunds of paid fees are handled at the admin office."
+    When he confirms
+    Then the booking reads "Cancelled" and the slot shows "Available"
+    And the admin gets a notification
+
+  Scenario: Past bookings can't be cancelled
+    Given a booking dated yesterday
+    Then it has no "Cancel" button`},
+
+{n:34,rel:3,epic:'AMN',pri:'Could',size:'S',title:'Pause booking for accounts with overdue dues',
+ as:'treasurer',want:'a setting that stops households with overdue dues from booking amenities',so:'the board’s rule is applied the same way to everyone',
+ deps:[31,18],
+ ac:`Feature: Booking pause for overdue accounts
+
+  Scenario: The setting is on
+    Given "Block amenity booking for accounts with overdue dues" is ticked
+    And Grace's account is overdue
+    When she opens Book Amenities
+    Then she sees "Booking is paused for your account" with "Go to Dues"
+    And "Request booking" is disabled
+
+  Scenario: Booking resumes after payment
+    When Grace's overdue payment is approved
+    Then she can request a booking again`},
+
+{n:35,rel:3,epic:'DSH',pri:'Should',size:'M',title:'Standard reports with CSV download',
+ as:'treasurer',want:'ready-made reports I can download as CSV for Excel or Google Sheets',so:'I can prepare the board’s monthly papers without retyping figures',
+ deps:[18,23,24],
+ note:'Reports: Collection, Delinquency and aging, Income and expense statement, Amenity utilisation, Requests summary, Vehicle registry. Each of the last three needs its own feature to be released first.',
+ ac:`Feature: Reports
+
+  Scenario: The CSV matches the screen
+    Given the Collection report for November 2026 shows 17 receipts totalling ₱30,600.00
+    When the treasurer presses "Download CSV"
+    Then the file opens in Excel with 17 rows and a total of 30600.00
+
+  Scenario: Aging buckets
+    Given Blk 3 Lot 2 is 3 months overdue by ₱5,400.00
+    Then the Delinquency and aging report puts ₱5,400.00 under "2–3 months"
+
+  Scenario: A month with no data
+    When the treasurer picks a month with no collections
+    Then the report reads "No data for this period."`},
+
+{n:36,rel:3,epic:'REC',pri:'Should',size:'S',title:'Request a record or certificate',
+ as:'homeowner',want:'to ask the association for a financial report, certified statement, clearance or other record',so:'I can get what I need for a sale, a loan or a general assembly',
+ deps:[1,11],
+ note:'Members may request the association’s records under R.A. 9904; the mock-up quotes this. Sol Arch or counsel should confirm what the HOA must release.',
+ ac:`Feature: Record requests
+
+  Scenario: Request a clearance
+    When Maria requests a "Certificate of good standing" for "Sale or transfer of property", to pick up at the office
+    Then My report requests shows it as "Submitted" with "Expected by Dec 2, 2026"
+
+  Scenario: Warning for an overdue account
+    Given Grace's account is overdue
+    When she selects "Certificate of good standing"
+    Then she sees "Your account has overdue dues, so this request will likely be declined until you settle the balance."
+
+  Scenario: Notified when ready
+    When her request is marked Ready
+    Then she gets a notification and the request shows "Download"`},
+
+{n:37,rel:3,epic:'REC',pri:'Should',size:'M',title:'Fulfil or decline a record request',
+ as:'admin office staff member',want:'to generate the record from portal data, upload a file, or decline with a reason',so:'every request is answered on time',
+ deps:[36,9,35],
+ ac:`Feature: Processing record requests
+
+  Scenario: Generate from portal records
+    Given RR-102 asks for a Certified statement of account
+    When the admin presses "Generate from portal records"
+    Then RR-102 reads "Ready" and the homeowner can download the statement
+
+  Scenario: Upload a document the portal can't make
+    Given RR-103 asks for minutes of board meetings
+    When the admin uploads "Minutes-2026.pdf" (2 MB) and presses "Upload and mark ready"
+    Then RR-103 reads "Ready" with that file
+
+  Scenario: A file that is too large
+    When the admin uploads a 5 MB file
+    Then they see "Upload a PDF or image up to 3 MB" and the status does not change
+
+  Scenario: Late requests stand out
+    Given a request is still open after its expected date
+    Then the admin list shows "Past due" in red on that request`},
+
+{n:38,rel:3,epic:'REC',pri:'Should',size:'S',title:'Certificate of good standing',
+ as:'homeowner selling my lot',want:'a numbered certificate stating I have no overdue dues',so:'the buyer and the bank accept it',
+ deps:[37,18],
+ ac:`Feature: Certificate of good standing
+
+  Scenario: Issue a certificate
+    Given Maria has no overdue dues
+    When the admin generates her certificate on Nov 27, 2026
+    Then the PDF is numbered GS-102 and states she has no overdue dues as of Nov 27, 2026
+    And it reads "valid for thirty (30) days from the date of issue"
+
+  Scenario: Refused while dues are overdue
+    Given Grace has ₱3,600.00 overdue
+    Then "Generate from portal records" is disabled
+    And the admin sees "A clearance can't be issued while the account has ₱3,600.00 overdue."`},
+
+{n:39,rel:3,epic:'BRD',pri:'Could',size:'M',title:'Board financial report',
+ as:'board member',want:'a visual report of revenue, collections by month and by phase, and spending',so:'I can present the association’s finances at the general assembly',
+ deps:[24],dec:['D6'],
+ note:'The mock-up’s figures are typed in, and its August dues-by-phase total doesn’t match August’s monthly collections. The board must decide whether this report is typed in or calculated from portal records (D6). If it is calculated, it depends on story 24.',
+ ac:`Feature: Board financial report
+
+  Scenario: Figures that don't agree are flagged
+    Given dues by phase add up to ₱97,456 for August but monthly collections show ₱114,640
+    Then the report shows "Aug figures don't match" with the ₱17,184 difference
+    And the August total is highlighted
+
+  Scenario: Download for the assembly
+    When a board member presses "Download PDF"
+    Then the PDF has the summary, monthly collections, dues by phase, and cost and expenses tables
+
+  Scenario: Chart has a table for screen readers
+    When a board member opens "View as table"
+    Then every month's dues, others and total are listed`},
+
+/* ---------------- R4 ---------------- */
+{n:40,rel:4,epic:'GATE',pri:'Could',size:'M',title:'Create a guest pass',
+ as:'homeowner',want:'to create a QR pass listing my guests and their vehicles',so:'my visitors get through the gate without the guard calling me',
+ deps:[1],dec:['D9'],
+ ac:`Feature: Guest passes
+
+  Scenario: Create a pass
+    When Juan creates a pass for Nov 27, 2026 with guests "Rosa Dela Cruz" and "Miguel Dela Cruz" and vehicle "NDA 4471"
+    Then he sees a QR code and an 8-character pass code
+    And he can download the pass image to send by Messenger, Viber or SMS
+
+  Scenario: Longer than allowed
+    Given the longest allowed pass is 3 days
+    When Juan sets Nov 27 to Dec 2
+    Then he sees "A guest pass can cover up to 3 days" and nothing is created
+
+  Scenario: At least one guest
+    When Juan creates a pass with no guest names
+    Then he sees "Add at least one guest's full name, as on their ID"`},
+
+{n:41,rel:4,epic:'GATE',pri:'Could',size:'S',title:'Cancel a guest pass',
+ as:'homeowner',want:'to cancel a pass I no longer want used',so:'nobody gets in with it',
+ deps:[40],
+ ac:`Feature: Cancelling a guest pass
+
+  Scenario: Cancel a pass
+    When Juan cancels GP-1043 and confirms
+    Then GP-1043 reads "Cancelled" in his past passes
+
+  Scenario: Someone uses a cancelled pass
+    Given GP-1043 is cancelled
+    When the guard scans it
+    Then the guard sees "Pass cancelled. Do not let the guests in without calling them."
+    And Juan gets "Someone tried to use your cancelled guest pass GP-1043 at the gate at 4:12 PM."`},
+
+{n:42,rel:4,epic:'GATE',pri:'Could',size:'L',title:'Guard verifies a pass at the gate',
+ as:'guard',want:'to scan a guest’s QR with the phone camera, or type the pass code',so:'I know in seconds whether to let them in',
+ deps:[40,2],
+ note:'The mock-up reads a photo of the QR. backend-plan.md says the real app needs a live camera view.',
+ ac:`Feature: Verifying a guest pass
+
+  Scenario Outline: The verdict the guard sees
+    Given a pass that is <state>
+    When the guard scans it
+    Then the guard sees "<verdict>"
+    And the scan is recorded with the result "<result>"
+
+    Examples:
+      | state                 | verdict           | result   |
+      | valid today           | Valid pass        | Valid    |
+      | starting tomorrow     | Not valid yet     | Upcoming |
+      | ended yesterday       | Pass expired      | Expired  |
+      | cancelled             | Pass cancelled    | Cancelled|
+
+  Scenario: A fake or altered QR
+    When the guard scans a QR that is not one of this subdivision's passes
+    Then the guard sees "This QR is not a valid guest pass for this subdivision. It may be fake or altered."
+    And the scan is recorded as "Invalid"
+
+  Scenario: The guest's phone is dead
+    Given GP-1041 is expected today
+    When the guard taps it in "Expected today"
+    Then the pass opens without scanning`},
+
+{n:43,rel:4,epic:'GATE',pri:'Could',size:'M',title:'Check guests in and out',
+ as:'guard',want:'to photograph each guest’s ID, let them in, and check them out when they leave',so:'the HOA knows who is inside the subdivision',
+ deps:[42],
+ ac:`Feature: Check-in and check-out
+
+  Scenario: Let a guest in
+    Given GP-1041 is valid and ID photos are required
+    When the guard picks "PhilSys National ID", takes the photo, picks "NDA 4471" and presses "Let in"
+    Then Rosa Dela Cruz shows "Inside since 9:12 AM"
+    And she is listed under Visitors Inside
+
+  Scenario: No ID photo
+    When the guard presses "Let in" without a photo
+    Then they see "Take a photo of the guest's ID" and the guest stays "Not yet arrived"
+
+  Scenario: Check out
+    When the guard presses "Check out" for Rosa
+    Then she shows "Left 1:20 PM" and leaves Visitors Inside`},
+
+{n:44,rel:4,epic:'GATE',pri:'Could',size:'S',title:'Visitor log and gate scan log',
+ as:'admin office staff member',want:'a searchable log of every arrival and every scan, including refused ones',so:'I can answer “who came in?” after an incident',
+ deps:[43],
+ ac:`Feature: Visitor log
+
+  Scenario: Search the log
+    When the admin searches "NDA 4471"
+    Then only visits with that plate are listed
+
+  Scenario: Opening an ID photo is recorded
+    When the admin opens Rosa Dela Cruz's ID photo
+    Then the activity log records who opened it and when
+
+  Scenario: Homeowners don't see ID photos
+    When Juan views his past guest passes
+    Then he sees arrival counts and times only, with no ID photos`},
+
+{n:45,rel:4,epic:'GATE',pri:'Could',size:'S',title:'Delete ID photos automatically after the retention period',
+ as:'board member',want:'guests’ ID photos deleted on schedule',so:'the HOA keeps personal data no longer than its privacy policy says',
+ deps:[43,5],
+ note:'Must-have if the gate add-on is built. The mock-up deletes old photos only when an admin presses a button. The real app should do it on a schedule.',
+ ac:`Feature: ID photo retention
+
+  Scenario: Old photos are deleted on schedule
+    Given ID photos are kept for 30 days
+    And Pedro Santos's visit was on Oct 12, 2026
+    When the daily cleanup runs on Nov 12, 2026
+    Then Pedro's ID photo is deleted
+    And his visit record stays, with the ID column reading "Deleted"
+
+  Scenario: Shortening the retention period
+    When the admin changes the period from 30 days to 14 days
+    Then photos older than 14 days are deleted at the next cleanup`}
+];
+
+const FINDINGS=[
+ ['There is no sign-in. Anyone can switch to Admin and see every household’s balance and contact number.','Every homeowner (privacy)','1, 2, 4'],
+ ['Homeowner pages use wide tables (statement, payment history, my bookings) that scroll sideways on a phone.','Homeowners, who mostly use phones','9, 15'],
+ ['Submitting a payment has no "Saving…" guard and no check for a reference number that was already used.','Treasurer, who would approve duplicates','10'],
+ ['An approved payment can’t be voided, and deleting an expense leaves no trail.','Treasurer and board, when the books need correcting','14, 22, 6'],
+ ['Clicking outside a dialog closes it and loses what was typed (rejection reason, request update, file upload).','Treasurer and admin office','12, 27, 37'],
+ ['Households can’t be added or edited; the list is fixed sample data.','Admin office, at onboarding and every sale','3, 4'],
+ ['The amenity fee is paid before the booking is approved, and there is no refund path if it is rejected.','Homeowners, treasurer','31 (D7)'],
+ ['Monthly billing is a button that can run twice for the same month.','Every household (double billing)','8'],
+ ['The board financial report uses typed-in figures, and August dues by phase are ₱17,184 short of August’s monthly collections.','Board, at the general assembly','39 (D6)'],
+ ['The guard scans a photo of the QR, not a live camera view, and old ID photos are deleted only by pressing a button.','Guards; guests (privacy)','42, 45']
+];
+const DECISIONS=[
+ ['D1','Sign-in method: email link or Google, or SMS codes','SMS is charged per message (backend-plan.md); email or Google costs nothing','1'],
+ ['D2','Late penalty, interest and grace period','Changes what a statement shows as due and when an account becomes overdue','8, 9, 18'],
+ ['D3','Owners with several lots, and tenant accounts','Decides whether one sign-in can see several lots, and whether tenants get their own login','3, 4'],
+ ['D4','Who approves payments: the treasurer only, or the treasurer plus the board','Sets the roles and whether approval has one or two steps','2, 12'],
+ ['D5','Whether official receipts must follow the BIR format','Changes the receipt layout and numbering rules','13'],
+ ['D6','Board financial report: typed in, or calculated from portal records','If calculated, it waits for the fund summary (story 24)','39'],
+ ['D7','Amenity fee: paid with the request, or after approval','Paying after approval removes the refund problem when a booking is rejected','31'],
+ ['D8','Monthly billing: run by the treasurer, or automatic on the 1st','Automatic billing needs a scheduled job; manual billing needs a reminder','8'],
+ ['D9','Whether the gate add-on is in scope (+6–10 days)','Decides whether release R4 is built','40–45']
+];
+
+/* ---------- render ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const byN={};S.forEach(s=>byN[s.n]=s);
+const unblocks={};S.forEach(s=>s.deps.forEach(d=>(unblocks[d]=unblocks[d]||[]).push(s.n)));
+const decBlocks={};S.forEach(s=>(s.dec||[]).forEach(d=>(decBlocks[d]=decBlocks[d]||[]).push(s.n)));
+const F={rel:'all',pri:'all',epic:'all',q:'',open:false};
+
+function hl(text){
+  return esc(text).split('\n').map(line=>{
+    let l=line.replace(/&quot;([^&]*?)&quot;/g,'<span class="q">&quot;$1&quot;</span>');
+    l=l.replace(/^(\s*)(Feature:|Scenario Outline:|Scenario:|Examples:)/,'$1<span class="k">$2</span>');
+    l=l.replace(/^(\s*)(Given|When|Then|And|But)\b/,'$1<span class="k2">$2</span>');
+    return l}).join('\n');
+}
+function strip(){
+  const c={Must:0,Should:0,Could:0};S.forEach(s=>c[s.pri]++);
+  const rc=[1,2,3,4].map(r=>S.filter(s=>s.rel===r).length);
+  const gaps=S.filter(s=>s.gap).length;
+  const tot=S.length;
+  $('#strip').innerHTML=
+   `<div class="stat"><span class="v">${tot}</span><span class="l">user stories in ${Object.keys(EPICS).length} epics</span></div>`+
+   `<div class="stat"><span class="v">${c.Must} · ${c.Should} · ${c.Could}</span><span class="l">Must · Should · Could</span><span class="bar"><i style="width:${c.Must/tot*100}%;background:var(--must)"></i><i style="width:${c.Should/tot*100}%;background:var(--should)"></i><i style="width:${c.Could/tot*100}%;background:var(--could)"></i></span></div>`+
+   `<div class="stat"><span class="v">${rc.join(' · ')}</span><span class="l">stories in R1 · R2 · R3 · R4</span></div>`+
+   `<div class="stat"><span class="v">${gaps}</span><span class="l">stories for gaps not in the mock-up</span></div>`+
+   `<div class="stat"><span class="v">${DECISIONS.length}</span><span class="l">board decisions blocking stories</span></div>`;
+}
+function filters(){
+  $('#fRel').innerHTML=[['all','All releases'],['1','R1'],['2','R2'],['3','R3'],['4','R4']].map(([k,l])=>`<button class="chip" type="button" data-rel="${k}" aria-pressed="${F.rel===k}">${l}</button>`).join('');
+  $('#fPri').innerHTML=[['all','Any priority'],['Must','Must'],['Should','Should'],['Could','Could']].map(([k,l])=>`<button class="chip" type="button" data-pri="${k}" aria-pressed="${F.pri===k}">${l}</button>`).join('');
+  $('#fEpic').innerHTML=`<option value="all">All epics</option>`+Object.entries(EPICS).map(([k,l])=>`<option value="${k}" ${F.epic===k?'selected':''}>${l}</option>`).join('');
+}
+function card(s){
+  const needs=s.deps.length?`<span>Needs ${s.deps.map(d=>`<a href="#s${pad(d)}" title="${esc(byN[d].title)}">${pad(d)}</a>`).join(' ')}</span>`:'<span>Needs nothing; can start first</span>';
+  const ub=(unblocks[s.n]||[]);const unb=ub.length?`<span>Unblocks ${ub.map(d=>`<a href="#s${pad(d)}" title="${esc(byN[d].title)}">${pad(d)}</a>`).join(' ')}</span>`:'';
+  const dec=(s.dec||[]).length?`<span class="pill p-dec" title="Waits on a board decision">${s.dec.join(', ')}</span>`:'';
+  return `<details class="story" id="s${pad(s.n)}" ${F.open?'open':''}>
+   <summary>
+     <span class="rank"><b>${pad(s.n)}</b>${RELEASES[s.rel][0]}</span>
+     <span class="s-main"><span class="s-title">${esc(s.title)} <span class="chev" aria-hidden="true">›</span></span>
+       <span class="s-as">As a <em>${esc(s.as)}</em>, I want ${esc(s.want)}, so that ${esc(s.so)}.</span></span>
+     <span class="pills"><span class="pill p-${s.pri}">${s.pri}</span><span class="pill p-size" title="Size">${s.size}</span>${s.gap?'<span class="pill p-new">Not in mock-up</span>':''}${dec}<span class="pill p-epic">${EPICS[s.epic]}</span></span>
+     <span class="deps">${needs}${unb}</span>
+   </summary>
+   <div class="s-body">
+     ${s.note?`<p class="note"><b>Note.</b> ${esc(s.note)}</p>`:''}
+     ${(s.dec||[]).length?`<p class="note"><b>Waits on:</b> ${s.dec.map(d=>{const x=DECISIONS.find(y=>y[0]===d);return esc(d+': '+x[1])}).join('; ')}.</p>`:''}
+     <pre class="gherkin">${hl(s.ac)}</pre>
+   </div></details>`;
+}
+function lanes(){
+  const q=F.q.trim().toLowerCase();
+  const list=S.filter(s=>(F.rel==='all'||String(s.rel)===F.rel)&&(F.pri==='all'||s.pri===F.pri)&&(F.epic==='all'||s.epic===F.epic)&&
+    (!q||(s.title+' '+s.as+' '+s.want+' '+s.so+' '+s.ac+' '+(s.note||'')+' '+EPICS[s.epic]).toLowerCase().includes(q)));
+  $('#fCount').textContent=`${list.length} of ${S.length} stories`;
+  if(!list.length){$('#lanes').innerHTML='<div class="empty">No stories match these filters. Clear the search or pick "All releases".</div>';return}
+  $('#lanes').innerHTML=[1,2,3,4].map(r=>{const rs=list.filter(s=>s.rel===r);if(!rs.length)return '';const R=RELEASES[r];
+    const all=S.filter(s=>s.rel===r);const sz={S:1,M:2.5,L:5};const days=all.reduce((a,s)=>a+sz[s.size],0);
+    return `<section class="release"><div class="rel-h"><span class="tag">${R[0]}</span><h2>${R[1]}</h2><span class="eyebrow">${all.length} stories · about ${Math.round(days)} build days</span><p>${R[2]}</p></div>${rs.map(card).join('')}</section>`}).join('');
+}
+function tables(){
+  $('#findings').innerHTML=FINDINGS.map((f,i)=>`<tr><td class="n">${i+1}</td><td>${esc(f[0])}</td><td>${esc(f[1])}</td><td class="refs">${esc(f[2])}</td></tr>`).join('');
+  $('#decisions').innerHTML=DECISIONS.map(d=>`<tr><td class="n">${d[0]}</td><td><b>${esc(d[1])}</b></td><td>${esc(d[2])}</td><td class="refs">${esc(d[3])}</td></tr>`).join('');
+}
+document.addEventListener('click',e=>{
+  const r=e.target.closest('[data-rel]');if(r){F.rel=r.dataset.rel;filters();lanes();return}
+  const p=e.target.closest('[data-pri]');if(p){F.pri=p.dataset.pri;filters();lanes();return}
+  if(e.target.id==='fOpen'){F.open=!F.open;e.target.setAttribute('aria-pressed',F.open);e.target.textContent=F.open?'Collapse all':'Expand all';lanes();return}
+  const a=e.target.closest('.deps a');if(a){const id=a.getAttribute('href').slice(1);let el=document.getElementById(id);
+    if(!el){F.rel='all';F.pri='all';F.epic='all';F.q='';$('#fQ').value='';filters();lanes();el=document.getElementById(id)}
+    if(el){e.preventDefault();el.open=true;el.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'})}}
+});
+$('#fEpic').addEventListener('change',e=>{F.epic=e.target.value;lanes()});
+let t;$('#fQ').addEventListener('input',e=>{clearTimeout(t);t=setTimeout(()=>{F.q=e.target.value;lanes()},200)});
+strip();filters();lanes();tables();
+</script>
+
+</html>
