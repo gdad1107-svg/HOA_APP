@@ -245,3 +245,279 @@ Triaged by QE 2026-11-28 from [TC-01 v1.1](TC-01-sign-in-v1.md) (owner-approved)
 | TC-01-T2 | 15 minutes: one shared family phone, two homeowners | exploratory | Manual | Manual: exploratory charter::TC-01-T2 | Planned |
 | TC-01-T3 | 15 minutes: slow and flaky network | exploratory | Manual | Manual: exploratory charter::TC-01-T3 | Planned |
 | TC-01-T4 | 15 minutes: staying signed in on an iPhone over weeks | exploratory | Manual | Manual: exploratory charter::TC-01-T4 | Planned |
+
+## TC-04 Invite and link (REQ-004): planned for the real app
+
+Triaged by QE 2026-11-28 from [TC-04 v1](TC-04-invite-and-link-v1.md) (owner-approved, `e0cb23d`). Like TC-01's rows, these target the **real app** (Firebase Auth, Firestore and Functions on the Emulator Suite), which doesn't exist yet. Nothing is automated. Each row is:
+
+- **Planned**;
+- **Deferred: Step 2**, waiting for the email provider (SA-001 Q7);
+- or **Blocked** on the gap or decision it names. A Gap-blocked row keeps its layer but isn't automated until the BA answers the gap.
+
+*provisional* marks a row that asserts a detail of the Draft SA-001 and gets re-checked when SA-001 is approved. Email is asserted at the `mail` queue, never as delivered mail.
+
+Reasons, the Unit list for Dev, the locator contract and the automation order are in TC-04's **QE triage** section. Unit files are Dev's, under `shared/domain/`, `web/src/features/invites/` and `functions/src/mail/` (paths anticipated from SA-001 §9). API specs live in `tests/specs/api/`, the staging spec in `tests/specs/staging/`, and UI specs in `tests/specs/ui/`.
+
+| Layer | Cases | Share of automated | Blocked | Deferred: Step 2 |
+|---|---|---|---|---|
+| Unit | 40 | 17% | 11 | 3 |
+| API | 121 (1 on staging) | 52% | 30 | 26 |
+| UI | 70 (3 `mobile`) | 30% | 11 | 15 |
+| Journey | 1 | <1% | 0 | 0 |
+| Manual | 7 (1 staging) | — | 0 | 1 |
+| **Total** | **239** | | **52** | **45** |
+
+142 rows are runnable once the app exists; 9 of them have a Step 2 half that waits. 68 rows are *provisional*.
+
+**Smoke additions** (new rows, not TC-04 cases). TC-03 isn't on `main` yet, so all four of TC-04's items are added here. When TC-03 merges, its directory smoke item takes the screen-load half of SMK-admin-homeowners-portal. Item 1 is TC-04-P1 tagged `@smoke` in its own spec (its row is under **Cases**), so it has no row here.
+
+| Scenario id | Scenario | Type | Layer | Test file::test name | Status |
+|---|---|---|---|---|---|
+| SMK-join-link | `/join#{fixture code}` opens the confirm screen (Yes never pressed) | happy | UI | smoke.spec.js::SMK-join-link | Deferred: Step 2 (the `/join` link) |
+| SMK-admin-household-detail | Household detail (4E) opens for admin office staff with People and Invitations | happy | UI | smoke.spec.js::SMK-admin-household-detail | Planned |
+| SMK-treasurer-household-detail | Household detail (4E) opens for the treasurer with People and Invitations | happy | UI | smoke.spec.js::SMK-treasurer-household-detail | Planned |
+| SMK-admin-homeowners-portal | Directory shows the Portal pill on every row, "Invite selected" and "Print invite slips" | happy | UI | smoke.spec.js::SMK-admin-homeowners-portal | Planned |
+
+**Cases**
+
+| Scenario id | Scenario | Type | Layer | Test file::test name | Status |
+|---|---|---|---|---|---|
+| TC-04-A1 | A second Invite for a household and recipient with an active invitation makes no new code | negative | API | invites-create.spec.js::TC-04-A1 | Deferred: Step 2 (email provider) · *provisional* |
+| TC-04-A2 | A household with an active invitation offers "Resend invitation", not "Invite" | usability | Unit | shared/domain/linkStatus.test.js::TC-04-A2 | Deferred: Step 2 (email provider) |
+| TC-04-A3 | A household whose only invitation expired can be invited again | negative | API | invites-create.spec.js::TC-04-A3 | Blocked on G-1 |
+| TC-04-A4 | Resend is refused for a used invitation, and the member stays linked | negative | API | invites-create.spec.js::TC-04-A4 | Deferred: Step 2 (email provider) · *provisional* |
+| TC-04-A5 | Cancelling an active invitation makes its code invalid | happy | API | invites-cancel.spec.js::TC-04-A5 | Blocked on G-5 · *provisional* |
+| TC-04-A6 | Cancelling a used invitation is refused and the member stays linked | negative | API | invites-cancel.spec.js::TC-04-A6 | Planned · *provisional* |
+| TC-04-A7 | Cancelling an already replaced, cancelled or expired invitation changes nothing | negative | API | invites-cancel.spec.js::TC-04-A7 | Planned · *provisional* |
+| TC-04-A8 | When a used invitation's expiry date passes, the member stays linked | boundary | API | invites-redeem.spec.js::TC-04-A8 | Planned |
+| TC-04-A9 | Stored invitation status only ever holds active, used, replaced or cancelled | data integrity | API | invites-integrity.spec.js::TC-04-A9 | Planned · *provisional* |
+| TC-04-B1 | Generated codes are 8 characters from the 32-character alphabet, shown as XXXX-XXXX | data integrity | Unit | shared/domain/inviteCode.test.js::TC-04-B1 | Planned |
+| TC-04-B2 | 1,000 generated codes are all different | data integrity | Unit | shared/domain/inviteCode.test.js::TC-04-B2 | Planned |
+| TC-04-B3 | No invitation document holds the plain code | security | API | invites-secrecy.spec.js::TC-04-B3 | Planned · *provisional* |
+| TC-04-B4 | The invitation id is a keyed hash, not a plain hash of the code | security | API | invites-secrecy.spec.js::TC-04-B4 | Planned · *provisional* |
+| TC-04-B5 | The email's code and body are removed from the mail document once it is sent | security | API | mail-queue.spec.js::TC-04-B5 | Deferred: Step 2 (email provider) · *provisional* |
+| TC-04-B6 | The email's code and body are removed from the mail document when hand-off fails | security | API | mail-queue.spec.js::TC-04-B6 | Deferred: Step 2 (email provider) · *provisional* |
+| TC-04-B7 | Invitation audit entries hold ids only | security | API | invites-audit-logs.spec.js::TC-04-B7 | Planned · *provisional* |
+| TC-04-B8 | Function logs contain no code and no email address | security | API | invites-audit-logs.spec.js::TC-04-B8 | Planned · *provisional* |
+| TC-04-B9 | The email link carries the code after `#`, never in the path or query | security | UI | join-deep-link.spec.js::TC-04-B9 | Deferred: Step 2 (email provider) · *provisional* |
+| TC-04-B10 | Printing stores no slip PDF on the server | security | UI | print-slips.spec.js::TC-04-B10 | Planned · *provisional* |
+| TC-04-B11 | Staff cannot see an existing code again after it is made | security | API | invites-secrecy.spec.js::TC-04-B11 | Planned |
+| TC-04-C1 | A printed code typed in lower case with a space opens the confirm screen | happy | UI | join-code-entry.spec.js::TC-04-C1 | Planned |
+| TC-04-C2 | The code is accepted in its printed form with the hyphen | boundary | Unit | shared/domain/inviteCode.test.js::TC-04-C2 | Planned |
+| TC-04-C3 | The code is accepted with no separator | boundary | Unit | shared/domain/inviteCode.test.js::TC-04-C3 | Planned |
+| TC-04-C4 | Leading, trailing and mixed spaces and hyphens are ignored | boundary | Unit | shared/domain/inviteCode.test.js::TC-04-C4 | Planned |
+| TC-04-C5 | "Yes, link my account" lands the person on the lot's dashboard | happy | UI | join-code-entry.spec.js::TC-04-C5 | Planned |
+| TC-04-C6 | Redeeming marks the invitation used and creates one membership with the invite's details | integration | API | invites-redeem.spec.js::TC-04-C6 | Planned · *provisional* |
+| TC-04-C7 | After a redeem, staff see "Linked · 1 person" | integration | Journey | invite-link.journey.spec.js::TC-04-C7 | Planned |
+| TC-04-C8 | Checking a code returns only the lot and the owner name on file | security | API | invites-secrecy.spec.js::TC-04-C8 | Planned · *provisional* |
+| TC-04-C9 | The confirm screen shows the lot and the owner on file, nothing else | usability | UI | join-code-entry.spec.js::TC-04-C9 | Planned |
+| TC-04-C10 | "No, this isn't my lot" ends the join flow with the contact-office message | negative | UI | join-code-entry.spec.js::TC-04-C10 | Planned |
+| TC-04-C11 | After "No, this isn't my lot" the code is still unused and works for the right person | integration | UI | join-code-entry.spec.js::TC-04-C11 | Planned |
+| TC-04-C12 | A code that doesn't exist shows the "doesn't match" message | negative | UI | join-code-entry.spec.js::TC-04-C12 | Planned |
+| TC-04-C13 | Submitting an empty code field does not call the server | negative | Unit | web/src/features/invites/join-controller.test.js::TC-04-C13 | Blocked on G-22 |
+| TC-04-C14 | A malformed code (wrong length or letters O, I, 0, 1) is refused clearly | negative | Unit | shared/domain/inviteCode.test.js::TC-04-C14 | Blocked on G-22 |
+| TC-04-C15 | The confirm screen shows the owner name on file at the time of the check | integration | API | invites-redeem.spec.js::TC-04-C15 | Planned |
+| TC-04-D1 | The 5th wrong code in 15 minutes is still checked and shows "doesn't match" | boundary | Unit | shared/domain/inviteAttempts.test.js::TC-04-D1 | Planned |
+| TC-04-D2 | The 6th attempt in the window shows "Too many wrong codes. Try again in 15 minutes." | boundary | Unit | shared/domain/inviteAttempts.test.js::TC-04-D2 | Planned |
+| TC-04-D3 | A right code entered while locked is not checked and reveals nothing | security | API | invites-attempts.spec.js::TC-04-D3 | Planned · *provisional* |
+| TC-04-D4 | 14:59 after the first refused code the account is still locked | boundary | Unit | shared/domain/inviteAttempts.test.js::TC-04-D4 | Planned |
+| TC-04-D5 | 15 minutes after the first refused code the account can try again | boundary | Unit | shared/domain/inviteAttempts.test.js::TC-04-D5 | Planned |
+| TC-04-D6 | Attempts refused while locked don't extend the lock | boundary | Unit | shared/domain/inviteAttempts.test.js::TC-04-D6 | Blocked on G-23 |
+| TC-04-D7 | Expired codes don't count towards the limit | negative | Unit | shared/domain/inviteAttempts.test.js::TC-04-D7 | Planned |
+| TC-04-D8 | Already-used codes don't count towards the limit | negative | Unit | shared/domain/inviteAttempts.test.js::TC-04-D8 | Planned |
+| TC-04-D9 | Replaced, cancelled, deactivated-household and already-linked refusals don't count | negative | Unit | shared/domain/inviteAttempts.test.js::TC-04-D9 | Planned |
+| TC-04-D10 | Non-counting refusals in between don't reset or skip the count | boundary | Unit | shared/domain/inviteAttempts.test.js::TC-04-D10 | Planned |
+| TC-04-D11 | Another account is not locked when one account is | security | API | invites-attempts.spec.js::TC-04-D11 | Planned |
+| TC-04-D12 | The lock follows the account across sign-out and a second device | security | API | invites-attempts.spec.js::TC-04-D12 | Planned |
+| TC-04-D13 | Wrong codes sent straight to redeemInvite count and lock the same way | security | API | invites-attempts.spec.js::TC-04-D13 | Planned · *provisional* |
+| TC-04-D14 | Wrong codes spread over more than 15 minutes don't lock | boundary | Unit | shared/domain/inviteAttempts.test.js::TC-04-D14 | Planned · *provisional* |
+| TC-04-D15 | Whether a successful link resets the wrong-code count | boundary | Unit | shared/domain/inviteAttempts.test.js::TC-04-D15 | Blocked on G-23 |
+| TC-04-D16 | A spike of wrong codes across the project raises the alert | security | Manual *(staging)* | Manual: staging go-live checks::TC-04-D16 | Planned · *provisional* |
+| TC-04-D17 | Pressing "No, this isn't my lot" doesn't count as a wrong code | negative | UI | join-code-entry.spec.js::TC-04-D17 | Planned |
+| TC-04-E1 | An emailed invitation made Nov 28 shows "Invited · expires Dec 5, 2026" | happy | UI | invite-directory.spec.js::TC-04-E1 | Deferred: Step 2 (email provider) |
+| TC-04-E2 | A slip printed Nov 28 expires Dec 28, 2026 | happy | UI | invite-directory.spec.js::TC-04-E2 | Planned |
+| TC-04-E3 | A code is still accepted at 23:59:59 Manila on its expiry date | boundary | Unit | shared/domain/inviteExpiry.test.js::TC-04-E3 | Planned |
+| TC-04-E4 | At 00:00:00 Manila the next day the code is refused as expired | boundary | Unit | shared/domain/inviteExpiry.test.js::TC-04-E4 | Planned |
+| TC-04-E5 | An invitation made just after Manila midnight takes its date from Manila, not UTC | boundary | Unit | shared/domain/inviteExpiry.test.js::TC-04-E5 | Planned (Step 2 half deferred) |
+| TC-04-E6 | The directory shows "Invite expired" once the date has passed, with no staff action | integration | Unit | shared/domain/linkStatus.test.js::TC-04-E6 | Blocked on G-3 |
+| TC-04-E7 | An invitation spanning the year end shows the new year | boundary | Unit | shared/domain/inviteExpiry.test.js::TC-04-E7 | Planned (Step 2 half deferred) |
+| TC-04-E8 | An invitation ending on a leap day shows Feb 29 | boundary | Unit | shared/domain/inviteExpiry.test.js::TC-04-E8 | Planned |
+| TC-04-E9 | A device clock set back does not make an expired code work | security | UI | join-code-entry.spec.js::TC-04-E9 | Planned |
+| TC-04-E10 | The same expiry date appears everywhere it is shown | integration | UI | invite-directory.spec.js::TC-04-E10 | Planned (Step 2 half deferred) |
+| TC-04-E11 | A changed expiry setting applies to invitations made after the change | integration | API | invites-create.spec.js::TC-04-E11 | Blocked on G-7; Step 2 · *provisional* |
+| TC-04-E12 | Invitations made before a settings change keep their original expiry | back-compat | API | invites-create.spec.js::TC-04-E12 | Blocked on G-7 |
+| TC-04-E13 | With no expiry setting stored, the defaults 7 and 30 days apply | boundary | Unit | shared/domain/inviteExpiry.test.js::TC-04-E13 | Planned · *provisional* |
+| TC-04-E14 | Expiry settings outside a sensible range are refused | boundary | Unit | shared/domain/inviteExpiry.test.js::TC-04-E14 | Blocked on G-7 |
+| TC-04-E15 | Only the treasurer can change invitation expiry | security | API | rules-invites.spec.js::TC-04-E15 | Blocked on G-7 · *provisional* |
+| TC-04-E16 | A confirm screen left open past midnight on the expiry day refuses the link | stale reference | API | invites-redeem.spec.js::TC-04-E16 | Planned |
+| TC-04-F1 | A code someone else used is refused as already used | negative | API | invites-redeem.spec.js::TC-04-F1 | Planned |
+| TC-04-F2 | That refusal creates no membership and leaves the first member linked | data integrity | API | invites-redeem.spec.js::TC-04-F2 | Planned |
+| TC-04-F3 | The person who used a code enters it again and lands on the dashboard | happy | UI | join-code-entry.spec.js::TC-04-F3 | Planned |
+| TC-04-F4 | Re-entering one's own code creates no second membership and no extra audit entry | data integrity | API | invites-redeem.spec.js::TC-04-F4 | Planned · *provisional* |
+| TC-04-F5 | "Yes, link my account" is disabled while the link is in flight | concurrency | Unit | web/src/features/invites/join-controller.test.js::TC-04-F5 | Planned |
+| TC-04-F6 | Two rapid redeem calls from the same account make one membership | concurrency | API | invites-redeem-race.spec.js::TC-04-F6 | Planned · *provisional* |
+| TC-04-F7 | The same account redeeming on two devices at once ends up linked once | concurrency | API | invites-redeem-race.spec.js::TC-04-F7 | Planned |
+| TC-04-F8 | Two people submitting the same unused code at once: exactly one is linked | concurrency | API | invites-redeem-race.spec.js::TC-04-F8 | Planned |
+| TC-04-F9 | Ten parallel redeems of one code create exactly one membership | concurrency | API | invites-redeem-race.spec.js::TC-04-F9 | Planned · *provisional* |
+| TC-04-F10 | Negative control: ten parallel redeems of ten different codes all succeed | concurrency | API | invites-redeem-race.spec.js::TC-04-F10 | Planned · *provisional* |
+| TC-04-F11 | The person who used a code re-enters it after its expiry date | boundary | API | invites-redeem.spec.js::TC-04-F11 | Blocked on G-31 |
+| TC-04-G1 | "Invite" queues one email to the contact address with the subject of record | happy | API | invites-create.spec.js::TC-04-G1 | Deferred: Step 2 (email provider) · *provisional* |
+| TC-04-G2 | The email subject carries no lot or person's name | security | Unit | functions/src/mail/invite-email.test.js::TC-04-G2 | Deferred: Step 2 (email provider) |
+| TC-04-G3 | The email body follows the copy of record | usability | Unit | functions/src/mail/invite-email.test.js::TC-04-G3 | Blocked on G-8, G-20; Step 2 |
+| TC-04-G4 | Resend queues a new email to the same address | happy | UI | invite-directory.spec.js::TC-04-G4 | Deferred: Step 2 (email provider) |
+| TC-04-G5 | Resend leaves exactly one active invitation, marking the old one replaced | data integrity | API | invites-create.spec.js::TC-04-G5 | Deferred: Step 2 (email provider) · *provisional* |
+| TC-04-G6 | The old code after a resend shows the "replaced" message | negative | API | invites-redeem.spec.js::TC-04-G6 | Deferred: Step 2 (email provider) |
+| TC-04-G7 | Resending an expired invitation gives a working new code | happy | API | invites-create.spec.js::TC-04-G7 | Deferred: Step 2 (email provider) |
+| TC-04-G8 | No screen says an invitation was sent or delivered while it is only queued | usability | UI | invite-directory.spec.js::TC-04-G8 | Blocked on G-14; Step 2 |
+| TC-04-G9 | An email the provider refuses at hand-off shows "Email failed" with Resend and Print slip | negative | API | mail-queue.spec.js::TC-04-G9 | Deferred: Step 2 (email provider) · *provisional* |
+| TC-04-G10 | Resend from "Email failed" queues a new email and shows Invited | happy | API | invites-create.spec.js::TC-04-G10 | Deferred: Step 2 (email provider) |
+| TC-04-G11 | "Print slip" from "Email failed" makes a print code and the email code stops working | integration | API | invites-create.spec.js::TC-04-G11 | Deferred: Step 2 (email provider) |
+| TC-04-G12 | A bounce reported later shows "Email failed" with Resend and Print slip | negative | API | mail-queue.spec.js::TC-04-G12 | Blocked on the email provider (decision 3); Step 2 · *provisional* |
+| TC-04-G13 | A bounce for a replaced invitation doesn't mark a household with a newer invitation as failed | stale reference | API | mail-queue.spec.js::TC-04-G13 | Deferred: Step 2 (email provider) · *provisional* |
+| TC-04-G14 | A late or repeated bounce never unlinks a member or duplicates state | data integrity | API | mail-queue.spec.js::TC-04-G14 | Deferred: Step 2 (email provider) · *provisional* |
+| TC-04-G15 | A recipient outside the staging allow-list is never handed to the provider | security | API *(staging)* | mail-allow-list.staging.spec.js::TC-04-G15 | Deferred: Step 2 (email provider) · *provisional* |
+| TC-04-G16 | A household with no email offers "Print slip", and an email invite for it is refused | negative | API | invites-create.spec.js::TC-04-G16 | Deferred: Step 2 (email provider) · *provisional* |
+| TC-04-G17 | Resending while the earlier email is still queued | concurrency | API | mail-queue.spec.js::TC-04-G17 | Blocked on G-15; Step 2 |
+| TC-04-G18 | After the contact email is corrected, Resend goes to the new address and the old code stops working | integration | API | mail-queue.spec.js::TC-04-G18 | Blocked on G-16; Step 2 |
+| TC-04-G19 | Before the email provider exists, the email controls are not usable | usability | UI | invite-directory.spec.js::TC-04-G19 | Blocked on G-21 |
+| TC-04-H1 | Selecting 400 households, 20 without email, shows the bulk confirm of record | happy | UI | bulk-invite.spec.js::TC-04-H1 | Deferred: Step 2 (email provider) |
+| TC-04-H2 | After confirming, the button reads "Queuing…" and is disabled until all are queued | concurrency | Unit | web/src/features/invites/staff-actions.test.js::TC-04-H2 | Deferred: Step 2 (email provider) |
+| TC-04-H3 | When done, "380 invitations queued. Each household shows its email status." | happy | UI | bulk-invite.spec.js::TC-04-H3 | Deferred: Step 2 (email provider) |
+| TC-04-H4 | Exactly 380 emails are queued and the 20 without email are untouched | data integrity | API | invites-create.spec.js::TC-04-H4 | Deferred: Step 2 (email provider) · *provisional* |
+| TC-04-H5 | Pressing "Invite selected" again skips households with an unused invitation | negative | API | invites-create.spec.js::TC-04-H5 | Deferred: Step 2 (email provider) |
+| TC-04-H6 | The counts in the confirm and done messages equal what is actually queued | usability | UI | bulk-invite.spec.js::TC-04-H6 | Blocked on G-13; Step 2 |
+| TC-04-H7 | Linked households in a bulk selection are not invited again | negative | API | invites-create.spec.js::TC-04-H7 | Blocked on G-12; Step 2 |
+| TC-04-H8 | The bulk confirm reads correctly at m = 0, n = 1 and n = 0 | boundary | Unit | web/src/features/invites/bulk-summary.test.js::TC-04-H8 | Blocked on G-13; Step 2 |
+| TC-04-H9 | Cancelling the bulk confirm queues nothing | navigation | UI | bulk-invite.spec.js::TC-04-H9 | Deferred: Step 2 (email provider) |
+| TC-04-H10 | After a bulk run, each household shows its email status | usability | UI | bulk-invite.spec.js::TC-04-H10 | Blocked on G-14; Step 2 |
+| TC-04-H11 | A bulk run interrupted and retried makes no duplicates | concurrency | API | invites-create.spec.js::TC-04-H11 | Deferred: Step 2 (email provider) |
+| TC-04-H12 | "Print their slips instead" leads to printing for the households without email | navigation | UI | bulk-invite.spec.js::TC-04-H12 | Blocked on G-20 |
+| TC-04-I1 | "Print invite slips" for 20 households shows the print confirm of record | happy | UI | print-slips.spec.js::TC-04-I1 | Planned |
+| TC-04-I2 | Confirming downloads one PDF with one slip per household | happy | UI | print-slips.spec.js::TC-04-I2 | Planned |
+| TC-04-I3 | Each slip shows the copy of record: HOA, lot, code, expiry, how to join | usability | Unit | web/src/features/invites/slip-pdf.test.js::TC-04-I3 | Planned |
+| TC-04-I4 | Slips show no balance, email or phone number | security | UI | print-slips.spec.js::TC-04-I4 | Planned |
+| TC-04-I5 | The PDF shows "Delete this file after printing." | usability | Unit | web/src/features/invites/slip-pdf.test.js::TC-04-I5 | Planned |
+| TC-04-I6 | Every printed code links to the lot printed beside it | data integrity | UI | print-slips.spec.js::TC-04-I6 | Planned |
+| TC-04-I7 | Printing again makes the earlier unused print code show "replaced" | negative | API | invites-create.spec.js::TC-04-I7 | Planned |
+| TC-04-I8 | Printing a slip for a household with an unused email invitation stops the email code | integration | API | invites-create.spec.js::TC-04-I8 | Blocked on G-4 |
+| TC-04-I9 | Printing a slip for a household with a pending second-person invitation | integration | API | invites-create.spec.js::TC-04-I9 | Blocked on G-4 |
+| TC-04-I10 | Printing for a linked household doesn't change the member or the used invitation | integration | API | invites-create.spec.js::TC-04-I10 | Blocked on G-12 |
+| TC-04-I11 | Cancelling the print confirm keeps the earlier codes working | negative | UI | print-slips.spec.js::TC-04-I11 | Planned |
+| TC-04-I12 | Pressing Print twice quickly leaves one active print code per household | concurrency | Unit | web/src/features/invites/staff-actions.test.js::TC-04-I12 | Blocked on G-33 |
+| TC-04-I13 | A printed slip is legible and cut-able | usability | Manual | Manual: printed-slip check (A4 and Letter)::TC-04-I13 | Planned |
+| TC-04-I14 | "Print slip" on a single no-email row downloads a one-slip PDF | happy | UI | print-slips.spec.js::TC-04-I14 | Planned |
+| TC-04-J1 | "Invite another person" with Family gives the second person their own code | happy | API | invites-create.spec.js::TC-04-J1 | Deferred: Step 2 (email provider) · *provisional* |
+| TC-04-J2 | After the second person redeems, the directory shows "Linked · 2 people" | integration | API | invites-integrity.spec.js::TC-04-J2 | Deferred: Step 2 (email provider) |
+| TC-04-J3 | The relation the admin picked is what the household detail shows | integration | UI | invite-directory.spec.js::TC-04-J3 | Deferred: Step 2 (email provider) |
+| TC-04-J4 | Inviting the same address twice for one household makes one active invitation | negative | API | invites-create.spec.js::TC-04-J4 | Deferred: Step 2 (email provider) · *provisional* |
+| TC-04-J5 | A click outside "Invite another person" keeps what was typed | usability | UI | household-detail.spec.js::TC-04-J5 | Deferred: Step 2 (email provider) |
+| TC-04-J6 | The relation picker offers only the R1 relations | usability | Unit | shared/domain/relations.test.js::TC-04-J6 | Blocked on G-17 |
+| TC-04-J7 | A person linked to another lot sees the already-linked message | negative | API | invites-redeem.spec.js::TC-04-J7 | Planned |
+| TC-04-J8 | That refusal leaves the code unused and Juan's single membership unchanged | data integrity | API | invites-redeem.spec.js::TC-04-J8 | Planned |
+| TC-04-J9 | The already-linked refusal holds when redeemInvite is called directly | security | API | invites-redeem.spec.js::TC-04-J9 | Planned · *provisional* |
+| TC-04-J10 | A treasurer who is also a homeowner can't redeem a code for a second lot | security | API | invites-redeem.spec.js::TC-04-J10 | Planned |
+| TC-04-J11 | A staff member with no household can link to their own lot and gets the view switch | integration | API | invites-redeem.spec.js::TC-04-J11 | Planned |
+| TC-04-J12 | A member entering another code for their own household | negative | API | invites-redeem.spec.js::TC-04-J12 | Blocked on G-19 |
+| TC-04-J13 | A code for a household deactivated after printing shows "no longer valid" | negative | API | invites-redeem.spec.js::TC-04-J13 | Planned |
+| TC-04-J14 | Deactivating a household cancels its active invitations | integration | API | invites-integrity.spec.js::TC-04-J14 | Planned · *provisional* |
+| TC-04-J15 | A confirm screen open when the household is deactivated refuses the link | stale reference | API | invites-redeem.spec.js::TC-04-J15 | Planned |
+| TC-04-J16 | Reactivating a household does not revive its old code | negative | API | invites-redeem.spec.js::TC-04-J16 | Blocked on G-5 |
+| TC-04-J17 | A deactivated household can't be invited, resent or printed | negative | API | invites-create.spec.js::TC-04-J17 | Planned · *provisional* |
+| TC-04-J18 | Inviting beyond the people-per-household limit | boundary | API | invites-integrity.spec.js::TC-04-J18 | Blocked on the board (people-per-household limit) |
+| TC-04-K1 | "Remove" asks the confirm of record | happy | UI | household-detail.spec.js::TC-04-K1 | Blocked on G-20 |
+| TC-04-K2 | After removal, the removed person's next household read is refused | security | API | members-remove.spec.js::TC-04-K2 | Planned |
+| TC-04-K3 | The removed person sees the not-linked screen on her next load | navigation | UI | join-access.spec.js::TC-04-K3 | Blocked on G-26 |
+| TC-04-K4 | Removal makes every unused invitation for the lot stop working | negative | API | members-remove.spec.js::TC-04-K4 | Blocked on G-5 |
+| TC-04-K5 | The lot's bills, payments and totals stay with the lot | data integrity | API | members-remove.spec.js::TC-04-K5 | Planned |
+| TC-04-K6 | The activity log records who removed her and when | integration | API | invites-audit-logs.spec.js::TC-04-K6 | Blocked on G-6 · *provisional* |
+| TC-04-K7 | Removal deletes the membership and the pill counts down | integration | API | members-remove.spec.js::TC-04-K7 | Blocked on G-9 |
+| TC-04-K8 | Removing someone already removed says "already removed" and changes nothing | concurrency | API | members-remove.spec.js::TC-04-K8 | Blocked on G-10 · *provisional* |
+| TC-04-K9 | "Remove" is disabled while in flight | concurrency | Unit | web/src/features/invites/staff-actions.test.js::TC-04-K9 | Planned |
+| TC-04-K10 | Cancelling the remove confirm keeps the person linked | navigation | UI | household-detail.spec.js::TC-04-K10 | Planned |
+| TC-04-K11 | A removed person re-entering her own used code does not regain access | security | API | members-remove.spec.js::TC-04-K11 | Blocked on G-11 |
+| TC-04-K12 | The new owner can be invited and linked after the old owner is removed | happy | API | members-remove.spec.js::TC-04-K12 | Planned |
+| TC-04-K13 | The new owner cannot see the previous owner's contact details | security | API | members-remove.spec.js::TC-04-K13 | Planned |
+| TC-04-K14 | After the office edits the owner name, the new owner's confirm screen shows the new name | integration | API | invites-redeem.spec.js::TC-04-K14 | Blocked on G-28 |
+| TC-04-K15 | Removing the owner leaves other members linked | integration | API | members-remove.spec.js::TC-04-K15 | Blocked on G-29 |
+| TC-04-K16 | Editing the owner name alone doesn't unlink anyone | regression | API | members-remove.spec.js::TC-04-K16 | Planned |
+| TC-04-K17 | Treasurer can remove a person | security | API | members-remove.spec.js::TC-04-K17 | Planned |
+| TC-04-L1 | [Option 1] The new owner sees no receipts or bills dated before they linked | security | API | privacy-after-sale.spec.js::TC-04-L1 | Blocked on decision 5 and the payments REQ |
+| TC-04-L2 | [Option 1] A record on the link date itself | boundary | API | privacy-after-sale.spec.js::TC-04-L2 | Blocked on decision 5 |
+| TC-04-L3 | [Option 2] The new owner can't open the previous owner's payment screenshots | security | API | privacy-after-sale.spec.js::TC-04-L3 | Blocked on decision 5 and the payments REQ |
+| TC-04-L4 | [Option 2] What the new owner sees of earlier receipts | security | UI | privacy-after-sale.spec.js::TC-04-L4 | Blocked on decision 5 |
+| TC-04-L5 | [Either] The removed owner can't open any of the lot's records, including her own uploads | security | API | privacy-after-sale.spec.js::TC-04-L5 | Blocked on the payments REQ |
+| TC-04-L6 | [Either] Staff still see the lot's full history after a sale | integration | API | privacy-after-sale.spec.js::TC-04-L6 | Blocked on decision 5 |
+| TC-04-M1 | Treasurer can invite, resend and print | security | API | rules-invites.spec.js::TC-04-M1 | Planned (Step 2 half deferred) |
+| TC-04-M2 | createInvites is refused for board, guard, homeowner, no-role and signed-out callers | security | API | rules-invites.spec.js::TC-04-M2 | Planned · *provisional* |
+| TC-04-M3 | removeMember is refused for the same callers | security | API | rules-invites.spec.js::TC-04-M3 | Planned · *provisional* |
+| TC-04-M4 | cancelInvite is refused for the same callers | security | API | rules-invites.spec.js::TC-04-M4 | Planned · *provisional* |
+| TC-04-M5 | checkInvite and redeemInvite are refused when signed out | security | API | rules-invites.spec.js::TC-04-M5 | Planned · *provisional* |
+| TC-04-M6 | A person can only redeem for themselves | security | API | rules-invites.spec.js::TC-04-M6 | Planned · *provisional* |
+| TC-04-M7 | Non-staff cannot read invitations, even for their own household | security | API | rules-invites.spec.js::TC-04-M7 | Planned · *provisional* |
+| TC-04-M8 | Staff can read a household's invitations by household | security | API | rules-invites.spec.js::TC-04-M8 | Planned · *provisional* |
+| TC-04-M9 | No client can write an invitation, staff included | security | API | rules-invites.spec.js::TC-04-M9 | Planned · *provisional* |
+| TC-04-M10 | No client can read or reset its wrong-code counter | security | API | rules-invites.spec.js::TC-04-M10 | Planned · *provisional* |
+| TC-04-M11 | No client can read or write the mail queue, staff included | security | API | rules-invites.spec.js::TC-04-M11 | Planned · *provisional* |
+| TC-04-M12 | No client can create a membership | security | API | rules-invites.spec.js::TC-04-M12 | Planned · *provisional* |
+| TC-04-M13 | A member can't read another household's memberships | security | API | rules-invites.spec.js::TC-04-M13 | Planned · *provisional* |
+| TC-04-M14 | A newly linked member reads only their own household | security | API | rules-invites.spec.js::TC-04-M14 | Planned |
+| TC-04-M15 | Clients can't change link status or member count | security | API | rules-invites.spec.js::TC-04-M15 | Planned · *provisional* |
+| TC-04-M16 | A guard sees no households, invitations or people | security | API | rules-invites.spec.js::TC-04-M16 | Planned |
+| TC-04-M17 | A staff member whose role was just removed can't invite or remove | security | API | rules-invites.spec.js::TC-04-M17 | Planned · *provisional* |
+| TC-04-N1 | Two staff pressing Resend at once leave exactly one active code | concurrency | API | invites-staff-race.spec.js::TC-04-N1 | Deferred: Step 2 (email provider) · *provisional* |
+| TC-04-N2 | Two staff running "Invite selected" on the same households make one invitation each | concurrency | API | invites-staff-race.spec.js::TC-04-N2 | Deferred: Step 2 (email provider) |
+| TC-04-N3 | Two staff printing the same household at once leave one active print code | concurrency | API | invites-staff-race.spec.js::TC-04-N3 | Blocked on G-32 |
+| TC-04-N4 | Redeem and Resend at the same moment end in one consistent state | concurrency | API | invites-staff-race.spec.js::TC-04-N4 | Deferred: Step 2 (email provider) · *provisional* |
+| TC-04-N5 | Redeem and Remove in the same household at once keep the count right | concurrency | API | invites-staff-race.spec.js::TC-04-N5 | Planned · *provisional* |
+| TC-04-N6 | A confirm screen open while staff resend refuses the old code | stale reference | API | invites-redeem.spec.js::TC-04-N6 | Deferred: Step 2 (email provider) |
+| TC-04-N7 | An open household detail shows the link after a reload | integration | UI | invite-directory.spec.js::TC-04-N7 | Planned |
+| TC-04-N8 | Resend from a stale screen on a household that just linked creates no active invitation | stale reference | API | invites-staff-race.spec.js::TC-04-N8 | Deferred: Step 2 (email provider) · *provisional* |
+| TC-04-P1 | A signed-in account with no household lands on the not-linked screen | navigation | UI | join-code-entry.spec.js::TC-04-P1 | Planned |
+| TC-04-P2 | The email link survives email-and-password sign-in without typing the code | navigation | UI | join-deep-link.spec.js::TC-04-P2 | Deferred: Step 2 (email provider) |
+| TC-04-P3 | The email link survives creating a new account | navigation | UI | join-deep-link.spec.js::TC-04-P3 | Deferred: Step 2 (email provider) |
+| TC-04-P4 | The email link survives "Continue with Google" | navigation | UI | join-deep-link.spec.js::TC-04-P4 | Deferred: Step 2 (email provider) |
+| TC-04-P5 | Refreshing the sign-in page mid-flow keeps the code | navigation | UI | join-deep-link.spec.js::TC-04-P5 | Deferred: Step 2 (email provider) |
+| TC-04-P6 | Refreshing the confirm screen keeps the lot and the link still works | navigation | UI | join-deep-link.spec.js::TC-04-P6 | Planned (Step 2 half deferred) |
+| TC-04-P7 | After linking, the code is cleared from session storage and the address bar | security | UI | join-deep-link.spec.js::TC-04-P7 | Planned (Step 2 half deferred) · *provisional* |
+| TC-04-P8 | After "No, this isn't my lot", the code is cleared too | security | UI | join-deep-link.spec.js::TC-04-P8 | Blocked on G-30 |
+| TC-04-P9 | Signing out with a pending code leaves no code on the device | security | UI | join-deep-link.spec.js::TC-04-P9 | Deferred: Step 2 (email provider) |
+| TC-04-P10 | Back after linking doesn't create a second link | navigation | UI | join-deep-link.spec.js::TC-04-P10 | Planned |
+| TC-04-P11 | A homeowner can't open the Homeowners directory or a household detail by URL | navigation | UI | join-access.spec.js::TC-04-P11 | Planned |
+| TC-04-P12 | A no-household account opening a household URL sees no data | navigation | UI | join-access.spec.js::TC-04-P12 | Planned |
+| TC-04-P13 | Staff move from the directory to household detail and back with the Homeowners menu highlighted | navigation | UI | invite-directory.spec.js::TC-04-P13 | Planned |
+| TC-04-P14 | After Remove, staff stay on the household detail with the list updated | navigation | UI | household-detail.spec.js::TC-04-P14 | Planned |
+| TC-04-P15 | An important announcement doesn't block the join flow | navigation | UI | join-deep-link.spec.js::TC-04-P15 | Planned |
+| TC-04-P16 | `/join` with no code opens empty code entry | navigation | UI | join-deep-link.spec.js::TC-04-P16 | Deferred: Step 2 (email provider) |
+| TC-04-Q1 | The code field has a visible label and the hint is tied to it | usability | UI | join-code-entry.spec.js::TC-04-Q1 | Planned |
+| TC-04-Q2 | The code field uses the large monospaced code style | usability | UI | join-code-entry.spec.js::TC-04-Q2 | Planned |
+| TC-04-Q3 | A code can be pasted into the field | usability | UI | join-code-entry.spec.js::TC-04-Q3 | Planned |
+| TC-04-Q4 | Errors are announced and tied to the field, with focus kept there | usability | UI | join-code-entry.spec.js::TC-04-Q4 | Planned |
+| TC-04-Q5 | While a code is being checked the button reads "Checking…" and is disabled | usability | UI | join-code-entry.spec.js::TC-04-Q5 | Planned |
+| TC-04-Q6 | The join screens are single cards at 375 px with the phone layout | usability | UI *(mobile)* | join-phone.spec.js::TC-04-Q6 | Planned |
+| TC-04-Q7 | Tap targets on the join screens and the email button are large enough | usability | UI *(mobile)* | join-phone.spec.js::TC-04-Q7 | Planned (Step 2 half deferred) |
+| TC-04-Q8 | The on-screen keyboard doesn't hide the focused field or the error | usability | Manual | Manual: real phone keyboard::TC-04-Q8 | Planned |
+| TC-04-Q9 | Link-status pills carry text and enough contrast | usability | UI | invite-directory.spec.js::TC-04-Q9 | Planned |
+| TC-04-Q10 | The Remove dialog traps focus, Escape cancels, and focus returns | usability | UI | household-detail.spec.js::TC-04-Q10 | Planned |
+| TC-04-Q11 | "Queuing…" and the bulk result are announced | usability | UI | bulk-invite.spec.js::TC-04-Q11 | Deferred: Step 2 (email provider) |
+| TC-04-Q12 | The whole join flow works with a keyboard only | usability | UI | join-code-entry.spec.js::TC-04-Q12 | Planned |
+| TC-04-Q13 | Phone directory cards show the pill and the invite action | usability | UI *(mobile)* | join-phone.spec.js::TC-04-Q13 | Planned |
+| TC-04-R1 | Every join error matches the copy of record exactly | usability | Unit | web/src/features/invites/invite-messages.test.js::TC-04-R1 | Planned |
+| TC-04-R2 | Directory and detail buttons use only the labels of record | usability | UI | invite-directory.spec.js::TC-04-R2 | Blocked on G-20 |
+| TC-04-R3 | The same pill words appear on the table, phone cards, filter chips and household detail | usability | UI | invite-directory.spec.js::TC-04-R3 | Planned |
+| TC-04-R4 | "Linked · 1 person" and "Linked · 2 people" use the right number word | boundary | Unit | shared/domain/linkStatus.test.js::TC-04-R4 | Planned |
+| TC-04-R5 | Code entry, confirm and wrong-lot texts match the copy of record | usability | UI | join-code-entry.spec.js::TC-04-R5 | Planned |
+| TC-04-R6 | The HOA name follows the brand in email, slip and screens | usability | UI | invite-directory.spec.js::TC-04-R6 | Planned (Step 2 half deferred) |
+| TC-04-S1 | A household created before invitations existed shows "Not invited" | back-compat | UI | invite-directory.spec.js::TC-04-S1 | Planned |
+| TC-04-S2 | Inviting a legacy household works and fills in its link fields | back-compat | API | invites-redeem.spec.js::TC-04-S2 | Planned · *provisional* |
+| TC-04-S3 | A freshly imported household shows "Not invited" and can be invited | integration | API | invites-redeem.spec.js::TC-04-S3 | Planned |
+| TC-04-S4 | Member count always equals the number of memberships | data integrity | API | invites-integrity.spec.js::TC-04-S4 | Planned · *provisional* |
+| TC-04-S5 | Link status always agrees with the invitations and memberships | data integrity | API | invites-integrity.spec.js::TC-04-S5 | Blocked on G-2, G-3, G-9 · *provisional* |
+| TC-04-S6 | There is never more than one active invitation per household and recipient | data integrity | API | invites-integrity.spec.js::TC-04-S6 | Planned · *provisional* |
+| TC-04-S7 | Every used invitation has exactly one matching membership, and every membership one invitation | data integrity | API | invites-integrity.spec.js::TC-04-S7 | Planned · *provisional* |
+| TC-04-S8 | Every lifecycle action writes exactly one audit entry of the right kind | data integrity | API | invites-audit-logs.spec.js::TC-04-S8 | Planned · *provisional* |
+| TC-04-S9 | Zero members and "never linked" read differently | boundary | Unit | shared/domain/linkStatus.test.js::TC-04-S9 | Blocked on G-9 |
+| TC-04-S10 | Directory header counts and filter chips add up | data integrity | UI | invite-directory-counts.exclusive.spec.js::TC-04-S10 | Blocked on G-3 |
+| TC-04-X1 | 20 minutes breaking the join flow on a phone | exploratory | Manual | Manual: exploratory charter::TC-04-X1 | Deferred: Step 2 (email provider) |
+| TC-04-X2 | 20 minutes trying to link to a lot you don't own | exploratory | Manual | Manual: exploratory charter::TC-04-X2 | Planned |
+| TC-04-X3 | 15 minutes looking for directory status drift | exploratory | Manual | Manual: exploratory charter::TC-04-X3 | Planned (Step 2 half deferred) |
+| TC-04-X4 | 15 minutes reading and typing codes from a printed slip | exploratory | Manual | Manual: exploratory charter::TC-04-X4 | Planned |

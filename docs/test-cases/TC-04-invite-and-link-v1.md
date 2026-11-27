@@ -211,10 +211,28 @@ What else could break, and why:
 
 ---
 
+## Layer legend (QE)
+
+QE filled in each case's **Layer** at triage on 2026-11-28. Nothing else in a case was changed. The reasons, the Unit list for Dev, the locator contract, the spec list, the automation order and the findings are in **QE triage** at the end. Rows, with each case's status (Planned, Deferred to Step 2, or Blocked), are in [COVERAGE-MAP.md](COVERAGE-MAP.md).
+
+| Layer | Meaning here | Owner |
+|---|---|---|
+| **Unit** | Vitest on a plain module (no DOM, no Firebase, no network): code format and normalising, the wrong-code window, expiry dates in Manila, link-status pills and the actions each state offers, join error copy, email and slip templates, in-flight guards behind an injected port | Dev writes, QE reviews |
+| **API** | The Auth, Firestore and Functions emulators, called directly (callable functions, `@firebase/rules-unit-testing`, Admin SDK reads of function-only collections). The mail provider is the emulator stub. No browser | QE |
+| **API (staging)** | The same kind of test on `hoa-portal-staging`, because only staging has the mail allow-list (G15) | QE |
+| **UI** | Playwright against the emulator-backed app: what only a browser shows, plus the wiring from a click to a function. *(mobile)* rows run in the `mobile` project | QE |
+| **Journey** | One end-to-end happy path for the flow, crossing layers on purpose: print a slip → enter the code → link → staff see "Linked · 1 person" (C7) | QE |
+| **Manual (staging)** | Run by hand on staging (the project-wide wrong-code alert, D16) | QE |
+| **Manual** | Physical print, a real phone keyboard, or an exploratory charter | QE |
+
+**Email is asserted at the `mail` queue** (recipient, subject, status, body while queued), never as delivered mail. **Time:** exact boundaries (23:59:59 vs 00:00:00 Manila, 14:59 vs 15:00, year end, leap day) are proven at Unit. API cases that need time to have passed seed `expiresAt` or the attempt window with the Admin SDK instead of moving a server clock.
+
+---
+
 ## A. Lifecycle transitions not covered elsewhere
 
 #### TC-04-A1: A second Invite for a household and recipient with an active invitation makes no new code
-**Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Negative · **Layer** API · **Writes** Yes
 **Role:** Admin office staff (S-ADMIN). **Tags:** Step 2 · Provisional — SA-001 Draft
 - **Setup:** HH-A has one active, unexpired email invitation to zz.owner.a@example.test.
 - **Action:** Call `createInvites` for HH-A, not as a resend (as "Invite" would).
@@ -222,7 +240,7 @@ What else could break, and why:
 - **Don't assert:** the exact wording of the skip reason in the function response.
 
 #### TC-04-A2: A household with an active invitation offers "Resend invitation", not "Invite"
-**Priority** P2 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** UI/UX · **Layer** Unit · **Writes** No
 **Role:** Admin office staff. **Tags:** Step 2
 - **Setup:** HH-A invited by email (active).
 - **Action:** Open the directory row and household detail for HH-A.
@@ -230,7 +248,7 @@ What else could break, and why:
 - **Don't assert:** button position or colour.
 
 #### TC-04-A3: A household whose only invitation expired can be invited again
-**Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Negative · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 1 and 2 · Gap G-1
 - **Setup:** HH-A's only invitation is active but past its expiry (pill "Invite expired").
 - **Action:** Include HH-A in "Invite selected" (Step 2) or "Print invite slips" (Step 1).
@@ -238,7 +256,7 @@ What else could break, and why:
 - **Don't assert:** which refusal message the old code gives (expired or replaced) until G-24 is answered.
 
 #### TC-04-A4: Resend is refused for a used invitation, and the member stays linked
-**Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Negative · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 2 · Provisional — SA-001 Draft
 - **Setup:** U-ANA linked to HH-A with her email invitation (status used).
 - **Action:** Check that 4E shows no Resend on the used row; then call `createInvites` as a resend for that used invitation's slot.
@@ -246,7 +264,7 @@ What else could break, and why:
 - **Don't assert:** whether the call errors or returns "skipped".
 
 #### TC-04-A5: Cancelling an active invitation makes its code invalid
-**Priority** P2 · **Type** Happy path · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Happy path · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 1 · Provisional — SA-001 Draft · Gap G-5
 - **Setup:** HH-A has an active printed invitation.
 - **Action:** Call `cancelInvite` for it (no UI defined, G-5); then U-STRANGER enters the code.
@@ -254,7 +272,7 @@ What else could break, and why:
 - **Don't assert:** any UI for cancelling.
 
 #### TC-04-A6: Cancelling a used invitation is refused and the member stays linked
-**Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Negative · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 1 · Provisional — SA-001 Draft
 - **Setup:** U-ANA linked to HH-A.
 - **Action:** Call `cancelInvite` on her used invitation.
@@ -262,7 +280,7 @@ What else could break, and why:
 - **Don't assert:** error code text.
 
 #### TC-04-A7: Cancelling an already replaced, cancelled or expired invitation changes nothing
-**Priority** P3 · **Type** Negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Negative · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Provisional — SA-001 Draft
 - **Setup:** Three HH-A invitations: one replaced, one cancelled, one active-but-expired.
 - **Action:** Call `cancelInvite` on each.
@@ -270,7 +288,7 @@ What else could break, and why:
 - **Don't assert:** whether the expired one becomes `cancelled` (either is acceptable).
 
 #### TC-04-A8: When a used invitation's expiry date passes, the member stays linked
-**Priority** P1 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Boundary · **Layer** API · **Writes** No
 **Role:** Homeowner (U-ANA). **Tags:** Step 1 · Staging note: controllable server clock
 - **Setup:** U-ANA linked to HH-A with an invitation expiring Dec 5, 2026.
 - **Action:** Move server time to Dec 6, 2026 00:00:01 Manila; U-ANA opens her dashboard.
@@ -278,7 +296,7 @@ What else could break, and why:
 - **Don't assert:** dashboard content beyond the lot.
 
 #### TC-04-A9: Stored invitation status only ever holds active, used, replaced or cancelled
-**Priority** P3 · **Type** Data integrity · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Data integrity · **Layer** API · **Writes** No
 **Role:** none (data check after the A–K blocks). **Tags:** Provisional — SA-001 Draft
 - **Setup:** Run after the other blocks on the emulator.
 - **Action:** Read every `invites` document created by this run.
@@ -288,7 +306,7 @@ What else could break, and why:
 ## B. Code generation, storage and secrecy
 
 #### TC-04-B1: Generated codes are 8 characters from the 32-character alphabet, shown as XXXX-XXXX
-**Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Data integrity · **Layer** Unit · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 1
 - **Setup:** 1,000 fixture households (or repeated print runs).
 - **Action:** Print slips (or create invitations) and collect every displayed code.
@@ -296,14 +314,14 @@ What else could break, and why:
 - **Don't assert:** any particular code value.
 
 #### TC-04-B2: 1,000 generated codes are all different
-**Priority** P2 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Data integrity · **Layer** Unit · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 1
 - **Setup / Action:** As B1.
 - **Expected:** No two codes are equal after normalisation; each opens the confirm screen for the lot it was printed with.
 - **Don't assert:** distribution or randomness statistics.
 
 #### TC-04-B3: No invitation document holds the plain code
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security · **Layer** API · **Writes** Yes
 **Role:** Admin office staff creates; QE reads with admin SDK. **Tags:** Step 1 · Provisional — SA-001 Draft · Staging note: console / admin SDK access
 - **Setup:** Print a slip for HH-A; note the code shown.
 - **Action:** Read the new `invites` document (id and every field).
@@ -311,7 +329,7 @@ What else could break, and why:
 - **Don't assert:** the hash value.
 
 #### TC-04-B4: The invitation id is a keyed hash, not a plain hash of the code
-**Priority** P2 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Security · **Layer** API · **Writes** Yes
 **Role:** QE data check. **Tags:** Provisional — SA-001 Draft
 - **Setup:** As B3.
 - **Action:** Compute unkeyed SHA-256 (hex and base64url) of the normalised code and compare with the document id.
@@ -319,7 +337,7 @@ What else could break, and why:
 - **Don't assert:** the key value or HMAC output.
 
 #### TC-04-B5: The email's code and body are removed from the mail document once it is sent
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security · **Layer** API · **Writes** Yes
 **Role:** Admin office staff invites; stub provider accepts. **Tags:** Step 2 · Provisional — SA-001 Draft
 - **Setup:** Stub provider set to accept.
 - **Action:** Invite HH-A; read the `mail` document while queued and after the mail function runs.
@@ -327,7 +345,7 @@ What else could break, and why:
 - **Don't assert:** the provider message id format.
 
 #### TC-04-B6: The email's code and body are removed from the mail document when hand-off fails
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security · **Layer** API · **Writes** Yes
 **Role:** As B5. **Tags:** Step 2 · Provisional — SA-001 Draft
 - **Setup:** Stub provider set to refuse.
 - **Action:** Invite HH-A; let the mail function run.
@@ -335,21 +353,21 @@ What else could break, and why:
 - **Don't assert:** the provider's error text.
 
 #### TC-04-B7: Invitation audit entries hold ids only
-**Priority** P2 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Security · **Layer** API · **Writes** Yes
 **Role:** QE data check after A–K. **Tags:** Provisional — SA-001 Draft
 - **Action:** Read every `auditLog` entry with an `invite.*` or `member.removed` action.
 - **Expected:** No entry contains a code, an email address, a phone number or a person's name; each has actor id, household id, action and time.
 - **Don't assert:** the field names beyond those.
 
 #### TC-04-B8: Function logs contain no code and no email address
-**Priority** P2 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Security · **Layer** API · **Writes** Yes
 **Role:** QE reads emulator function logs. **Tags:** Provisional — SA-001 Draft (CS-14)
 - **Action:** Run create, check (right and wrong code), redeem and the mail function; collect logs.
 - **Expected:** No log line contains a code (any form) or a recipient email address.
 - **Don't assert:** log format.
 
 #### TC-04-B9: The email link carries the code after `#`, never in the path or query
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security · **Layer** UI · **Writes** Yes
 **Role:** Admin office staff invites; homeowner opens the link. **Tags:** Step 2 · Provisional — SA-001 Draft
 - **Setup:** Read the queued mail body for HH-A.
 - **Action:** Inspect the "Join the portal" link; open it and capture the requests sent to Hosting.
@@ -357,14 +375,14 @@ What else could break, and why:
 - **Don't assert:** whether the fragment includes the hyphen.
 
 #### TC-04-B10: Printing stores no slip PDF on the server
-**Priority** P2 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Security · **Layer** UI · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 1 · Provisional — SA-001 Draft
 - **Action:** Print slips for HH-C; then list Storage and any new Firestore documents.
 - **Expected:** No PDF or code list is stored in Storage or Firestore; the PDF is built in the browser from the function response.
 - **Don't assert:** PDF library or file name.
 
 #### TC-04-B11: Staff cannot see an existing code again after it is made
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security · **Layer** API · **Writes** No
 **Role:** Admin office staff and treasurer. **Tags:** Step 1
 - **Setup:** HH-A has an active printed invitation.
 - **Action:** Open 4E for HH-A; read HH-A's invitations as staff through the allowed query.
@@ -374,7 +392,7 @@ What else could break, and why:
 ## C. Code entry, confirm and redeem (Step 1 core)
 
 #### TC-04-C1: A printed code typed in lower case with a space opens the confirm screen
-**Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Happy path · **Layer** UI · **Writes** No
 **Role:** Homeowner without a household (U-ANA). **Tags:** Step 1
 - **Setup:** A printed slip for HH-A; note its code, e.g. `K7QX-M9TA`.
 - **Action:** On "Enter your invite code" type `k7qx m9ta` and submit.
@@ -382,28 +400,28 @@ What else could break, and why:
 - **Don't assert:** the specific code value.
 
 #### TC-04-C2: The code is accepted in its printed form with the hyphen
-**Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Boundary · **Layer** Unit · **Writes** No
 **Role:** Homeowner without a household. **Tags:** Step 1
 - **Action:** Enter `K7QX-M9TA`.
 - **Expected:** Confirm screen for HH-A.
 - **Don't assert:** —
 
 #### TC-04-C3: The code is accepted with no separator
-**Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Boundary · **Layer** Unit · **Writes** No
 **Role:** Homeowner without a household. **Tags:** Step 1
 - **Action:** Enter `K7QXM9TA`.
 - **Expected:** Confirm screen for HH-A.
 - **Don't assert:** —
 
 #### TC-04-C4: Leading, trailing and mixed spaces and hyphens are ignored
-**Priority** P3 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Boundary · **Layer** Unit · **Writes** No
 **Role:** Homeowner without a household. **Tags:** Step 1
 - **Action:** Enter `  k7qx - m9ta  ` and `K7-QX-M9-TA`.
 - **Expected:** Both open the confirm screen for HH-A.
 - **Don't assert:** that other punctuation is accepted (not specified).
 
 #### TC-04-C5: "Yes, link my account" lands the person on the lot's dashboard
-**Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Happy path · **Layer** UI · **Writes** Yes
 **Role:** Homeowner without a household (U-ANA). **Tags:** Step 1
 - **Setup:** Confirm screen for HH-A (C1).
 - **Action:** Press "Yes, link my account".
@@ -411,14 +429,14 @@ What else could break, and why:
 - **Don't assert:** dashboard figures.
 
 #### TC-04-C6: Redeeming marks the invitation used and creates one membership with the invite's details
-**Priority** P1 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Integration · **Layer** API · **Writes** Yes
 **Role:** Homeowner (U-ANA); QE reads data. **Tags:** Step 1 · Provisional — SA-001 Draft
 - **Action:** After C5, read the invitation and `members/{HH-A}_{U-ANA uid}`.
 - **Expected:** Invitation `used`, `usedBy` = U-ANA's uid, `usedAt` set. One membership with `householdId` = HH-A, `uid` = U-ANA, `relation` = the invite's relation, `inviteId`, `invitedBy` = the staff uid who created it, `linkedAt` set. One `invite.redeemed` audit entry.
 - **Don't assert:** timestamp values.
 
 #### TC-04-C7: After a redeem, staff see "Linked · 1 person"
-**Priority** P1 · **Type** Integration · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Integration · **Layer** Journey · **Writes** No
 **Role:** Admin office staff. **Tags:** Step 1
 - **Setup:** After C5.
 - **Action:** Open the directory and HH-A's detail (fresh load).
@@ -426,56 +444,56 @@ What else could break, and why:
 - **Don't assert:** which name source is used (G-18).
 
 #### TC-04-C8: Checking a code returns only the lot and the owner name on file
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security · **Layer** API · **Writes** No
 **Role:** Homeowner without a household. **Tags:** Step 1 · Provisional — SA-001 Draft
 - **Action:** Call `checkInvite` with HH-A's valid code; inspect the full response.
 - **Expected:** Contains the lot label and owner name (and whatever id the redeem needs); no email, mobile, balance, member names, other invitations or the expiry settings.
 - **Don't assert:** response field names.
 
 #### TC-04-C9: The confirm screen shows the lot and the owner on file, nothing else
-**Priority** P2 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** UI/UX · **Layer** UI · **Writes** No
 **Role:** Homeowner without a household. **Tags:** Step 1
 - **Action:** Open the confirm screen for HH-A.
 - **Expected:** Lot "Blk 2 Lot 7" and "Owner on file ZZ Ana Reyes" (4C); no balance, contact, people or history.
 - **Don't assert:** card styling.
 
 #### TC-04-C10: "No, this isn't my lot" ends the join flow with the contact-office message
-**Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Negative · **Layer** UI · **Writes** No
 **Role:** Homeowner without a household (U-STRANGER). **Tags:** Step 1
 - **Action:** On the HH-A confirm screen press "No, this isn't my lot".
 - **Expected:** "Please contact the admin office to get the right invitation."; U-STRANGER is not linked and still sees only the not-linked menu.
 - **Don't assert:** what the next screen is beyond the message (G-30).
 
 #### TC-04-C11: After "No, this isn't my lot" the code is still unused and works for the right person
-**Priority** P2 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Integration · **Layer** UI · **Writes** Yes
 **Role:** U-STRANGER then U-ANA. **Tags:** Step 1
 - **Action:** After C10, staff open HH-A; U-ANA enters the same code and confirms.
 - **Expected:** HH-A still "Invited · expires {date}" before U-ANA redeems; U-ANA is linked; U-STRANGER's attempt did not count towards her guess limit.
 - **Don't assert:** —
 
 #### TC-04-C12: A code that doesn't exist shows the "doesn't match" message
-**Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** Yes (attempt counter)
+**Priority** P1 · **Type** Negative · **Layer** UI · **Writes** Yes (attempt counter)
 **Role:** Homeowner without a household. **Tags:** Step 1
 - **Action:** Enter a well-formed code that no invitation has, e.g. `ZZZZ-2222`.
 - **Expected:** "That code doesn't match an invitation. Check it, or ask the admin office for a new one." under the field; no confirm screen.
 - **Don't assert:** —
 
 #### TC-04-C13: Submitting an empty code field does not call the server
-**Priority** P3 · **Type** Negative · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Negative · **Layer** Unit · **Writes** No
 **Role:** Homeowner without a household. **Tags:** Step 1 · Gap G-22
 - **Action:** Press the submit button with the field empty.
 - **Expected:** No `checkInvite` call; a field message (copy not defined, G-22); the attempt counter is unchanged.
 - **Don't assert:** message wording.
 
 #### TC-04-C14: A malformed code (wrong length or letters O, I, 0, 1) is refused clearly
-**Priority** P3 · **Type** Negative · **Layer** TBD — QE · **Writes** Maybe
+**Priority** P3 · **Type** Negative · **Layer** Unit · **Writes** Maybe
 **Role:** Homeowner without a household. **Tags:** Step 1 · Gap G-22
 - **Action:** Enter `K7QX-M9T` (7), `K7QX-M9TAA` (9), `K7QX-M9T0` (zero).
 - **Expected:** Refused without linking. Whether this shows "doesn't match" and counts towards the limit, or a local format message that doesn't, is G-22.
 - **Don't assert:** the message or the counter until G-22 is answered.
 
 #### TC-04-C15: The confirm screen shows the owner name on file at the time of the check
-**Priority** P2 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Integration · **Layer** API · **Writes** Yes
 **Role:** Admin office staff, then homeowner without a household. **Tags:** Step 1
 - **Setup:** Print a slip for HH-A; then staff change HH-A's owner name to "ZZ Ana Reyes-Santos" (REQ-003 edit).
 - **Action:** Enter the slip's code.
@@ -487,14 +505,14 @@ What else could break, and why:
 All D cases: **Staging note:** controllable server clock; fresh account per case.
 
 #### TC-04-D1: The 5th wrong code in 15 minutes is still checked and shows "doesn't match"
-**Priority** P1 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Boundary · **Layer** Unit · **Writes** Yes
 **Role:** Homeowner without a household (U-STRANGER). **Tags:** Step 1
 - **Action:** Enter five different non-existent codes starting 10:00:00 Manila.
 - **Expected:** Each of the five shows "That code doesn't match an invitation…".
 - **Don't assert:** response time.
 
 #### TC-04-D2: The 6th attempt in the window shows "Too many wrong codes. Try again in 15 minutes."
-**Priority** P1 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Boundary · **Layer** Unit · **Writes** Yes
 **Role:** U-STRANGER. **Tags:** Step 1
 - **Setup:** D1 done (5 refused from 10:00:00).
 - **Action:** Enter a 6th non-existent code at 10:05.
@@ -502,7 +520,7 @@ All D cases: **Staging note:** controllable server clock; fresh account per case
 - **Don't assert:** —
 
 #### TC-04-D3: A right code entered while locked is not checked and reveals nothing
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security · **Layer** API · **Writes** No
 **Role:** U-STRANGER (locked). **Tags:** Step 1 · Provisional — SA-001 Draft
 - **Setup:** Locked as in D2; HH-A has an active code.
 - **Action:** Enter HH-A's valid code; inspect the response.
@@ -510,7 +528,7 @@ All D cases: **Staging note:** controllable server clock; fresh account per case
 - **Don't assert:** —
 
 #### TC-04-D4: 14:59 after the first refused code the account is still locked
-**Priority** P1 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Boundary · **Layer** Unit · **Writes** No
 **Role:** U-STRANGER. **Tags:** Step 1
 - **Setup:** First refusal 10:00:00, fifth at 10:04.
 - **Action:** At 10:14:59 enter HH-A's valid code.
@@ -518,7 +536,7 @@ All D cases: **Staging note:** controllable server clock; fresh account per case
 - **Don't assert:** —
 
 #### TC-04-D5: 15 minutes after the first refused code the account can try again
-**Priority** P1 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Boundary · **Layer** Unit · **Writes** Yes
 **Role:** U-STRANGER. **Tags:** Step 1
 - **Setup:** As D4.
 - **Action:** At 10:15:00 enter HH-A's valid code.
@@ -526,7 +544,7 @@ All D cases: **Staging note:** controllable server clock; fresh account per case
 - **Don't assert:** —
 
 #### TC-04-D6: Attempts refused while locked don't extend the lock
-**Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Boundary · **Layer** Unit · **Writes** Yes
 **Role:** U-STRANGER. **Tags:** Step 1 · Gap G-23 (confirm)
 - **Setup:** Locked from 10:00:00; three more attempts at 10:06, 10:10, 10:14.
 - **Action:** At 10:15:00 enter a valid code.
@@ -534,7 +552,7 @@ All D cases: **Staging note:** controllable server clock; fresh account per case
 - **Don't assert:** —
 
 #### TC-04-D7: Expired codes don't count towards the limit
-**Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Negative · **Layer** Unit · **Writes** Yes
 **Role:** U-STRANGER. **Tags:** Step 1
 - **Setup:** Five expired fixture codes; one valid HH-A code.
 - **Action:** Enter the five expired codes, then the valid one, within 5 minutes.
@@ -542,63 +560,63 @@ All D cases: **Staging note:** controllable server clock; fresh account per case
 - **Don't assert:** —
 
 #### TC-04-D8: Already-used codes don't count towards the limit
-**Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Negative · **Layer** Unit · **Writes** Yes
 **Role:** U-STRANGER. **Tags:** Step 1
 - **Action:** Enter five codes used by other accounts, then a valid code.
 - **Expected:** Five "already used" messages, then the confirm screen.
 - **Don't assert:** —
 
 #### TC-04-D9: Replaced, cancelled, deactivated-household and already-linked refusals don't count
-**Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Negative · **Layer** Unit · **Writes** Yes
 **Role:** U-STRANGER for the first three; U-JUAN for the already-linked refusal. **Tags:** Step 1
 - **Action:** Enter at least five codes made of these refusal kinds, then a valid code.
 - **Expected:** Each kind shows its own message; the valid code then opens the confirm screen (U-JUAN: the already-linked message, not "Too many").
 - **Don't assert:** —
 
 #### TC-04-D10: Non-counting refusals in between don't reset or skip the count
-**Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Boundary · **Layer** Unit · **Writes** Yes
 **Role:** U-STRANGER. **Tags:** Step 1
 - **Action:** 4 wrong, 1 expired, 1 wrong (the 5th wrong), then a valid code, all within 10 minutes.
 - **Expected:** The 5th wrong shows "doesn't match"; the next attempt shows "Too many wrong codes…".
 - **Don't assert:** —
 
 #### TC-04-D11: Another account is not locked when one account is
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security · **Layer** API · **Writes** Yes
 **Role:** U-STRANGER (locked) and U-STRANGER-2. **Tags:** Step 1
 - **Action:** While U-STRANGER is locked, U-STRANGER-2 enters HH-A's valid code.
 - **Expected:** U-STRANGER-2 sees the confirm screen.
 - **Don't assert:** —
 
 #### TC-04-D12: The lock follows the account across sign-out and a second device
-**Priority** P2 · **Type** Security · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Security · **Layer** API · **Writes** No
 **Role:** U-STRANGER (locked). **Tags:** Step 1 · Staging note: two sessions
 - **Action:** Sign out and back in; and sign in on a second browser context; enter a valid code in each.
 - **Expected:** "Too many wrong codes…" in both.
 - **Don't assert:** —
 
 #### TC-04-D13: Wrong codes sent straight to redeemInvite count and lock the same way
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security · **Layer** API · **Writes** Yes
 **Role:** U-STRANGER with a scripted client. **Tags:** Provisional — SA-001 Draft
 - **Action:** Call `redeemInvite` directly with 5 non-existent codes, then `checkInvite` and `redeemInvite` with a valid code.
 - **Expected:** The 6th call of either function is refused as too many; no membership is created; the valid invitation stays active.
 - **Don't assert:** error code names.
 
 #### TC-04-D14: Wrong codes spread over more than 15 minutes don't lock
-**Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Boundary · **Layer** Unit · **Writes** Yes
 **Role:** U-STRANGER. **Tags:** Step 1 · Provisional — SA-001 Draft (fixed window from first failure)
 - **Action:** Wrong codes at 10:00, 10:04, 10:08, 10:12, then 10:16, then a valid code at 10:17.
 - **Expected:** The 10:16 entry shows "doesn't match" (a new window); the valid code opens the confirm screen.
 - **Don't assert:** —
 
 #### TC-04-D15: Whether a successful link resets the wrong-code count
-**Priority** P3 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Boundary · **Layer** Unit · **Writes** Yes
 **Role:** U-STRANGER. **Tags:** Gap G-23
 - **Action:** 4 wrong, then redeem a valid code; then (as a now-linked account) any further code.
 - **Expected:** Pending G-23. Whatever the rule, a linked account entering another lot's code sees the already-linked message, not a lock caused by earlier failures, unless the BA decides otherwise.
 - **Don't assert:** until G-23 is answered.
 
 #### TC-04-D16: A spike of wrong codes across the project raises the alert
-**Priority** P3 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Security · **Layer** Manual (staging) · **Writes** Yes
 **Lane:** exclusive — asserts the project-wide wrong-code count and alert
 **Role:** 11 no-household accounts. **Tags:** Provisional — SA-001 Draft (observability, staging only)
 - **Action:** 51 wrong codes within an hour across accounts.
@@ -606,7 +624,7 @@ All D cases: **Staging note:** controllable server clock; fresh account per case
 - **Don't assert:** alert channel or exact threshold if Sol Arch changes it.
 
 #### TC-04-D17: Pressing "No, this isn't my lot" doesn't count as a wrong code
-**Priority** P3 · **Type** Negative · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Negative · **Layer** UI · **Writes** No
 **Role:** U-STRANGER. **Tags:** Step 1
 - **Action:** Open the confirm screen and press "No" six times with valid codes; then enter a valid code.
 - **Expected:** Confirm screen, never "Too many".
@@ -617,7 +635,7 @@ All D cases: **Staging note:** controllable server clock; fresh account per case
 All E cases: **Staging note:** controllable server clock; build dates from local Manila today.
 
 #### TC-04-E1: An emailed invitation made Nov 28 shows "Invited · expires Dec 5, 2026"
-**Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Happy path · **Layer** UI · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 2
 - **Setup:** Defaults (7 email / 30 print); today Nov 28, 2026 Manila.
 - **Action:** Press "Invite" on HH-A.
@@ -625,14 +643,14 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** pill colour.
 
 #### TC-04-E2: A slip printed Nov 28 expires Dec 28, 2026
-**Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Happy path · **Layer** UI · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 1
 - **Action:** Print a slip for HH-C on Nov 28, 2026.
 - **Expected:** The slip reads "Expires Dec 28, 2026"; HH-C shows "Invited · expires Dec 28, 2026".
 - **Don't assert:** —
 
 #### TC-04-E3: A code is still accepted at 23:59:59 Manila on its expiry date
-**Priority** P1 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Boundary · **Layer** Unit · **Writes** No
 **Role:** Homeowner without a household. **Tags:** Step 1
 - **Setup:** HH-A invitation expiring Dec 5, 2026.
 - **Action:** At Dec 5, 2026 23:59:59 Manila (15:59:59 UTC) enter the code.
@@ -640,7 +658,7 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** —
 
 #### TC-04-E4: At 00:00:00 Manila the next day the code is refused as expired
-**Priority** P1 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Boundary · **Layer** Unit · **Writes** No
 **Role:** Homeowner without a household. **Tags:** Step 1
 - **Setup:** As E3.
 - **Action:** At Dec 6, 2026 00:00:00 Manila (Dec 5, 16:00:00 UTC, still "Dec 5" in UTC) enter the code.
@@ -648,14 +666,14 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** —
 
 #### TC-04-E5: An invitation made just after Manila midnight takes its date from Manila, not UTC
-**Priority** P1 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Boundary · **Layer** Unit · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 1 and 2
 - **Action:** At Nov 29, 2026 00:30 Manila (Nov 28, 16:30 UTC) print a slip and send an email invite.
 - **Expected:** Email invite "expires Dec 6, 2026"; slip "Expires Dec 29, 2026" (not Dec 5 / Dec 28).
 - **Don't assert:** —
 
 #### TC-04-E6: The directory shows "Invite expired" once the date has passed, with no staff action
-**Priority** P1 · **Type** Integration · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Integration · **Layer** Unit · **Writes** No
 **Role:** Admin office staff. **Tags:** Step 1 · Gap G-3
 - **Setup:** HH-A invitation expiring Dec 5, 2026.
 - **Action:** At Dec 6, 2026 00:00:01 Manila open the directory and HH-A's detail.
@@ -663,21 +681,21 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** whether a job or the reader derives it (G-3); how long after midnight it may take until G-3 is answered.
 
 #### TC-04-E7: An invitation spanning the year end shows the new year
-**Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Boundary · **Layer** Unit · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 1 and 2
 - **Action:** On Dec 25, 2026 send an email invite; on Dec 2, 2026 print a slip.
 - **Expected:** Both expire "Jan 1, 2027"; the code works at Jan 1, 2027 23:59:59 Manila.
 - **Don't assert:** —
 
 #### TC-04-E8: An invitation ending on a leap day shows Feb 29
-**Priority** P3 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Boundary · **Layer** Unit · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 1
 - **Action:** Print a slip on Jan 30, 2028.
 - **Expected:** "Expires Feb 29, 2028".
 - **Don't assert:** —
 
 #### TC-04-E9: A device clock set back does not make an expired code work
-**Priority** P2 · **Type** Security · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Security · **Layer** UI · **Writes** No
 **Role:** Homeowner without a household. **Tags:** Step 1
 - **Setup:** HH-A code expired (server time Dec 6, 2026).
 - **Action:** Set the browser clock to Dec 1, 2026 and enter the code.
@@ -685,21 +703,21 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** —
 
 #### TC-04-E10: The same expiry date appears everywhere it is shown
-**Priority** P2 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Integration · **Layer** UI · **Writes** Yes
 **Role:** Admin office staff; homeowner reads the email. **Tags:** Step 2 (email), Step 1 (slip)
 - **Action:** Invite HH-A by email and print a slip for HH-C; compare the email body, directory pill, 4E, 4F "Expire on" and the slip.
 - **Expected:** Each place shows the same date for the same invitation, formatted "Dec 5, 2026".
 - **Don't assert:** time-of-day wording (G-8).
 
 #### TC-04-E11: A changed expiry setting applies to invitations made after the change
-**Priority** P2 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Integration · **Layer** API · **Writes** Yes
 **Role:** Treasurer changes the setting; admin office staff invite. **Tags:** Step 2 · Provisional — SA-001 Draft · Gap G-7
 - **Action:** Treasurer sets email expiry to 14 days on Nov 28, 2026; admin invites HH-A.
 - **Expected:** HH-A "Invited · expires Dec 12, 2026".
 - **Don't assert:** the settings screen layout (not in the mock-up).
 
 #### TC-04-E12: Invitations made before a settings change keep their original expiry
-**Priority** P2 · **Type** Back-compat · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Back-compat · **Layer** API · **Writes** Yes
 **Role:** Treasurer; admin office staff. **Tags:** Gap G-7
 - **Setup:** HH-E invited Nov 28 with 7 days (Dec 5).
 - **Action:** Treasurer changes email expiry to 14 days.
@@ -707,7 +725,7 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** until G-7 is answered.
 
 #### TC-04-E13: With no expiry setting stored, the defaults 7 and 30 days apply
-**Priority** P2 · **Type** Boundary (zero vs not set) · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Boundary (zero vs not set) · **Layer** Unit · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Provisional — SA-001 Draft · Staging note: settings document absent
 - **Setup:** `config/settings.inviteExpiryDays` absent.
 - **Action:** Invite by email and print a slip on Nov 28, 2026.
@@ -715,21 +733,21 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** —
 
 #### TC-04-E14: Expiry settings outside a sensible range are refused
-**Priority** P3 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Boundary · **Layer** Unit · **Writes** Yes
 **Role:** Treasurer. **Tags:** Gap G-7 · Blocked until the BA sets limits
 - **Action:** Try 0, 1, a negative number and a very large number of days.
 - **Expected:** Pending G-7 (min, max, and whether 0 means "end of today").
 - **Don't assert:** anything until G-7 is answered.
 
 #### TC-04-E15: Only the treasurer can change invitation expiry
-**Priority** P2 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Security · **Layer** API · **Writes** Yes
 **Role:** Admin office staff, board, guard, homeowner. **Tags:** Provisional — SA-001 Draft · Gap G-7
 - **Action:** Each tries to write the expiry settings.
 - **Expected:** Refused explicitly for each (admin office: pending G-7, since REQ-002 gives admins non-financial Settings). The stored value is unchanged.
 - **Don't assert:** "nothing visibly changed" as proof; assert the refusal.
 
 #### TC-04-E16: A confirm screen left open past midnight on the expiry day refuses the link
-**Priority** P2 · **Type** Concurrency (stale reference) · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Concurrency (stale reference) · **Layer** API · **Writes** No
 **Role:** Homeowner without a household. **Tags:** Step 1
 - **Setup:** HH-A expiring Dec 5; confirm screen opened at 23:59:30 Manila.
 - **Action:** Press "Yes, link my account" at Dec 6 00:00:05 Manila.
@@ -739,7 +757,7 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 ## F. Single use and redeem concurrency
 
 #### TC-04-F1: A code someone else used is refused as already used
-**Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Negative · **Layer** API · **Writes** No
 **Role:** Homeowner without a household (U-STRANGER). **Tags:** Step 1
 - **Setup:** U-ANA linked with HH-A's code.
 - **Action:** U-STRANGER enters it.
@@ -747,63 +765,63 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** —
 
 #### TC-04-F2: That refusal creates no membership and leaves the first member linked
-**Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Data integrity · **Layer** API · **Writes** No
 **Role:** U-STRANGER; QE reads. **Tags:** Step 1
 - **Action:** After F1, read HH-A's members and U-STRANGER's memberships.
 - **Expected:** HH-A has only U-ANA; U-STRANGER has none; `memberCount` 1.
 - **Don't assert:** —
 
 #### TC-04-F3: The person who used a code enters it again and lands on the dashboard
-**Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Happy path · **Layer** UI · **Writes** No
 **Role:** Homeowner (U-ANA, linked). **Tags:** Step 1
 - **Action:** U-ANA enters her used code again (code entry or `/join#code`).
 - **Expected:** She lands on HH-A's dashboard; no error.
 - **Don't assert:** —
 
 #### TC-04-F4: Re-entering one's own code creates no second membership and no extra audit entry
-**Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Data integrity · **Layer** API · **Writes** No
 **Role:** U-ANA; QE reads. **Tags:** Provisional — SA-001 Draft
 - **Action:** After F3, read members and audit.
 - **Expected:** One membership; `memberCount` 1; still one `invite.redeemed` entry; `usedAt` unchanged.
 - **Don't assert:** —
 
 #### TC-04-F5: "Yes, link my account" is disabled while the link is in flight
-**Priority** P1 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Concurrency · **Layer** Unit · **Writes** Yes
 **Role:** Homeowner without a household. **Tags:** Step 1
 - **Action:** Press "Yes, link my account" and press it again at once (double tap).
 - **Expected:** The button is disabled after the first press until the result; she lands on the dashboard once.
 - **Don't assert:** spinner design.
 
 #### TC-04-F6: Two rapid redeem calls from the same account make one membership
-**Priority** P1 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Concurrency · **Layer** API · **Writes** Yes
 **Role:** Homeowner without a household, scripted. **Tags:** Provisional — SA-001 Draft
 - **Action:** Send two `redeemInvite` calls with the same code from the same account at once.
 - **Expected:** Both succeed or the second returns "already yours"; exactly one membership; `memberCount` 1.
 - **Don't assert:** which call wins.
 
 #### TC-04-F7: The same account redeeming on two devices at once ends up linked once
-**Priority** P2 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Concurrency · **Layer** API · **Writes** Yes
 **Role:** U-ANA on two browser contexts. **Tags:** Step 1 · Staging note: two sessions
 - **Action:** Both press "Yes, link my account" together.
 - **Expected:** Both land on HH-A's dashboard; one membership.
 - **Don't assert:** —
 
 #### TC-04-F8: Two people submitting the same unused code at once: exactly one is linked
-**Priority** P1 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Concurrency · **Layer** API · **Writes** Yes
 **Role:** U-ANA and U-STRANGER. **Tags:** Step 1 · Staging note: two sessions
 - **Action:** Both press "Yes, link my account" for HH-A's code at the same moment.
 - **Expected:** One lands on the dashboard; the other sees "This invitation was already used. Ask the admin office for a new one."
 - **Don't assert:** which one wins.
 
 #### TC-04-F9: Ten parallel redeems of one code create exactly one membership
-**Priority** P1 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Concurrency · **Layer** API · **Writes** Yes
 **Role:** U-RACE-01 … 10, scripted. **Tags:** Provisional — SA-001 Draft
 - **Action:** 10 parallel `redeemInvite` calls with HH-A's code.
 - **Expected:** 1 success, 9 "already used"; one membership; `memberCount` 1; invitation `used` by the winner; one `invite.redeemed` entry.
 - **Don't assert:** which account wins.
 
 #### TC-04-F10: Negative control: ten parallel redeems of ten different codes all succeed
-**Priority** P2 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Concurrency · **Layer** API · **Writes** Yes
 **Role:** U-RACE-01 … 10. **Tags:** Provisional — SA-001 Draft (CS-8)
 - **Setup:** 10 bulk fixture households, one code each.
 - **Action:** 10 parallel redeems, one code per account.
@@ -811,7 +829,7 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** timing.
 
 #### TC-04-F11: The person who used a code re-enters it after its expiry date
-**Priority** P3 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Boundary · **Layer** API · **Writes** No
 **Role:** U-ANA (linked). **Tags:** Gap G-31
 - **Action:** After the used invitation's expiry passes, U-ANA enters the code.
 - **Expected (pending G-31):** She lands on the dashboard (she is a member), rather than seeing "expired".
@@ -822,26 +840,26 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 **Mail rule for every G case:** assert the `mail` queue document (recipient, subject, status), never a delivered inbox. Tests must not send real mail: the emulator uses a stub provider; staging relies on the allow-list (ADR-005, SA-001 §10). All fixture addresses use `.test`.
 
 #### TC-04-G1: "Invite" queues one email to the contact address with the subject of record
-**Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Happy path · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 2 · Provisional — SA-001 Draft
 - **Action:** Press "Invite" on HH-A (Greenfield brand; repeat on Gentri Heights).
 - **Expected:** One `mail` document: to zz.owner.a@example.test, subject "Your invitation to the Greenfield Homes HOA portal" ("…Gentri Heights HOA portal" on that brand), status `queued`. One active email invitation with `sentTo` = that address. One `invite.created` audit entry.
 - **Don't assert:** that anything was delivered.
 
 #### TC-04-G2: The email subject carries no lot or person's name
-**Priority** P3 · **Type** Security · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Security · **Layer** Unit · **Writes** No
 **Role:** QE reads the mail document. **Tags:** Step 2 (SA-001 §8.2)
 - **Expected:** The subject is exactly the copy of record; no lot, name or code.
 - **Don't assert:** —
 
 #### TC-04-G3: The email body follows the copy of record
-**Priority** P2 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** UI/UX · **Layer** Unit · **Writes** No
 **Role:** QE reads the queued body. **Tags:** Step 2 · Gap G-8, G-20
 - **Expected:** "Hi ZZ Ana Reyes, the Greenfield Homes HOA admin office has invited you to the resident portal for Blk 2 Lot 7. Press the button to join. This invitation expires on Dec 5, 2026." Button "Join the portal". "If the button doesn't work, sign in at {portal address} and enter this code: {code}".
 - **Don't assert:** the extra 4A footer line until G-20 is answered; HTML structure.
 
 #### TC-04-G4: Resend queues a new email to the same address
-**Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Happy path · **Layer** UI · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 2
 - **Setup:** HH-A has an unused email invitation.
 - **Action:** Press "Resend invitation".
@@ -849,21 +867,21 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** —
 
 #### TC-04-G5: Resend leaves exactly one active invitation, marking the old one replaced
-**Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Data integrity · **Layer** API · **Writes** Yes
 **Role:** Admin office staff; QE reads. **Tags:** Step 2 · Provisional — SA-001 Draft
 - **Action:** After G4, read HH-A's invitations.
 - **Expected:** Old `replaced` with `replacedBy` = new; new `active`; one `invite.replaced` audit entry.
 - **Don't assert:** —
 
 #### TC-04-G6: The old code after a resend shows the "replaced" message
-**Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Negative · **Layer** API · **Writes** No
 **Role:** Homeowner without a household. **Tags:** Step 2
 - **Action:** Enter the code from the first email.
 - **Expected:** "This invitation was replaced by a newer one. Use the newest invitation, or ask the admin office."; not counted towards the limit; the new code works.
 - **Don't assert:** —
 
 #### TC-04-G7: Resending an expired invitation gives a working new code
-**Priority** P2 · **Type** Happy path · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Happy path · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 2
 - **Setup:** HH-A "Invite expired".
 - **Action:** Press Resend (labelled "Resend" in mock-up 3A, G-20).
@@ -871,7 +889,7 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** which message the old code gives (G-24).
 
 #### TC-04-G8: No screen says an invitation was sent or delivered while it is only queued
-**Priority** P1 · **Type** UI/UX (copy promises) · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** UI/UX (copy promises) · **Layer** UI · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 2 · Gap G-14
 - **Setup:** Stub provider paused, so mail stays `queued`.
 - **Action:** Invite HH-A; read every toast, pill and 4E row.
@@ -879,7 +897,7 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** the exact queued wording (G-14).
 
 #### TC-04-G9: An email the provider refuses at hand-off shows "Email failed" with Resend and Print slip
-**Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Negative · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 2 · Provisional — SA-001 Draft
 - **Setup:** Stub provider refuses zz.owner.a@example.test.
 - **Action:** Invite HH-A; let the mail function run; reload the directory and 4E.
@@ -887,21 +905,21 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** the provider's reason.
 
 #### TC-04-G10: Resend from "Email failed" queues a new email and shows Invited
-**Priority** P2 · **Type** Happy path · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Happy path · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 2
 - **Action:** From G9, fix nothing and press Resend with the stub now accepting.
 - **Expected:** New mail queued then sent; pill "Invited · expires {date}"; one active invitation.
 - **Don't assert:** —
 
 #### TC-04-G11: "Print slip" from "Email failed" makes a print code and the email code stops working
-**Priority** P2 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Integration · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 1 and 2
 - **Action:** From G9, press "Print slip" and confirm.
 - **Expected:** One-slip PDF; pill "Invited · expires {today + 30}"; the email invitation's code (known from the queued mail before clearing, captured by the test) is refused as replaced.
 - **Don't assert:** —
 
 #### TC-04-G12: A bounce reported later shows "Email failed" with Resend and Print slip
-**Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Negative · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 2 · Decision 3 (approved for step 2) · Provisional — SA-001 Draft · Blocked until the provider is chosen
 - **Setup:** HH-E invited to zz.owner.e@exmaple.test; mail `sent`.
 - **Action:** Deliver a simulated provider bounce event for that message.
@@ -909,7 +927,7 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** the provider's event format (assumed, not known until the provider is chosen).
 
 #### TC-04-G13: A bounce for a replaced invitation doesn't mark a household with a newer invitation as failed
-**Priority** P2 · **Type** Concurrency (stale reference) · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Concurrency (stale reference) · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 2 · Provisional — SA-001 Draft
 - **Setup:** HH-A invited, then resent; the new mail is `sent`.
 - **Action:** Deliver a bounce event for the first (replaced) mail.
@@ -917,14 +935,14 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** whether the old mail document is updated.
 
 #### TC-04-G14: A late or repeated bounce never unlinks a member or duplicates state
-**Priority** P3 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Data integrity · **Layer** API · **Writes** Yes
 **Role:** Homeowner linked; provider events. **Tags:** Step 2 · Provisional — SA-001 Draft
 - **Setup:** U-ANA linked via the email invite; later a bounce event arrives, twice.
 - **Expected:** Membership kept; pill stays "Linked · 1 person"; at most one failure recorded.
 - **Don't assert:** —
 
 #### TC-04-G15: A recipient outside the staging allow-list is never handed to the provider
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security · **Layer** API (staging) · **Writes** Yes
 **Role:** Admin office staff on `hoa-portal-staging`. **Tags:** Step 2 · Provisional — SA-001 Draft (ADR-005) · Staging only
 - **Setup:** A fixture household whose contact email is a `.test` address not on the allow-list.
 - **Action:** Invite it.
@@ -932,14 +950,14 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** whether it shows as `failed` or a separate blocked state (not specified).
 
 #### TC-04-G16: A household with no email offers "Print slip", and an email invite for it is refused
-**Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Negative · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 2 · Provisional — SA-001 Draft
 - **Action:** Open HH-C's row; then call `createInvites` with channel email for HH-C.
 - **Expected:** Row offers "Print slip", not "Invite"; the call creates no invitation and no mail.
 - **Don't assert:** —
 
 #### TC-04-G17: Resending while the earlier email is still queued
-**Priority** P3 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Concurrency · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 2 · Gap G-15
 - **Setup:** Stub provider paused (pacing); HH-A's first mail `queued`.
 - **Action:** Resend; resume the provider.
@@ -947,7 +965,7 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** until answered.
 
 #### TC-04-G18: After the contact email is corrected, Resend goes to the new address and the old code stops working
-**Priority** P2 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Integration · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 2 · Gap G-16
 - **Setup:** HH-E "Email failed" to the typo address; staff correct it to zz.owner.e@example.test (REQ-003 edit).
 - **Action:** Press Resend.
@@ -955,7 +973,7 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** until G-16 is answered.
 
 #### TC-04-G19: Before the email provider exists, the email controls are not usable
-**Priority** P3 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** UI/UX · **Layer** UI · **Writes** No
 **Role:** Admin office staff. **Tags:** Step 1 · Gap G-21
 - **Action:** In a step-1 build, open the directory.
 - **Expected (pending G-21):** "Invite", "Invite selected" and "Resend invitation" are hidden or disabled with a reason; printing works.
@@ -964,7 +982,7 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 ## H. Invite many households at once (Step 2)
 
 #### TC-04-H1: Selecting 400 households, 20 without email, shows the bulk confirm of record
-**Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Happy path · **Layer** UI · **Writes** No
 **Role:** Admin office staff. **Tags:** Step 2
 - **Setup:** HH-BULK-001 … 400 "Not invited", 380 with email.
 - **Action:** Select all 400; press "Invite selected".
@@ -972,34 +990,34 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** dialog layout.
 
 #### TC-04-H2: After confirming, the button reads "Queuing…" and is disabled until all are queued
-**Priority** P1 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Concurrency · **Layer** Unit · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 2
 - **Action:** Confirm; press the button again during the run.
 - **Expected:** "Queuing…", disabled, until the run ends; the second press does nothing.
 - **Don't assert:** how long it takes.
 
 #### TC-04-H3: When done, "380 invitations queued. Each household shows its email status."
-**Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Happy path · **Layer** UI · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 2
 - **Expected:** That message exactly.
 - **Don't assert:** toast duration.
 
 #### TC-04-H4: Exactly 380 emails are queued and the 20 without email are untouched
-**Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Data integrity · **Layer** API · **Writes** No
 **Role:** QE reads. **Tags:** Step 2 · Provisional — SA-001 Draft
 - **Action:** Count `mail` documents and active invitations for the 400 fixture households.
 - **Expected:** 380 queued mails, one per emailed household, each to that household's address; 380 active email invitations; the 20 remain "Not invited" with no invitation.
 - **Don't assert:** totals outside the fixture set.
 
 #### TC-04-H5: Pressing "Invite selected" again skips households with an unused invitation
-**Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Negative · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 2
 - **Action:** After H3, select the same 400 and press "Invite selected" again.
 - **Expected:** No new mail and no replaced invitation for the 380; the codes from the first run still open the confirm screen.
 - **Don't assert:** the exact count shown in the second confirm (G-13).
 
 #### TC-04-H6: The counts in the confirm and done messages equal what is actually queued
-**Priority** P2 · **Type** UI/UX (copy promises) · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** UI/UX (copy promises) · **Layer** UI · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 2 · Gap G-13
 - **Setup:** Of 50 selected, 10 already have an unused invitation, 5 have no email.
 - **Action:** Invite selected, confirm.
@@ -1007,7 +1025,7 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** until answered.
 
 #### TC-04-H7: Linked households in a bulk selection are not invited again
-**Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Negative · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 2 · Gap G-12
 - **Setup:** Selection includes HH-B (Linked · 1 person, its invite used).
 - **Action:** Invite selected, confirm.
@@ -1015,21 +1033,21 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** until answered.
 
 #### TC-04-H8: The bulk confirm reads correctly at m = 0, n = 1 and n = 0
-**Priority** P3 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Boundary · **Layer** Unit · **Writes** No
 **Role:** Admin office staff. **Tags:** Step 2 · Gap G-13
 - **Action:** Select (a) 10 with email only, (b) one with email, (c) only households without email.
 - **Expected (pending G-13):** No "0 households have no email" sentence; singular for one; for n = 0 a route to printing rather than "Send 0 invitations".
 - **Don't assert:** wording until answered.
 
 #### TC-04-H9: Cancelling the bulk confirm queues nothing
-**Priority** P2 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Navigation · **Layer** UI · **Writes** No
 **Role:** Admin office staff. **Tags:** Step 2
 - **Action:** Open the confirm; press "Cancel"; also try a backdrop click and Escape.
 - **Expected:** No mail, no invitation; selection kept.
 - **Don't assert:** whether backdrop closes the dialog.
 
 #### TC-04-H10: After a bulk run, each household shows its email status
-**Priority** P2 · **Type** UI/UX (copy promises) · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** UI/UX (copy promises) · **Layer** UI · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 2 · Gap G-14
 - **Setup:** Stub provider accepts 370, refuses 10.
 - **Action:** After the run, open the directory filtered to the fixture set.
@@ -1037,14 +1055,14 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** the word for queued vs sent (G-14).
 
 #### TC-04-H11: A bulk run interrupted and retried makes no duplicates
-**Priority** P2 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Concurrency · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 2 · Assumption: the network drop happens client-side after the call is sent; offline behaviour itself is not asserted
 - **Action:** Drop the network during Queuing…; reconnect; press Invite selected again.
 - **Expected:** Each household ends with exactly one active invitation and one queued mail.
 - **Don't assert:** what the screen shows while offline.
 
 #### TC-04-H12: "Print their slips instead" leads to printing for the households without email
-**Priority** P2 · **Type** Navigation · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Navigation · **Layer** UI · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 1 and 2 · Gap G-20 (4F button "Print 20 slips" not in copy of record)
 - **Action:** From H1 choose the print option.
 - **Expected:** The print confirm for exactly the 20 households without email (I1).
@@ -1053,7 +1071,7 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 ## I. Printed slips (Step 1)
 
 #### TC-04-I1: "Print invite slips" for 20 households shows the print confirm of record
-**Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Happy path · **Layer** UI · **Writes** No
 **Role:** Admin office staff. **Tags:** Step 1
 - **Setup:** 20 bulk fixture households with no email.
 - **Action:** Select them; press "Print invite slips".
@@ -1061,20 +1079,20 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** —
 
 #### TC-04-I2: Confirming downloads one PDF with one slip per household
-**Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Happy path · **Layer** UI · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 1
 - **Action:** Confirm.
 - **Expected:** One PDF downloads with 20 slips, one per selected lot, no lot twice.
 - **Don't assert:** file name; slips per page.
 
 #### TC-04-I3: Each slip shows the copy of record: HOA, lot, code, expiry, how to join
-**Priority** P1 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** UI/UX · **Layer** Unit · **Writes** No
 **Role:** Admin office staff. **Tags:** Step 1
 - **Expected:** "{HOA name} resident portal", the lot, "Your invite code: XXXX-XXXX", "Expires {today + 30}", "1. Go to {portal address} 2. Sign in or create an account 3. Enter the code".
 - **Don't assert:** fonts or exact layout.
 
 #### TC-04-I4: Slips show no balance, email or phone number
-**Priority** P1 · **Type** Security (privacy) · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security (privacy) · **Layer** UI · **Writes** No
 **Role:** Admin office staff. **Tags:** Step 1
 - **Setup:** Include a household with a seeded balance, an email and a mobile.
 - **Action:** Extract all PDF text.
@@ -1082,27 +1100,27 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** —
 
 #### TC-04-I5: The PDF shows "Delete this file after printing."
-**Priority** P1 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** UI/UX · **Layer** Unit · **Writes** No
 **Role:** Admin office staff. **Tags:** Step 1
 - **Expected:** The text appears in the PDF (footer).
 - **Don't assert:** on which page only.
 
 #### TC-04-I6: Every printed code links to the lot printed beside it
-**Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Data integrity · **Layer** UI · **Writes** No
 **Role:** Homeowner without a household (checkInvite for each). **Tags:** Step 1
 - **Action:** For each of the 20 slips, check the code.
 - **Expected:** The confirm screen names the same lot as its slip, for all 20 (a mismatch links a family to the wrong lot, R-6).
 - **Don't assert:** —
 
 #### TC-04-I7: Printing again makes the earlier unused print code show "replaced"
-**Priority** P1 · **Type** Negative (copy promises) · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Negative (copy promises) · **Layer** API · **Writes** Yes
 **Role:** Admin office staff; homeowner without a household. **Tags:** Step 1
 - **Action:** Print HH-C twice; enter the first code.
 - **Expected:** "This invitation was replaced by a newer one…"; the second code works.
 - **Don't assert:** —
 
 #### TC-04-I8: Printing a slip for a household with an unused email invitation stops the email code
-**Priority** P2 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Integration · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 1 and 2 · Gap G-4
 - **Setup:** HH-A active email invite (code captured by the test).
 - **Action:** Print a slip for HH-A; enter the email code.
@@ -1110,7 +1128,7 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** until G-4 is answered.
 
 #### TC-04-I9: Printing a slip for a household with a pending second-person invitation
-**Priority** P3 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Integration · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Gap G-4
 - **Setup:** HH-A linked (U-ANA); Carlo invited and unused.
 - **Action:** Print a slip for HH-A.
@@ -1118,14 +1136,14 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** until answered.
 
 #### TC-04-I10: Printing for a linked household doesn't change the member or the used invitation
-**Priority** P2 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Integration · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 1 · Gap G-12
 - **Action:** Print a slip for HH-B.
 - **Expected:** U-JUAN still linked; his invitation still `used`; HH-B pill stays "Linked · 1 person".
 - **Don't assert:** whether printing for a linked household should be offered at all (G-12).
 
 #### TC-04-I11: Cancelling the print confirm keeps the earlier codes working
-**Priority** P1 · **Type** Negative (copy promises) · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Negative (copy promises) · **Layer** UI · **Writes** No
 **Role:** Admin office staff. **Tags:** Step 1
 - **Setup:** HH-C has an active print code.
 - **Action:** Print invite slips → Cancel (and separately: backdrop click, Escape).
@@ -1133,21 +1151,21 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** —
 
 #### TC-04-I12: Pressing Print twice quickly leaves one active print code per household
-**Priority** P2 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Concurrency · **Layer** Unit · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 1 · Gap G-33
 - **Action:** Double-press the print confirm button.
 - **Expected:** One active print invitation per household; if two PDFs result, every code in the stale one is refused as replaced (the office must be able to tell; G-33).
 - **Don't assert:** number of PDFs.
 
 #### TC-04-I13: A printed slip is legible and cut-able
-**Priority** P3 · **Type** Usability · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Usability · **Layer** Manual · **Writes** No
 **Role:** Admin office staff (manual print). **Tags:** Step 1
 - **Action:** Print on A4 and Letter; cut along the dashes.
 - **Expected:** Two slips per page, cut lines between; the code monospaced and large enough to read at arm's length; no slip split across the cut.
 - **Don't assert:** exact point size.
 
 #### TC-04-I14: "Print slip" on a single no-email row downloads a one-slip PDF
-**Priority** P2 · **Type** Happy path · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Happy path · **Layer** UI · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 1
 - **Action:** On HH-C's directory row press "Print slip" and confirm.
 - **Expected:** Print confirm for 1 household; one-slip PDF; HH-C "Invited · expires {today + 30}".
@@ -1156,7 +1174,7 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 ## J. Second person, already linked elsewhere, deactivated, limits
 
 #### TC-04-J1: "Invite another person" with Family gives the second person their own code
-**Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Happy path · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 2 (email) · Provisional — SA-001 Draft
 - **Setup:** U-ANA linked to HH-A.
 - **Action:** On 4E press "Invite another person", enter zz.family.a2@example.test, pick "Family", send.
@@ -1164,81 +1182,81 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** pill precedence beyond "Linked · 1 person" (G-2).
 
 #### TC-04-J2: After the second person redeems, the directory shows "Linked · 2 people"
-**Priority** P1 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Integration · **Layer** API · **Writes** Yes
 **Role:** U-CARLO, then admin office staff. **Tags:** Step 2
 - **Action:** U-CARLO redeems; staff reload the directory and 4E.
 - **Expected:** "Linked · 2 people" on the row and the 4E header.
 - **Don't assert:** row order of people.
 
 #### TC-04-J3: The relation the admin picked is what the household detail shows
-**Priority** P1 · **Type** Integration (round trip) · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Integration (round trip) · **Layer** UI · **Writes** No
 **Role:** Admin office staff. **Tags:** Step 2
 - **Expected:** 4E People lists Carlo as "Family · linked {date}" and Ana as "Owner · linked {date}"; `members.relation` = family.
 - **Don't assert:** the source of the display name (G-18).
 
 #### TC-04-J4: Inviting the same address twice for one household makes one active invitation
-**Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Negative · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 2 · Provisional — SA-001 Draft
 - **Action:** Invite another person with zz.family.a2@example.test twice (second time without "Resend").
 - **Expected:** One active invitation for that slot; one queued mail.
 - **Don't assert:** the message shown on the second try.
 
 #### TC-04-J5: A click outside "Invite another person" keeps what was typed
-**Priority** P2 · **Type** Usability · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Usability · **Layer** UI · **Writes** No
 **Role:** Admin office staff. **Tags:** Step 2 (REQ-003 precedent)
 - **Action:** Type an email and pick a relation; click the backdrop.
 - **Expected:** Dialog stays open with both values; nothing sent.
 - **Don't assert:** Escape behaviour (NAV-06 closes modals; confirm with BA if typed input should be kept).
 
 #### TC-04-J6: The relation picker offers only the R1 relations
-**Priority** P3 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** UI/UX · **Layer** Unit · **Writes** No
 **Role:** Admin office staff. **Tags:** Gap G-17
 - **Expected (pending G-17):** Owner, co-owner and family; no tenant (out of scope, D3).
 - **Don't assert:** order.
 
 #### TC-04-J7: A person linked to another lot sees the already-linked message
-**Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Negative · **Layer** API · **Writes** No
 **Role:** Homeowner U-JUAN (member of HH-B). **Tags:** Step 1 · Decision 4 (approved: refuse in R1)
 - **Action:** Enter HH-A's valid code.
 - **Expected:** "Your account is already linked to Blk 4 Lot 12. Ask the admin office if you need access to another lot."; no confirm screen.
 - **Don't assert:** —
 
 #### TC-04-J8: That refusal leaves the code unused and Juan's single membership unchanged
-**Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Data integrity · **Layer** API · **Writes** No
 **Role:** U-JUAN; QE reads. **Tags:** Step 1
 - **Expected:** HH-A invitation still active; HH-A "Invited"; U-JUAN has only the HH-B membership.
 - **Don't assert:** —
 
 #### TC-04-J9: The already-linked refusal holds when redeemInvite is called directly
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security · **Layer** API · **Writes** Yes
 **Role:** U-JUAN, scripted. **Tags:** Provisional — SA-001 Draft
 - **Action:** Call `redeemInvite` with HH-A's code, skipping `checkInvite`.
 - **Expected:** Refused; no HH-A membership; invitation still active.
 - **Don't assert:** —
 
 #### TC-04-J10: A treasurer who is also a homeowner can't redeem a code for a second lot
-**Priority** P2 · **Type** Security · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Security · **Layer** API · **Writes** No
 **Role:** S-TREAS-HO (member of HH-F). **Tags:** Step 1
 - **Action:** Enter HH-A's valid code.
 - **Expected:** "Your account is already linked to Blk 2 Lot 10…"; the staff role does not bypass it.
 - **Don't assert:** —
 
 #### TC-04-J11: A staff member with no household can link to their own lot and gets the view switch
-**Priority** P3 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Integration · **Layer** API · **Writes** Yes
 **Role:** S-TREAS (no household). **Tags:** Step 1 (REQ-002 regression)
 - **Action:** Redeem a fixture household's code.
 - **Expected:** Linked; the top bar shows "Treasurer" and "My household".
 - **Don't assert:** —
 
 #### TC-04-J12: A member entering another code for their own household
-**Priority** P3 · **Type** Negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Negative · **Layer** API · **Writes** Yes
 **Role:** U-ANA (linked to HH-A). **Tags:** Gap G-19
 - **Action:** Enter Carlo's unused HH-A code.
 - **Expected (pending G-19):** Carlo's code is not consumed; U-ANA stays one member.
 - **Don't assert:** the message until answered.
 
 #### TC-04-J13: A code for a household deactivated after printing shows "no longer valid"
-**Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Negative · **Layer** API · **Writes** No
 **Role:** Homeowner without a household. **Tags:** Step 1
 - **Setup:** Print a slip for HH-D; staff deactivate HH-D (REQ-003).
 - **Action:** Enter the slip's code.
@@ -1246,34 +1264,34 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** —
 
 #### TC-04-J14: Deactivating a household cancels its active invitations
-**Priority** P1 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Integration · **Layer** API · **Writes** Yes
 **Role:** Admin office staff; QE reads. **Tags:** Step 1 · Provisional — SA-001 Draft
 - **Expected:** HH-D's active invitation is `cancelled`; one `invite.cancelled` audit entry; HH-D listed under "Inactive".
 - **Don't assert:** —
 
 #### TC-04-J15: A confirm screen open when the household is deactivated refuses the link
-**Priority** P2 · **Type** Concurrency (stale reference) · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Concurrency (stale reference) · **Layer** API · **Writes** No
 **Role:** Homeowner without a household; admin office staff. **Tags:** Step 1 · Staging note: two sessions
 - **Action:** Homeowner opens HH-D's confirm screen; staff deactivate HH-D; homeowner presses Yes.
 - **Expected:** "This invitation is no longer valid…"; no membership.
 - **Don't assert:** —
 
 #### TC-04-J16: Reactivating a household does not revive its old code
-**Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Negative · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 1 · Gap G-5
 - **Action:** Reactivate HH-D; enter its old code.
 - **Expected:** Still refused; staff can print a new slip.
 - **Don't assert:** HH-D's pill after reactivation (G-9 family).
 
 #### TC-04-J17: A deactivated household can't be invited, resent or printed
-**Priority** P2 · **Type** Negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Negative · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Provisional — SA-001 Draft
 - **Action:** Open HH-D under Inactive; then call `createInvites` for it.
 - **Expected:** No invite controls; the call creates nothing.
 - **Don't assert:** —
 
 #### TC-04-J18: Inviting beyond the people-per-household limit
-**Priority** P3 · **Type** Boundary · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Boundary · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** **Blocked — board** (open question: is there a limit?)
 - **Expected:** Pending the board. If no limit, a 10th person can be invited and the pill reads "Linked · 10 people".
 - **Don't assert:** anything until decided.
@@ -1281,7 +1299,7 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 ## K. Removing a person after a sale
 
 #### TC-04-K1: "Remove" asks the confirm of record
-**Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Happy path · **Layer** UI · **Writes** No
 **Role:** Admin office staff. **Tags:** Step 1 · Gap G-20 (pronoun)
 - **Setup:** U-ANA linked to HH-A.
 - **Action:** On 4E press "Remove" next to ZZ Ana Reyes.
@@ -1289,21 +1307,21 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** "She" vs "They" until G-20 is answered.
 
 #### TC-04-K2: After removal, the removed person's next household read is refused
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security · **Layer** API · **Writes** Yes
 **Role:** Admin office staff removes; U-ANA reads. **Tags:** Step 1
 - **Action:** Confirm Remove; U-ANA's still-open session requests HH-A's household document.
 - **Expected:** Refused at once (no token refresh needed).
 - **Don't assert:** —
 
 #### TC-04-K3: The removed person sees the not-linked screen on her next load
-**Priority** P1 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Navigation · **Layer** UI · **Writes** No
 **Role:** U-ANA. **Tags:** Step 1 · Gap G-26
 - **Action:** Reload or navigate.
 - **Expected:** "Your account isn't linked to a household yet. Enter the invite code from the admin office."; no HH-A data, even briefly.
 - **Don't assert:** how fast an open screen changes without a reload (G-26).
 
 #### TC-04-K4: Removal makes every unused invitation for the lot stop working
-**Priority** P1 · **Type** Negative · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Negative · **Layer** API · **Writes** Yes
 **Role:** Admin office staff; homeowner without a household. **Tags:** Step 1 · Gap G-5
 - **Setup:** HH-A also has Carlo's unused invite and an unused print code.
 - **Action:** Remove U-ANA; enter both codes.
@@ -1311,20 +1329,20 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** message until G-5 is answered.
 
 #### TC-04-K5: The lot's bills, payments and totals stay with the lot
-**Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Data integrity · **Layer** API · **Writes** Yes
 **Role:** Admin office staff; QE reads. **Tags:** Step 1 · Staging note: seeded bill and payment documents for HH-A (no billing in R1 yet)
 - **Action:** Remove U-ANA; read HH-A's totals and every seeded bill and payment.
 - **Expected:** All still carry `householdId` = HH-A; billed, paid and balance unchanged; nothing deleted or moved.
 - **Don't assert:** figures beyond "unchanged".
 
 #### TC-04-K6: The activity log records who removed her and when
-**Priority** P1 · **Type** Integration · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Integration · **Layer** API · **Writes** No
 **Role:** QE reads (treasurer/board screen is backlog story 06). **Tags:** Step 1 · Provisional — SA-001 Draft · Gap G-6
 - **Expected:** One `member.removed` entry with actor = S-ADMIN's uid, household HH-A, target U-ANA's uid, time; ids only.
 - **Don't assert:** a screen until story 06 exists.
 
 #### TC-04-K7: Removal deletes the membership and the pill counts down
-**Priority** P1 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Integration · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 1 · Gap G-9
 - **Setup:** HH-A has Ana and Carlo.
 - **Action:** Remove Ana; then remove Carlo.
@@ -1332,35 +1350,35 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** the last-member pill until G-9 is answered.
 
 #### TC-04-K8: Removing someone already removed says "already removed" and changes nothing
-**Priority** P1 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Concurrency · **Layer** API · **Writes** Yes
 **Role:** S-ADMIN and S-ADMIN-2 (stale 4E). **Tags:** Step 1 · Provisional — SA-001 Draft · Gap G-10
 - **Action:** Both press Remove for U-ANA; the second confirms after the first.
 - **Expected:** The second sees an "already removed" message (copy G-10); `memberCount` decremented once; one `member.removed` entry.
 - **Don't assert:** wording.
 
 #### TC-04-K9: "Remove" is disabled while in flight
-**Priority** P2 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Concurrency · **Layer** Unit · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 1
 - **Action:** Double-press the confirm "Remove".
 - **Expected:** Disabled after the first press; one removal.
 - **Don't assert:** —
 
 #### TC-04-K10: Cancelling the remove confirm keeps the person linked
-**Priority** P2 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Navigation · **Layer** UI · **Writes** No
 **Role:** Admin office staff. **Tags:** Step 1
 - **Action:** Remove → Cancel; also backdrop click and Escape.
 - **Expected:** U-ANA still linked and listed; no audit entry.
 - **Don't assert:** —
 
 #### TC-04-K11: A removed person re-entering her own used code does not regain access
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security · **Layer** API · **Writes** No
 **Role:** U-ANA after removal. **Tags:** Step 1 · Gap G-11
 - **Action:** Enter the code she used to join (code entry and `/join#code`).
 - **Expected:** Refused; no membership created; she stays on the not-linked screen. (The "same person lands on the dashboard" rule must not apply after removal.)
 - **Don't assert:** the message until G-11 is answered.
 
 #### TC-04-K12: The new owner can be invited and linked after the old owner is removed
-**Priority** P1 · **Type** Happy path · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Happy path · **Layer** API · **Writes** Yes
 **Role:** Admin office staff; U-NEW. **Tags:** Step 1
 - **Setup:** Ana removed; staff edit HH-A's owner name to "ZZ New Owner" (REQ-003).
 - **Action:** Print a slip for HH-A; U-NEW redeems.
@@ -1368,21 +1386,21 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** —
 
 #### TC-04-K13: The new owner cannot see the previous owner's contact details
-**Priority** P1 · **Type** Security (privacy) · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security (privacy) · **Layer** API · **Writes** No
 **Role:** U-NEW. **Tags:** Step 1
 - **Action:** Request HH-A's `householdContacts` and inspect every household screen.
 - **Expected:** Read refused; no previous email or mobile on any screen.
 - **Don't assert:** —
 
 #### TC-04-K14: After the office edits the owner name, the new owner's confirm screen shows the new name
-**Priority** P2 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Integration · **Layer** API · **Writes** Yes
 **Role:** U-NEW. **Tags:** Step 1 · Gap G-28
 - **Action:** As K12, before redeeming.
 - **Expected:** "You're joining Blk 2 Lot 7 (ZZ New Owner)…", not the previous owner's name.
 - **Don't assert:** what happens if the office forgets the edit (G-28).
 
 #### TC-04-K15: Removing the owner leaves other members linked
-**Priority** P2 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Integration · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 1 · Gap G-29
 - **Setup:** Ana and Carlo linked.
 - **Action:** Remove Ana only.
@@ -1390,14 +1408,14 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 - **Don't assert:** whether this is the intended sale procedure (G-29).
 
 #### TC-04-K16: Editing the owner name alone doesn't unlink anyone
-**Priority** P2 · **Type** Regression · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Regression · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 1
 - **Action:** Edit HH-A's owner name and contact email (REQ-003).
 - **Expected:** Existing members stay linked; nothing removes the old owner automatically.
 - **Don't assert:** —
 
 #### TC-04-K17: Treasurer can remove a person
-**Priority** P2 · **Type** Security (role) · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Security (role) · **Layer** API · **Writes** Yes
 **Role:** S-TREAS. **Tags:** Step 1
 - **Action:** Remove a linked fixture member.
 - **Expected:** Removed, as for admin office staff.
@@ -1408,39 +1426,39 @@ All E cases: **Staging note:** controllable server clock; build dates from local
 Owner decision 5 is open: decide before the payments REQ (EPIC-003). Sol Arch's options: **Option 1**, members see records from their `linkedAt` date only; **Option 2**, payment screenshots are visible only to the uploader and staff. Bills and payments don't exist in R1, so these cases also wait for the payments REQ. Keep them in the plan so the decision has test cases waiting.
 
 #### TC-04-L1: [Option 1] The new owner sees no receipts or bills dated before they linked
-**Priority** P1 · **Type** Security (privacy) · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security (privacy) · **Layer** API · **Writes** No
 **Role:** U-NEW (HH-A after the sale). **Tags:** Blocked — decision 5 · Blocked — payments REQ
 - **Setup:** Seeded HH-A receipts and bills before U-NEW's `linkedAt`, and one after.
 - **Expected:** Only the later record is visible and readable.
 - **Don't assert:** until decided.
 
 #### TC-04-L2: [Option 1] A record on the link date itself
-**Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Boundary · **Layer** API · **Writes** No
 **Role:** U-NEW. **Tags:** Blocked — decision 5
 - **Setup:** A record the same Manila day as `linkedAt`, minutes before and after.
 - **Expected:** Pending decision 5 (timestamp vs Manila date).
 - **Don't assert:** until decided.
 
 #### TC-04-L3: [Option 2] The new owner can't open the previous owner's payment screenshots
-**Priority** P1 · **Type** Security (privacy) · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security (privacy) · **Layer** API · **Writes** No
 **Role:** U-NEW. **Tags:** Blocked — decision 5 · Blocked — payments REQ
 - **Expected:** Storage read of `proofs/HH-A/…` uploaded by U-ANA refused.
 - **Don't assert:** until decided.
 
 #### TC-04-L4: [Option 2] What the new owner sees of earlier receipts
-**Priority** P2 · **Type** Security (privacy) · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Security (privacy) · **Layer** UI · **Writes** No
 **Role:** U-NEW. **Tags:** Blocked — decision 5
 - **Expected:** Pending decision 5 (receipts visible but the previous owner's name?).
 - **Don't assert:** until decided.
 
 #### TC-04-L5: [Either] The removed owner can't open any of the lot's records, including her own uploads
-**Priority** P2 · **Type** Security · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Security · **Layer** API · **Writes** No
 **Role:** U-ANA after removal. **Tags:** Blocked — payments REQ
 - **Expected:** Every read refused, including a previously opened screenshot URL.
 - **Don't assert:** signed-URL lifetime.
 
 #### TC-04-L6: [Either] Staff still see the lot's full history after a sale
-**Priority** P2 · **Type** Integration · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Integration · **Layer** API · **Writes** No
 **Role:** Admin office staff, treasurer. **Tags:** Blocked — decision 5
 - **Expected:** All HH-A bills, payments and screenshots visible to staff.
 - **Don't assert:** —
@@ -1450,109 +1468,109 @@ Owner decision 5 is open: decide before the payments REQ (EPIC-003). Sol Arch's 
 All M cases assert the refusal explicitly ("nothing changed on screen" is not proof).
 
 #### TC-04-M1: Treasurer can invite, resend and print
-**Priority** P1 · **Type** Security (role) · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security (role) · **Layer** API · **Writes** Yes
 **Role:** S-TREAS. **Tags:** Step 1 and 2
 - **Expected:** Each action works as for admin office staff.
 - **Don't assert:** —
 
 #### TC-04-M2: createInvites is refused for board, guard, homeowner, no-role and signed-out callers
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security · **Layer** API · **Writes** Yes
 **Role:** S-BOARD, S-GUARD, U-JUAN, U-STRANGER, anonymous. **Tags:** Provisional — SA-001 Draft
 - **Expected:** Each call refused; no invitation, no mail.
 - **Don't assert:** error code names.
 
 #### TC-04-M3: removeMember is refused for the same callers
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security · **Layer** API · **Writes** Yes
 **Role:** As M2 (U-JUAN tries to remove himself and someone in HH-A). **Tags:** Provisional — SA-001 Draft
 - **Expected:** Refused; memberships unchanged.
 - **Don't assert:** —
 
 #### TC-04-M4: cancelInvite is refused for the same callers
-**Priority** P2 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Security · **Layer** API · **Writes** Yes
 **Role:** As M2. **Tags:** Provisional — SA-001 Draft
 - **Expected:** Refused; invitations unchanged.
 - **Don't assert:** —
 
 #### TC-04-M5: checkInvite and redeemInvite are refused when signed out
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security · **Layer** API · **Writes** No
 **Role:** Anonymous. **Tags:** Provisional — SA-001 Draft
 - **Expected:** Both refused; nothing revealed about the code.
 - **Don't assert:** —
 
 #### TC-04-M6: A person can only redeem for themselves
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security · **Layer** API · **Writes** Yes
 **Role:** U-STRANGER, scripted. **Tags:** Provisional — SA-001 Draft
 - **Action:** Call `redeemInvite` with HH-A's code and U-ANA's uid as a parameter.
 - **Expected:** Any membership created belongs to U-STRANGER (the caller) or the call is refused; never one for U-ANA.
 - **Don't assert:** which of the two.
 
 #### TC-04-M7: Non-staff cannot read invitations, even for their own household
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security · **Layer** API · **Writes** No
 **Role:** U-JUAN (HH-B), U-STRANGER, S-BOARD, S-GUARD. **Tags:** Provisional — SA-001 Draft
 - **Expected:** Every read of `invites` refused.
 - **Don't assert:** —
 
 #### TC-04-M8: Staff can read a household's invitations by household
-**Priority** P2 · **Type** Security · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Security · **Layer** API · **Writes** No
 **Role:** S-ADMIN, S-TREAS. **Tags:** Provisional — SA-001 Draft
 - **Expected:** Query `invites` where `householdId` = HH-A allowed; a query without the household filter refused.
 - **Don't assert:** index details.
 
 #### TC-04-M9: No client can write an invitation, staff included
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security · **Layer** API · **Writes** Yes
 **Role:** S-ADMIN, U-STRANGER. **Tags:** Provisional — SA-001 Draft
 - **Action:** Create an invite document; set an existing one's status to `active` or its `expiresAt` later.
 - **Expected:** All refused.
 - **Don't assert:** —
 
 #### TC-04-M10: No client can read or reset its wrong-code counter
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security · **Layer** API · **Writes** Yes
 **Role:** U-STRANGER (locked). **Tags:** Provisional — SA-001 Draft
 - **Action:** Read, delete or update `inviteAttempts/{own uid}`.
 - **Expected:** All refused; still locked.
 - **Don't assert:** —
 
 #### TC-04-M11: No client can read or write the mail queue, staff included
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security · **Layer** API · **Writes** Yes
 **Role:** S-ADMIN, S-TREAS, U-ANA. **Tags:** Provisional — SA-001 Draft
 - **Expected:** Reads and writes of `mail` refused (a queued mail holds a live code).
 - **Don't assert:** —
 
 #### TC-04-M12: No client can create a membership
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security · **Layer** API · **Writes** Yes
 **Role:** U-STRANGER, S-ADMIN. **Tags:** Provisional — SA-001 Draft
 - **Action:** Write `members/{HH-A}_{own uid}`.
 - **Expected:** Refused; no access to HH-A.
 - **Don't assert:** —
 
 #### TC-04-M13: A member can't read another household's memberships
-**Priority** P1 · **Type** Security (cross-household) · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security (cross-household) · **Layer** API · **Writes** No
 **Role:** U-JUAN. **Tags:** Provisional — SA-001 Draft
 - **Expected:** Read of HH-A memberships refused; his own allowed.
 - **Don't assert:** —
 
 #### TC-04-M14: A newly linked member reads only their own household
-**Priority** P1 · **Type** Security (cross-household) · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Security (cross-household) · **Layer** API · **Writes** No
 **Role:** U-ANA just after redeeming HH-A. **Tags:** Step 1
 - **Action:** Request HH-B's household document and contacts.
 - **Expected:** Refused.
 - **Don't assert:** —
 
 #### TC-04-M15: Clients can't change link status or member count
-**Priority** P2 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Security · **Layer** API · **Writes** Yes
 **Role:** S-ADMIN, U-ANA. **Tags:** Provisional — SA-001 Draft
 - **Action:** Update `households/HH-A.linkStatus` or `memberCount`.
 - **Expected:** Refused.
 - **Don't assert:** —
 
 #### TC-04-M16: A guard sees no households, invitations or people
-**Priority** P2 · **Type** Security (role) · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Security (role) · **Layer** API · **Writes** No
 **Role:** S-GUARD. **Tags:** Step 1
 - **Expected:** No Homeowners menu; the Homeowners and household detail URLs show "You don't have access to this page"; reads of households, members and invites refused.
 - **Don't assert:** —
 
 #### TC-04-M17: A staff member whose role was just removed can't invite or remove
-**Priority** P2 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Security · **Layer** API · **Writes** Yes
 **Role:** S-ADMIN-2 with role removed, still holding the old token. **Tags:** Provisional — SA-001 Draft (REQ-002 "at once")
 - **Expected:** `createInvites` and `removeMember` refused on the next call.
 - **Don't assert:** —
@@ -1560,52 +1578,52 @@ All M cases assert the refusal explicitly ("nothing changed on screen" is not pr
 ## N. Staff concurrency and stale screens
 
 #### TC-04-N1: Two staff pressing Resend at once leave exactly one active code
-**Priority** P1 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Concurrency · **Layer** API · **Writes** Yes
 **Role:** S-ADMIN and S-ADMIN-2. **Tags:** Step 2 · Provisional — SA-001 Draft · Staging note: two sessions
 - **Action:** Both press "Resend invitation" for HH-A together.
 - **Expected:** One active invitation for that slot; every other is `replaced`; only the active one's code works.
 - **Don't assert:** how many mails were queued (G-33).
 
 #### TC-04-N2: Two staff running "Invite selected" on the same households make one invitation each
-**Priority** P1 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Concurrency · **Layer** API · **Writes** Yes
 **Role:** S-ADMIN and S-ADMIN-2. **Tags:** Step 2 · Staging note: two sessions
 - **Action:** Both confirm Invite selected for 50 fixture households at once.
 - **Expected:** Each household: one active invitation, one queued mail.
 - **Don't assert:** whose run did which household.
 
 #### TC-04-N3: Two staff printing the same household at once leave one active print code
-**Priority** P2 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Concurrency · **Layer** API · **Writes** Yes
 **Role:** S-ADMIN and S-ADMIN-2. **Tags:** Step 1 · Gap G-32
 - **Expected:** One active print invitation for HH-C; the other PDF's code is refused as replaced.
 - **Don't assert:** how the office is warned (G-32).
 
 #### TC-04-N4: Redeem and Resend at the same moment end in one consistent state
-**Priority** P1 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Concurrency · **Layer** API · **Writes** Yes
 **Role:** U-ANA; S-ADMIN. **Tags:** Step 2 · Provisional — SA-001 Draft
 - **Expected:** Either U-ANA is linked and that invitation is `used` (and the resend creates no second active invitation for her slot), or she sees the "replaced" message and a new active invitation exists. Never both a member and an active invitation for the same slot from this pair.
 - **Don't assert:** which wins.
 
 #### TC-04-N5: Redeem and Remove in the same household at once keep the count right
-**Priority** P2 · **Type** Concurrency · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Concurrency · **Layer** API · **Writes** Yes
 **Role:** U-CARLO redeems; S-ADMIN removes U-ANA. **Tags:** Provisional — SA-001 Draft
 - **Expected:** `memberCount` equals the number of memberships afterwards; if the removal ran first, Carlo's code is refused (K4).
 - **Don't assert:** which wins.
 
 #### TC-04-N6: A confirm screen open while staff resend refuses the old code
-**Priority** P2 · **Type** Concurrency (stale reference) · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Concurrency (stale reference) · **Layer** API · **Writes** No
 **Role:** Homeowner without a household; S-ADMIN. **Tags:** Step 2
 - **Action:** Homeowner on the confirm screen; staff resend; homeowner presses Yes.
 - **Expected:** "This invitation was replaced by a newer one…"; no membership.
 - **Don't assert:** —
 
 #### TC-04-N7: An open household detail shows the link after a reload
-**Priority** P2 · **Type** Integration (derived refresh) · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Integration (derived refresh) · **Layer** UI · **Writes** No
 **Role:** S-ADMIN with 4E open; U-ANA redeems meanwhile. **Tags:** Step 1
 - **Expected:** After reload (or live update, if built), "Linked · 1 person" and Ana listed.
 - **Don't assert:** live update without reload (not specified).
 
 #### TC-04-N8: Resend from a stale screen on a household that just linked creates no active invitation
-**Priority** P2 · **Type** Concurrency (stale reference) · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Concurrency (stale reference) · **Layer** API · **Writes** Yes
 **Role:** S-ADMIN with a stale directory. **Tags:** Step 2 · Provisional — SA-001 Draft
 - **Action:** U-ANA redeems; staff press the stale "Resend invitation" for her slot.
 - **Expected:** No new active invitation and no mail for the used slot; the screen refreshes to Linked.
@@ -1614,101 +1632,101 @@ All M cases assert the refusal explicitly ("nothing changed on screen" is not pr
 ## P. Navigation and deep links
 
 #### TC-04-P1: A signed-in account with no household lands on the not-linked screen
-**Priority** P1 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Navigation · **Layer** UI · **Writes** No
 **Role:** U-STRANGER. **Tags:** Step 1 (REQ-001 regression)
 - **Expected:** "Your account isn't linked to a household yet. Enter the invite code from the admin office."; menu only "Enter invite code" and "Sign out"; "Enter invite code" opens "Enter your invite code" with its hint.
 - **Don't assert:** —
 
 #### TC-04-P2: The email link survives email-and-password sign-in without typing the code
-**Priority** P1 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Navigation · **Layer** UI · **Writes** No
 **Role:** U-ANA, signed out. **Tags:** Step 2
 - **Action:** Open `/join#{code}`; sign in with email and password.
 - **Expected:** Confirm screen for HH-A, without typing the code.
 - **Don't assert:** —
 
 #### TC-04-P3: The email link survives creating a new account
-**Priority** P1 · **Type** Navigation · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Navigation · **Layer** UI · **Writes** Yes
 **Role:** New account. **Tags:** Step 2
 - **Action:** Open `/join#{code}`; "New here? Create an account"; create it.
 - **Expected:** Confirm screen for the lot.
 - **Don't assert:** email verification flow (TC-01).
 
 #### TC-04-P4: The email link survives "Continue with Google"
-**Priority** P1 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Navigation · **Layer** UI · **Writes** No
 **Role:** U-ANA-G. **Tags:** Step 2 · Assumption: popup flow on desktop and phone emulation; in-app email browsers are in the exploratory charter, not asserted
 - **Action:** Open `/join#{code}`; Continue with Google; complete the popup.
 - **Expected:** Confirm screen for the lot.
 - **Don't assert:** popup behaviour on in-app browsers.
 
 #### TC-04-P5: Refreshing the sign-in page mid-flow keeps the code
-**Priority** P2 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Navigation · **Layer** UI · **Writes** No
 **Role:** Signed out. **Tags:** Step 2
 - **Action:** Open `/join#{code}`; reload the sign-in page; sign in.
 - **Expected:** Confirm screen for the lot.
 - **Don't assert:** —
 
 #### TC-04-P6: Refreshing the confirm screen keeps the lot and the link still works
-**Priority** P2 · **Type** Navigation · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Navigation · **Layer** UI · **Writes** Yes
 **Role:** Homeowner without a household. **Tags:** Step 1 and 2
 - **Action:** Reload on the confirm screen; press Yes.
 - **Expected:** The confirm screen shows the same lot after reload; Yes links.
 - **Don't assert:** —
 
 #### TC-04-P7: After linking, the code is cleared from session storage and the address bar
-**Priority** P1 · **Type** Security · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Security · **Layer** UI · **Writes** Yes
 **Role:** U-ANA. **Tags:** Step 1 and 2 · Provisional — SA-001 Draft
 - **Expected:** No `sessionStorage` key holds the code; the URL has no fragment code.
 - **Don't assert:** the storage key name.
 
 #### TC-04-P8: After "No, this isn't my lot", the code is cleared too
-**Priority** P3 · **Type** Security · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Security · **Layer** UI · **Writes** No
 **Role:** U-STRANGER. **Tags:** Gap G-30
 - **Expected (pending G-30):** No pending code in `sessionStorage`; reloading doesn't reopen the confirm screen.
 - **Don't assert:** until answered.
 
 #### TC-04-P9: Signing out with a pending code leaves no code on the device
-**Priority** P2 · **Type** Security · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Security · **Layer** UI · **Writes** No
 **Role:** Shared phone: U-STRANGER opened the link, then signs out. **Tags:** Step 2 · Assumption (REQ silent)
 - **Action:** Open `/join#{code}`; sign in; sign out before confirming; sign in as U-STRANGER-2.
 - **Expected:** U-STRANGER-2 does not see the confirm screen for that code.
 - **Don't assert:** —
 
 #### TC-04-P10: Back after linking doesn't create a second link
-**Priority** P3 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Navigation · **Layer** UI · **Writes** No
 **Role:** U-ANA. **Tags:** Step 1
 - **Action:** After landing on the dashboard press Back (and Yes again if shown).
 - **Expected:** Dashboard or confirm screen; any second Yes lands on the dashboard; one membership.
 - **Don't assert:** which screen Back shows.
 
 #### TC-04-P11: A homeowner can't open the Homeowners directory or a household detail by URL
-**Priority** P1 · **Type** Navigation (security) · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Navigation (security) · **Layer** UI · **Writes** No
 **Role:** U-ANA (linked) and U-STRANGER. **Tags:** Step 1
 - **Action:** Open the Homeowners URL and HH-A's detail URL.
 - **Expected:** "You don't have access to this page" with "Go to my dashboard" (U-STRANGER: the not-linked screen); no data requests succeed.
 - **Don't assert:** —
 
 #### TC-04-P12: A no-household account opening a household URL sees no data
-**Priority** P2 · **Type** Navigation (security) · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Navigation (security) · **Layer** UI · **Writes** No
 **Role:** U-STRANGER after "No, this isn't my lot". **Tags:** Step 1
 - **Action:** Open the dashboard URL directly.
 - **Expected:** Not-linked screen; no household data, even briefly.
 - **Don't assert:** —
 
 #### TC-04-P13: Staff move from the directory to household detail and back with the Homeowners menu highlighted
-**Priority** P2 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Navigation · **Layer** UI · **Writes** No
 **Role:** Admin office staff. **Tags:** Step 1 (NAV-03 regression)
 - **Action:** Search "blk 2", open HH-A, press Back.
 - **Expected:** "Homeowners" is the one `aria-current` item on both; Back returns to the list with the search kept.
 - **Don't assert:** scroll position.
 
 #### TC-04-P14: After Remove, staff stay on the household detail with the list updated
-**Priority** P3 · **Type** Navigation · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Navigation · **Layer** UI · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 1
 - **Expected:** Still on 4E; the person is gone; focus moves to a sensible place (the People heading or the next row).
 - **Don't assert:** exact focus target.
 
 #### TC-04-P15: An important announcement doesn't block the join flow
-**Priority** P2 · **Type** Navigation (modal mid-flow) · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Navigation (modal mid-flow) · **Layer** UI · **Writes** Yes
 **Role:** Homeowner without a household. **Tags:** Step 1 (NAV-05 regression)
 - **Setup:** An important announcement is live.
 - **Action:** Enter a code, confirm, land on the dashboard.
@@ -1716,7 +1734,7 @@ All M cases assert the refusal explicitly ("nothing changed on screen" is not pr
 - **Don't assert:** —
 
 #### TC-04-P16: `/join` with no code opens empty code entry
-**Priority** P3 · **Type** Navigation · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Navigation · **Layer** UI · **Writes** No
 **Role:** Homeowner without a household. **Tags:** Step 2
 - **Expected:** "Enter your invite code" with an empty field; no check sent; attempt count unchanged.
 - **Don't assert:** —
@@ -1724,81 +1742,81 @@ All M cases assert the refusal explicitly ("nothing changed on screen" is not pr
 ## Q. Usability and accessibility (WCAG 2.2 AA, 375 px)
 
 #### TC-04-Q1: The code field has a visible label and the hint is tied to it
-**Priority** P2 · **Type** Usability · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Usability · **Layer** UI · **Writes** No
 **Role:** Homeowner without a household. **Tags:** Step 1
 - **Expected:** A visible label programmatically linked to the input; hint "You'll find it in your invitation email or on the slip from the admin office." referenced by `aria-describedby`.
 - **Don't assert:** label wording beyond the copy of record.
 
 #### TC-04-Q2: The code field uses the large monospaced code style
-**Priority** P3 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** UI/UX · **Layer** UI · **Writes** No
 **Role:** Homeowner without a household. **Tags:** Step 1
 - **Expected:** Monospaced, large, letter-spaced like the guest pass `.code`; no autocorrect or auto-capitalise errors on phones.
 - **Don't assert:** exact font size.
 
 #### TC-04-Q3: A code can be pasted into the field
-**Priority** P2 · **Type** Usability (WCAG 3.3.8) · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Usability (WCAG 3.3.8) · **Layer** UI · **Writes** No
 **Role:** Homeowner without a household. **Tags:** Step 1
 - **Action:** Paste "K7QX-M9TA" from the clipboard.
 - **Expected:** Accepted; confirm screen after submit.
 - **Don't assert:** —
 
 #### TC-04-Q4: Errors are announced and tied to the field, with focus kept there
-**Priority** P2 · **Type** Usability · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Usability · **Layer** UI · **Writes** Yes
 **Role:** Homeowner without a household, with a screen reader. **Tags:** Step 1
 - **Action:** Enter a wrong code.
 - **Expected:** The error is announced (live region or `role="alert"`), shown under the field, linked by `aria-describedby`; focus stays in the field with the text kept.
 - **Don't assert:** the announcement mechanism.
 
 #### TC-04-Q5: While a code is being checked the button reads "Checking…" and is disabled
-**Priority** P2 · **Type** Usability · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Usability · **Layer** UI · **Writes** No
 **Role:** Homeowner without a household. **Tags:** Step 1 · Staging note: slowed network
 - **Expected:** "Checking…", disabled, until the result.
 - **Don't assert:** duration.
 
 #### TC-04-Q6: The join screens are single cards at 375 px with the phone layout
-**Priority** P2 · **Type** Responsive · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Responsive · **Layer** UI · **Writes** No
 **Role:** Homeowner without a household on phone emulation (`isMobile`). **Tags:** Step 1 · DEF-001
 - **Expected:** Layout width 375 (viewport meta present); code entry, confirm and error screens are single cards; no sideways scroll.
 - **Don't assert:** —
 
 #### TC-04-Q7: Tap targets on the join screens and the email button are large enough
-**Priority** P2 · **Type** Usability (WCAG 2.5.8) · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Usability (WCAG 2.5.8) · **Layer** UI · **Writes** No
 **Role:** Homeowner at 375 px. **Tags:** Step 1; email button Step 2
 - **Expected:** "Yes, link my account", "No, this isn't my lot", submit, and "Join the portal" at least 24 × 24 CSS px (target 44 px).
 - **Don't assert:** exact sizes above the minimum.
 
 #### TC-04-Q8: The on-screen keyboard doesn't hide the focused field or the error
-**Priority** P3 · **Type** Usability (WCAG 2.4.11) · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Usability (WCAG 2.4.11) · **Layer** Manual · **Writes** No
 **Role:** Homeowner at 375 px. **Tags:** Step 1
 - **Expected:** With the keyboard open, the field and its error stay visible.
 - **Don't assert:** —
 
 #### TC-04-Q9: Link-status pills carry text and enough contrast
-**Priority** P3 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** UI/UX · **Layer** UI · **Writes** No
 **Role:** Admin office staff. **Tags:** Step 1
 - **Expected:** Every pill has words, not colour alone; text contrast ≥ 4.5:1 on both brands.
 - **Don't assert:** colours.
 
 #### TC-04-Q10: The Remove dialog traps focus, Escape cancels, and focus returns
-**Priority** P2 · **Type** Usability · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Usability · **Layer** UI · **Writes** No
 **Role:** Admin office staff, keyboard only. **Tags:** Step 1 (NAV-06 regression)
 - **Expected:** Focus inside the dialog; Tab cycles within; Escape closes without removing; focus returns to the Remove button.
 - **Don't assert:** which button gets first focus.
 
 #### TC-04-Q11: "Queuing…" and the bulk result are announced
-**Priority** P3 · **Type** Usability · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Usability · **Layer** UI · **Writes** Yes
 **Role:** Admin office staff with a screen reader. **Tags:** Step 2
 - **Expected:** The in-flight state and "380 invitations queued…" are announced.
 - **Don't assert:** mechanism.
 
 #### TC-04-Q12: The whole join flow works with a keyboard only
-**Priority** P3 · **Type** Usability · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Usability · **Layer** UI · **Writes** Yes
 **Role:** Homeowner without a household. **Tags:** Step 1
 - **Expected:** Code entry, submit with Enter, Yes / No reachable and operable with visible focus.
 - **Don't assert:** —
 
 #### TC-04-Q13: Phone directory cards show the pill and the invite action
-**Priority** P3 · **Type** Responsive · **Layer** TBD — QE · **Writes** No
+**Priority** P3 · **Type** Responsive · **Layer** UI · **Writes** No
 **Role:** Admin office staff at 375 px. **Tags:** Step 1
 - **Expected:** Each card (3B) shows the link-status pill and its action (Print slip, Resend, Open) without sideways scroll.
 - **Don't assert:** card order.
@@ -1806,37 +1824,37 @@ All M cases assert the refusal explicitly ("nothing changed on screen" is not pr
 ## R. Copy consistency
 
 #### TC-04-R1: Every join error matches the copy of record exactly
-**Priority** P2 · **Type** UI/UX · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** UI/UX · **Layer** Unit · **Writes** Yes
 **Role:** Homeowner (various fixture states). **Tags:** Step 1
 - **Expected:** The seven error strings exactly as in REQ-004 Copy of record, with `{lot}` filled (e.g. "Blk 4 Lot 12"), each telling the person what to do next.
 - **Don't assert:** punctuation styling (curly vs straight apostrophes) unless the BA fixes it.
 
 #### TC-04-R2: Directory and detail buttons use only the labels of record
-**Priority** P2 · **Type** UI/UX (same word everywhere) · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** UI/UX (same word everywhere) · **Layer** UI · **Writes** No
 **Role:** Admin office staff. **Tags:** Gap G-20
 - **Expected:** "Invite", "Invite selected", "Resend invitation", "Invite another person", "Print invite slips", "Print slip", "Remove". The mock-up's "Resend" and "Manage" are G-20.
 - **Don't assert:** until G-20 is answered for "Resend" / "Manage".
 
 #### TC-04-R3: The same pill words appear on the table, phone cards, filter chips and household detail
-**Priority** P2 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** UI/UX · **Layer** UI · **Writes** No
 **Role:** Admin office staff. **Tags:** Step 1
 - **Expected:** "Not invited", "Invited · expires {date}", "Linked · {n} person/people", "Invite expired", "Email failed", identical in every place.
 - **Don't assert:** date format inside the pill (G-8: 3A shows "Dec 5" without year).
 
 #### TC-04-R4: "Linked · 1 person" and "Linked · 2 people" use the right number word
-**Priority** P2 · **Type** Boundary · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Boundary · **Layer** Unit · **Writes** No
 **Role:** Admin office staff. **Tags:** Step 1
 - **Expected:** Singular at 1, plural at 2 and above.
 - **Don't assert:** —
 
 #### TC-04-R5: Code entry, confirm and wrong-lot texts match the copy of record
-**Priority** P2 · **Type** UI/UX · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** UI/UX · **Layer** UI · **Writes** No
 **Role:** Homeowner without a household. **Tags:** Step 1
 - **Expected:** "Enter your invite code", its hint, "You're joining {lot} ({owner name}). Is this your lot?", "Yes, link my account", "No, this isn't my lot", "Please contact the admin office to get the right invitation."
 - **Don't assert:** —
 
 #### TC-04-R6: The HOA name follows the brand in email, slip and screens
-**Priority** P2 · **Type** UI/UX · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** UI/UX · **Layer** UI · **Writes** Yes
 **Role:** Admin office staff on each brand. **Tags:** Step 1 and 2
 - **Expected:** "Greenfield Homes HOA" on one brand, "Gentri Heights HOA" on the other, in the subject, body and slip; never the other brand's name.
 - **Don't assert:** logos.
@@ -1844,64 +1862,64 @@ All M cases assert the refusal explicitly ("nothing changed on screen" is not pr
 ## S. Back-compat and data integrity
 
 #### TC-04-S1: A household created before invitations existed shows "Not invited"
-**Priority** P1 · **Type** Back-compat · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Back-compat · **Layer** UI · **Writes** No
 **Role:** Admin office staff. **Tags:** Step 1 · Staging note: HH-LEGACY written without `linkStatus` and `memberCount`
 - **Expected:** "Not invited" pill; the "Not invited" filter includes it; never blank, "undefined" or "Linked · 0 people".
 - **Don't assert:** —
 
 #### TC-04-S2: Inviting a legacy household works and fills in its link fields
-**Priority** P2 · **Type** Back-compat · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Back-compat · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 1 · Provisional — SA-001 Draft
 - **Action:** Print a slip for HH-LEGACY; a fixture account redeems.
 - **Expected:** "Invited", then "Linked · 1 person"; `linkStatus` and `memberCount` now present and correct.
 - **Don't assert:** —
 
 #### TC-04-S3: A freshly imported household shows "Not invited" and can be invited
-**Priority** P3 · **Type** Integration · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Integration · **Layer** API · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 1 (REQ-003 regression)
 - **Expected:** After a fixture import, the household shows "Not invited" and "Print slip" / "Invite" are offered.
 - **Don't assert:** import details (TC-03).
 
 #### TC-04-S4: Member count always equals the number of memberships
-**Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Data integrity · **Layer** API · **Writes** Yes
 **Role:** QE runs a sequence. **Tags:** Provisional — SA-001 Draft
 - **Action:** Invite, redeem, invite another, redeem, remove one, re-entry, double remove on HH-A; check after each step.
 - **Expected:** `memberCount` = count of `members` for HH-A after every step.
 - **Don't assert:** —
 
 #### TC-04-S5: Link status always agrees with the invitations and memberships
-**Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** Yes
+**Priority** P1 · **Type** Data integrity · **Layer** API · **Writes** Yes
 **Role:** QE runs the S4 sequence plus expiry and failure. **Tags:** Provisional — SA-001 Draft · Gap G-2, G-3, G-9
 - **Expected:** Linked whenever ≥ 1 member; otherwise Invited / Invite expired / Email failed from the newest active invitation; Not invited when none.
 - **Don't assert:** cells governed by G-2, G-3, G-9 until answered.
 
 #### TC-04-S6: There is never more than one active invitation per household and recipient
-**Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Data integrity · **Layer** API · **Writes** No
 **Role:** QE data check after blocks A–N. **Tags:** Provisional — SA-001 Draft
 - **Expected:** For every (household, recipient) at most one `active` invitation.
 - **Don't assert:** —
 
 #### TC-04-S7: Every used invitation has exactly one matching membership, and every membership one invitation
-**Priority** P1 · **Type** Data integrity · **Layer** TBD — QE · **Writes** No
+**Priority** P1 · **Type** Data integrity · **Layer** API · **Writes** No
 **Role:** QE data check. **Tags:** Provisional — SA-001 Draft
 - **Expected:** Each `used` invite's `usedBy` + household matches a membership whose `inviteId` is that invite, unless the member was removed (then a `member.removed` entry exists); no membership without an invite.
 - **Don't assert:** —
 
 #### TC-04-S8: Every lifecycle action writes exactly one audit entry of the right kind
-**Priority** P2 · **Type** Data integrity · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Data integrity · **Layer** API · **Writes** No
 **Role:** QE data check. **Tags:** Provisional — SA-001 Draft
 - **Expected:** One `invite.created` per created, one `invite.replaced` per replacement, one `invite.cancelled` per cancellation, one `invite.redeemed` per redeem (not per re-entry), one `member.removed` per removal (not per "already removed").
 - **Don't assert:** entries outside the fixture households.
 
 #### TC-04-S9: Zero members and "never linked" read differently
-**Priority** P2 · **Type** Boundary (zero vs not set) · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Boundary (zero vs not set) · **Layer** Unit · **Writes** Yes
 **Role:** Admin office staff. **Tags:** Step 1 · Gap G-9
 - **Setup:** HH-LEGACY (field missing) and HH-A after its last member is removed (`memberCount` 0).
 - **Expected:** Neither shows "Linked · 0 people"; HH-LEGACY shows "Not invited"; HH-A shows the G-9 answer.
 - **Don't assert:** HH-A's pill until G-9 is answered.
 
 #### TC-04-S10: Directory header counts and filter chips add up
-**Priority** P2 · **Type** Data integrity · **Layer** TBD — QE · **Writes** No
+**Priority** P2 · **Type** Data integrity · **Layer** UI · **Writes** No
 **Lane:** exclusive — asserts the directory-wide counts ("{n} households · {l} linked · {i} invited · {x} not invited" and filter chips)
 **Role:** Admin office staff. **Tags:** Step 1 · Gap G-3
 - **Expected:** Counts equal the household documents by link status; linked + invited + not invited = total active households (how expired and failed are counted in the header is G-3).
@@ -1910,22 +1928,22 @@ All M cases assert the refusal explicitly ("nothing changed on screen" is not pr
 ## X. Exploratory charters
 
 #### TC-04-X1: 20 minutes breaking the join flow on a phone
-**Priority** P2 · **Type** Exploratory · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Exploratory · **Layer** Manual · **Writes** Yes
 **Role:** Homeowner without a household. **Tags:** Step 2
 - **Charter:** Explore `/join#code` across email-and-password, create account, Google; links opened from Gmail and other in-app browsers, a second tab, airplane mode at each step, app switch during the Google popup, rotate the phone. Look for lost codes, double links, data shown before linking. Time-box 20 min; note every path tried.
 
 #### TC-04-X2: 20 minutes trying to link to a lot you don't own
-**Priority** P2 · **Type** Exploratory · **Layer** TBD — QE · **Writes** Yes
+**Priority** P2 · **Type** Exploratory · **Layer** Manual · **Writes** Yes
 **Role:** U-STRANGER with devtools. **Tags:** Step 1
 - **Charter:** Tamper with fragments, replay `checkInvite` / `redeemInvite` responses, change ids in requests, use a removed owner's code, race "No" and "Yes", try lots of near-miss codes. Time-box 20 min.
 
 #### TC-04-X3: 15 minutes looking for directory status drift
-**Priority** P3 · **Type** Exploratory · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Exploratory · **Layer** Manual · **Writes** Yes
 **Role:** Admin office staff in two tabs plus a homeowner. **Tags:** Step 1 and 2
 - **Charter:** Invite, resend, print, redeem, remove, deactivate and reactivate in random orders; compare pills, 4E, filter chips and data after each. Time-box 15 min.
 
 #### TC-04-X4: 15 minutes reading and typing codes from a printed slip
-**Priority** P3 · **Type** Exploratory · **Layer** TBD — QE · **Writes** Yes
+**Priority** P3 · **Type** Exploratory · **Layer** Manual · **Writes** Yes
 **Role:** Homeowner with a printed slip. **Tags:** Step 1
 - **Charter:** Print, cut, photograph and type codes on a phone; note look-alike characters still in the alphabet (5/S, 8/B, 2/Z) and whether errors help. Time-box 15 min.
 
@@ -2006,3 +2024,229 @@ All M cases assert the refusal explicitly ("nothing changed on screen" is not pr
 | G-31 | The person who used a code re-entering it after its expiry date: dashboard or "expired"? | F11 |
 | G-32 | Two staff printing the same households at once: one PDF holds dead codes and nothing warns the office | N3 |
 | G-33 | "Invite", "Resend invitation", "Print slip" and the print confirm are not listed as disabled in flight (only "Yes, link my account", "Invite selected" and "Remove" are); a double Resend queues two emails, one useless | I12, N1 |
+
+---
+
+## QE triage
+
+*QE-owned. Written at triage, 2026-11-28, against TC-04 v1 (owner-approved, merged as `e0cb23d`). QA owns everything above this line. QE changed only each case's **Layer** field and added the layer legend.*
+
+### Shape
+
+| Layer | Cases | Of the 232 automated | Blocked | Deferred to Step 2 | Notes |
+|---|---|---|---|---|---|
+| Unit | 40 | 17% | 11 | 3 | All in `shared/domain/`, `web/src/features/invites/` and `functions/src/mail/` (Dev) |
+| API | 121 | 52% | 30 | 26 | 120 on the emulator, 1 on staging (G15) |
+| UI | 70 | 30% | 11 | 15 | 3 in the `mobile` project (Q6, Q7, Q13); 1 `exclusive` (S10) |
+| Journey | 1 | <1% | 0 | 0 | C7: print → code → link → staff see Linked |
+| Manual | 7 | — | 0 | 1 | 1 on staging (D16), 1 physical print (I13), 1 real phone keyboard (Q8), 4 charters (X1–X4) |
+| **Total** | **239** | | **52** | **45** | **142** runnable once the app exists; 68 of all cases are provisional (SA-001 Draft) |
+
+**API carries half the plan, and that is the right shape for REQ-004.** The feature is server logic: five callable functions, a transaction per redeem, function-only collections (`invites`, `inviteAttempts`, `mail`, `members`) and the rules that decide who sees which household. Only a few things need a browser: the join screens, the directory pills, the slip PDF and deep links. Against the 70 / 20 / 10 target, Unit is low because the wrong-code window, the expiry dates and the pill derivation are the only real calculations. Taken together, TC-01 and TC-04 come to Unit 61, API 165, UI 164, Journey 1. That is still too much UI, but it's moving the right way.
+
+### Status rules applied
+
+- **Gap G-n (44 cases):** each keeps its layer but is **not automatable** until the BA answers the gap. REQ-004 r4 is answering them in a sibling session. QE did not read or edit `docs/requirements/`.
+- **Blocked on a decision (8):** L1–L6 (decision 5, and L1, L3, L5 also need the payments REQ), J18 (the board's people-per-household limit), G12 (the bounce event needs the email provider; decision 3). They stay blocked.
+- **Step 2 (45, plus 10 of the blocked above):** deferred until an email provider is chosen (SA-001 Q7). QE also deferred **G11**: it's tagged "Step 1 and 2" but starts from an "Email failed" household (finding 4). The 9 "Step 1 and 2" cases that remain (E5, E7, E10, M1, P6, P7, Q7, R6, X3) run their Step 1 half now and add the email half later.
+- **Provisional — SA-001 Draft (68):** layered against the Draft design and still flagged (*provisional* in the coverage map). Each one is re-checked when SA-001 is approved, before its test is written.
+- **13 blocked cases are P1:** E6, G8, G12, K1, K3, K4, K6, K7, K8, K11, L1, L3, S5. Six of them sit in block K (remove after a sale). See finding 2: most of what they assert doesn't depend on the gap.
+
+### Where each case went, and why
+
+- **Unit (40).** Rules about inputs with no server in the way:
+  - code generation, format and normalising (B1, B2, C2–C4, C14);
+  - the wrong-code window: 5th vs 6th, 14:59 vs 15:00, fixed from the first refusal, which refusals count (D1, D2, D4–D10, D14, D15);
+  - expiry dates in Manila: midnight, year end, leap day, defaults when the setting is absent, setting limits (E3–E5, E7, E8, E13, E14);
+  - pill derivation and the actions each state offers: "expired" is derived, never stored (A2, E6, R4, S9);
+  - the seven join errors' copy (R1);
+  - the email subject and body templates (G2, G3);
+  - the slip's text and footer (I3, I5);
+  - the relation choices (J6);
+  - in-flight guards on "Yes, link my account", "Invite selected", the print confirm and Remove (F5, H2, I12, K9);
+  - the empty-code check that sends no request (C13).
+- **API (121).** Everything the functions or rules decide:
+  - lifecycle transitions and refusals (A, G, I, J, K);
+  - secrecy: no plain code stored, keyed hash, mail body cleared, audit ids only, clean logs (B3–B8, B11, C8);
+  - redeem and its races: 10 parallel redeems give one membership, with the 10-code negative control (F6–F10);
+  - the per-account lock as the functions apply it (D3, D11–D13);
+  - the whole rules matrix (M), staff races (N), the data-integrity sweeps (A9, S4–S8);
+  - privacy after a sale (L, blocked).
+
+  Cases QA wrote as two-session browser flows (F7, F8, J15, N1, N2, N6) are API: the server is what keeps them safe, and two tokens calling in parallel prove it. No two-browser UI spec is planned, because the only button guards are Unit (F5, K9).
+- **UI (70).** What only the browser shows or does:
+  - the join screens and their errors (one wiring case each: C12 for "doesn't match", F3 for "already yours" → dashboard);
+  - deep links through each sign-in method and `sessionStorage` (P);
+  - focus, labels, paste, tap targets, 375 px (Q);
+  - pills in every place (R3, S1);
+  - the PDF the browser builds: **I4 and I6 stay UI on purpose.** A slip that leaks a phone number, or prints a code beside the wrong lot (R-6), can only be caught in the downloaded PDF, so the real file is the proof;
+  - **B10 stays UI** because only the browser flow can show that nothing uploads the PDF;
+  - **E9** needs a real browser clock.
+- **Journey (1).** C7 is the one cross-layer path for invite and link (Step 1). It replaces a separate UI check of "staff see Linked · 1 person".
+- **Manual (7), with reasons:**
+  - **D16 (staging):** the wrong-code alert is Cloud Monitoring on staging; the emulator has none;
+  - **I13:** a physical print, cut and read at arm's length;
+  - **Q8:** a real on-screen keyboard (as TC-01-O3);
+  - **X1–X4:** exploratory charters (X1 waits for Step 2).
+
+### Unit scenarios for Dev
+
+Dev writes these with the feature; QE reviews them against this list. Paths follow SA-001 §9 (`shared/domain/` is shared by web and functions).
+
+| Module (anticipated) | Cases | Seam it needs |
+|---|---|---|
+| `shared/domain/inviteCode.js` | B1, B2, C2, C3, C4, C14 | `generateCode(rng)` over `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`; `normaliseCode(input)` (case, spaces, hyphens); `isWellFormed(code)`. One normaliser used by the code field **and** by `checkInvite` / `redeemInvite`. C14 waits on G-22 |
+| `shared/domain/inviteAttempts.js` | D1, D2, D4–D10, D14, D15 | `applyAttempt(record, outcome, now)` → `{ allowed, record }`; `countsTowardLimit(reason)`. Fixed 15-minute window from the first refusal. D6, D15 wait on G-23 |
+| `shared/domain/inviteExpiry.js` (on `dates.js`) | E3, E4, E5, E7, E8, E13, E14 | `expiresAtFor(createdAt, channel, settings)` = end of day, Asia/Manila; `isExpired(expiresAt, now)`; `resolveExpiryDays(settings)` (absent ≠ 0); `validateExpirySettings()` (E14 waits on G-7) |
+| `shared/domain/linkStatus.js` | A2, E6, R4, S9 | `pillFor(household, invites, now)` (Not invited for a missing field, never "Linked · 0 people"); `inviteActions(state)` → which of Invite / Resend invitation / Print slip is offered; "1 person" / "n people". E6 waits on G-3, S9 on G-9 |
+| `shared/domain/relations.js` | J6 | The relation list (waits on G-17) |
+| `web/src/features/invites/invite-messages.js` | R1 | `inviteErrorMessage(reason, { lot })` for the seven reasons of record |
+| `web/src/features/invites/join-controller.js` | C13, F5 | Submit and confirm handlers with an **injected invites port**: no call on an empty code; one redeem when "Yes" is pressed twice in flight. C13 waits on G-22 |
+| `web/src/features/invites/staff-actions.js` | H2, I12, K9 | The same in-flight guard for Invite selected, the print confirm and Remove. I12 waits on G-33 |
+| `web/src/features/invites/bulk-summary.js` | H8 | The bulk confirm copy at m = 0, n = 1, n = 0 (waits on G-13) |
+| `web/src/features/invites/slip-pdf.js` | I3, I5 | `buildSlipPdf({ hoaName, portalUrl, slips })` → bytes, with no DOM, so Vitest can extract the text |
+| `functions/src/mail/invite-email.js` | G2, G3 | `inviteEmail({ brand, ownerName, lot, expiresAt, code, portalUrl })` → subject and body. G3 waits on G-8 / G-20 |
+
+### Locator contract (asked of Dev)
+
+TC-01's contract still applies: `screen-<view>`, `app-version`, `form-error`, `screen-not-linked`, `screen-invite-code`, `screen-confirm-lot`, `invite-code`, `screen-no-access`. TC-04 adds:
+
+| Screen | Element | Hook |
+|---|---|---|
+| Not linked (1G) | "Enter invite code" menu item | `data-action="go-invite-code"` |
+| Code entry (4B) | Hint, submit, field error | `data-testid="invite-code-hint"`, `data-action="check-invite"`, `data-testid="error-invite-code"` |
+| Confirm (4C) | Lot, owner on file | `data-testid="confirm-lot"`, `data-testid="confirm-owner"` |
+| | Yes, link my account / No, this isn't my lot | `data-action="confirm-link"`, `data-action="reject-lot"` |
+| | Wrong-lot message | `data-testid="wrong-lot-message"` |
+| Directory (3A, 3B) | Row / phone card | `data-testid="household-row"` / `data-testid="household-card"`, each with `data-household-id` |
+| | Link-status pill (every place it appears) | `data-testid="link-pill"` with `data-link-status="not-invited \| invited \| linked \| expired \| email-failed"` |
+| | Row actions | `data-action="invite"`, `resend-invite`, `print-slip`, `open-household` |
+| | Select, bulk actions | `data-action="select-household"`, `data-action="invite-selected"`, `data-action="print-invite-slips"` |
+| | Filter chips, header counts | `data-testid="filter-<status>"`, `data-testid="directory-counts"` |
+| Bulk confirm (4F) | Dialog, summary, expiry, confirm, print instead | `data-testid="bulk-invite-dialog"`, `bulk-invite-summary`, `bulk-expiry`; `data-action="confirm-bulk-invite"`, `data-action="bulk-print-instead"` |
+| Print confirm | Dialog, confirm | `data-testid="print-confirm-dialog"`, `data-action="confirm-print"` |
+| Household detail (4E) | Screen, people, invitations | `data-testid="screen-household-detail"`, `people-list`, `person-row` (with `data-uid`), `invitations-list`, `invitation-row` |
+| | Remove, Invite another person | `data-action="remove-member"`, `data-action="invite-another"` |
+| Invite another person | Dialog, email, relation, send | `data-testid="invite-another-dialog"`, `invite-email`, `invite-relation`; `data-action="send-invite"` |
+| Remove confirm | Dialog, confirm | `data-testid="remove-dialog"`, `data-action="confirm-remove"` |
+| Every dialog | Cancel | `data-action="cancel"` |
+| Every screen | Toast / result message | `data-testid="toast"` |
+| Routes | `/join`, household detail | Stable paths, named by Dev (P11, P12, P16) |
+
+### Spec files
+
+**New (planned, none written yet).** API specs in `tests/specs/api/`, the staging spec in `tests/specs/staging/`, UI specs in `tests/specs/ui/`. This is the same layout question TC-01 raised with Sol Arch.
+
+| File | Layer | Cases |
+|---|---|---|
+| `api/invites-create.spec.js` | API | A1, A3, A4, E11, E12, G1, G5, G7, G10, G11, G16, H4, H5, H7, H11, I7–I10, J1, J4, J17 |
+| `api/invites-cancel.spec.js` | API | A5, A6, A7 |
+| `api/invites-secrecy.spec.js` | API | B3, B4, B11, C8 |
+| `api/invites-redeem.spec.js` | API | A8, C6, C15, E16, F1, F2, F4, F11, G6, J7–J13, J15, J16, K14, N6, S2, S3 |
+| `api/invites-attempts.spec.js` | API | D3, D11, D12, D13 |
+| `api/invites-redeem-race.spec.js` | API | F6–F10 (F10 is the negative control for F9) |
+| `api/mail-queue.spec.js` | API | B5, B6, G9, G12, G13, G14, G17, G18 |
+| `api/invites-audit-logs.spec.js` | API | B7, B8, K6, S8 |
+| `api/members-remove.spec.js` | API | K2, K4, K5, K7, K8, K11–K13, K15–K17 |
+| `api/rules-invites.spec.js` | API | E15, M1–M17 |
+| `api/invites-staff-race.spec.js` | API | N1–N5, N8 |
+| `api/invites-integrity.spec.js` | API | A9, J2, J14, J18, S4–S7 (runs last; reads what the run created) |
+| `api/privacy-after-sale.spec.js` | API | L1, L2, L3, L5, L6 (blocked) |
+| `staging/mail-allow-list.staging.spec.js` | API (staging) | G15 |
+| `ui/join-code-entry.spec.js` | UI | C1, C5, C9–C12, D17, E9, F3, P1, Q1–Q5, Q12, R5 |
+| `ui/join-deep-link.spec.js` | UI | B9, P2–P10, P15, P16 |
+| `ui/join-access.spec.js` | UI | K3, P11, P12 |
+| `ui/invite-directory.spec.js` | UI | E1, E2, E10, G4, G8, G19, J3, N7, P13, Q9, R2, R3, R6, S1 |
+| `ui/invite-directory-counts.exclusive.spec.js` | UI | S10 (`exclusive`: asserts directory-wide counts) |
+| `ui/bulk-invite.spec.js` | UI | H1, H3, H6, H9, H10, H12, Q11 |
+| `ui/print-slips.spec.js` | UI | B10, I1, I2, I4, I6, I11, I14 |
+| `ui/household-detail.spec.js` | UI | J5, K1, K10, P14, Q10 |
+| `ui/join-phone.spec.js` | UI (`mobile`) | Q6, Q7, Q13 |
+| `ui/privacy-after-sale.spec.js` | UI | L4 (blocked) |
+| `ui/invite-link.journey.spec.js` | Journey | C7 |
+
+**Smoke.** TC-03 is **not on `main`** yet (it's still on its QA branch), so TC-04's four smoke additions go in whole:
+
+1. **P1** gets the `@smoke` tag: the no-household account lands on not-linked and opens "Enter your invite code".
+2. **`SMK-join-link`** (new, read-only): `/join#{fixture code}` opens the confirm screen, and the test never presses Yes. It's deferred with P2 until the `/join` link ships (Step 2), unless Dev ships `/join` in Step 1 (finding 5).
+3. **`SMK-admin-household-detail`** and **`SMK-treasurer-household-detail`** (new): 4E opens and shows "People with portal access" and "Invitations".
+4. **`SMK-admin-homeowners-portal`** (new): the directory shows the Portal column with a pill on every row, plus "Invite selected" and "Print invite slips". When TC-03 merges, its directory smoke item takes the screen-load half and this one keeps only the pills and the two actions. QE reconciles it at TC-03's triage.
+
+**Changed (when the real app exists):**
+
+- `smoke.spec.js`: the new SMK rows above.
+- `navigation.spec.js`: NAV-03 / NAV-06 re-run on the new screens (P13, Q10 depend on them).
+- Support:
+  - fixtures HH-A … HH-F, HH-LEGACY and 400 bulk households, seeded per run on the emulator;
+  - the accounts in TC-04's fixture table as signed-in fixtures;
+  - an emulator helper for Admin SDK reads and seeds of `invites`, `inviteAttempts`, `mail`, `members` and `auditLog`;
+  - stub mail provider controls (accept / refuse / pause / inject bounce);
+  - `.env.example` gains every fixture account's email and password variable (names only).
+
+### Automation order (highest consequence first)
+
+1. **Harness:**
+   - environment guard per project;
+   - emulator seed with the **test HMAC key** (never the production secret);
+   - Admin SDK helpers;
+   - stub mail provider controls;
+   - fixtures and signed-in accounts.
+2. **Household isolation (R-6):** M7–M15, K2, K13, M14, M16, then the refusals M2–M6, M17.
+3. **Redeem is single-use and goes to the right person:** C6, F1, F2, F4, F6, F8, F9, F10, M6, J7–J10, J13, J15, E16, N6.
+4. **Secrecy and the lock:** B3, B4, B11, C8, D3, D11, D12, D13, B7, B8.
+5. **Remove after a sale:** K5, K12, K13, K15, K16, K17. Then **K11, K4, K7, K8** as soon as G-11, G-5, G-9, G-10 are answered. Ask the BA for G-11 first: it is the top risk in TC-04's hand-over.
+6. **Unit domain (Dev, with the feature):** code, attempts, expiry, link status, messages, slip, guards.
+7. **Step 1 UI and the Journey:** C7, I1, I2, I4, I6, I11, I14, E2, B10, C1, C5, C9–C12, F3, P1, smoke.
+8. **Integrity sweep:** A6–A9, S2–S4, S6–S8, J14, I7.
+9. **Navigation and usability:** P10–P15, block Q, R3, R5, S1, N7, K10, P14.
+10. **Step 2, once the provider is chosen:**
+    - mail queue: B5, B6, B9, G1, G4–G16;
+    - bulk: block H;
+    - second person: J1–J5;
+    - staff races: N1, N2, N4, N8;
+    - deep links: P2–P5, P9, P16;
+    - E1, A1, A2, A4.
+11. **Manual:** I13, Q8, X2–X4; D16 on staging; X1 after Step 2.
+
+### Implementation status
+
+2026-11-28: **nothing automated.** The real app doesn't exist yet (`main` holds only the mock-ups), and Dev is waiting on SA-001 approval. Every row is **Planned**, **Deferred: Step 2**, or **Blocked** on the gap or decision it names. No spec, fixture or config was written at triage.
+
+### Findings for QA
+
+These are QE's reading of the cases, for QA to accept or reject. QE did not change the cases.
+
+1. **K14 proves the same thing as C15**: `checkInvite` returns the owner name on file at the time of the check. Both are API. QE will run them as one test that reports both ids. Only "what if the office forgets the edit" is G-28, and K14 doesn't assert that.
+2. **Several Gap-tagged cases assert nothing that depends on the gap.** The gap appears only in *Don't assert*:
+   - K1 (pronoun);
+   - K3 (how fast the screen changes);
+   - K4 (which message);
+   - K7 (the last-member pill);
+   - K11 (which message: the refusal itself is the security point);
+   - H12 (button label);
+   - R2 ("Resend" / "Manage" only);
+   - E6 (job or read-time).
+
+   By rule they stay blocked. If QA narrows each tag to the gated assertion, about 8 cases, 6 of them P1, can be automated now. K11 matters most.
+3. **Cases with two halves at two layers.** QE kept each at the lower layer and relies on the case named for the other half:
+   - A4, G9, G16 and J17's "which control is offered" → A2's `inviteActions` unit;
+   - B11's "no screen shows the code" follows from no readable field holding it;
+   - J11's view switch → TC-01's `resolveLanding` unit;
+   - M16's menu and URL half → TC-02's no-access cases.
+
+   If QA wants a browser check of any of these, add a UI case.
+4. **G11 is tagged "Step 1 and 2" but starts from "Email failed",** so it can't run before Step 2. QE deferred it. QA may retag it Step 2.
+5. **Smoke item 2 (`/join#code`) assumes the `/join` route exists in Step 1.** Only the email link uses it. Confirm with the BA or Dev whether Step 1 ships `/join`; if not, the smoke item waits for Step 2 with P2.
+6. **"Controllable server clock" staging notes (A8, the D and E blocks)** don't need a staging clock. Unit proves the boundaries, and API seeds `expiresAt` or the attempt record to a time already past. Only D16 needs staging, and it is Manual there.
+7. **F7, F8, J15, N1, N2 and N6 carry "two sessions" notes.** QE proves them with two tokens at API, not two browsers.
+8. **TC-03 overlaps to settle at TC-03's triage:** TC-03's link-status pills and deactivate-cancels-invite cases against TC-04's R3, S1, Q9, Q13 and J14. One layer each, and no second row.
+
+### For Sol Arch (and Dev)
+
+- **`shared/domain/` placement is what keeps 29 cases at Unit.** The code normaliser, the attempt window, the expiry dates and the pill derivation need to be plain modules that both the web app and the functions import. If they live inside function handlers, those cases move up to API. That would be a design finding, not a test choice.
+- **The slip PDF builder must run in Node** (no DOM) for I3 and I5. Name the PDF library in SA-001 with that in mind.
+- **Functions read time through an injectable `now()`.** QE doesn't need an emulator clock override if API cases can seed times.
+- **Emulator mail stub:** it must accept, refuse, pause and inject a bounce, controlled only when `FUNCTIONS_EMULATOR` is set, so no staging or production path can reach it. The bounce event shape waits on the provider (G12).
+- **The emulator HMAC key** is a separate test secret (B4). SA-001 should say where it lives so it can never be the production key.
+- **Function logs (B8):** QE reads them from the emulator's log output. Please confirm functions don't log request payloads by default (CS-14).
+- **Staging:** the mail allow-list (G15) and the staging host for the guard (ADR-005), plus the test-folder layout. These are the same open items TC-01 raised.
