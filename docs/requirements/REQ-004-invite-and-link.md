@@ -5,16 +5,18 @@
 | Raised by | Owner: "draft req-001 to 004 and have SA review it. I'll approve it tomorrow" (2026-11-28) |
 | Epic | [EPIC-001 Access and households](../epics/EPIC-001-access-and-households.md) |
 | Backlog story | [04 Invite a homeowner and link them to a lot](../backlog/BACKLOG.md#04-invite-a-homeowner-and-link-them-to-a-lot) |
-| Status | **Draft: options for owner approval.** Sol Arch reviewed: supports Option A in two steps, with changes (applied in r2) |
+| Status | **Approved** by the owner, 2026-11-28 ("approve it"), with every recommendation accepted. Sol Arch reviewed: supports Option A in two steps, with changes (applied in r2) |
 | Mockup | Screens 4A–4H of the [access and households mockup](https://claude.ai/artifact/KaNMpY53cLTtrk8HARZgUr). Repo copy: [req-001-004-access-mockup.html](../mockups/req-001-004-access-mockup.html) |
 | Architecture | SA-001 §8.1 (household linking), ADR-004 and ADR-002 (email), Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-001, REQ-003 |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch's corrections applied (codes stored hashed, per-account guess limit, queued not sent); expiry, bounces, D3 and sale privacy listed as owner decisions |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch's corrections applied (codes stored hashed, per-account guess limit, queued not sent); expiry, bounces, D3 and sale privacy listed as owner decisions | · r3, 2026-11-28: owner approval recorded; recommendations accepted
 
-## Decisions for the owner
+## Owner decisions
 
-| # | Decision | Recommendation |
+Approved by the owner on 2026-11-28 ("approve it"): every recommendation in the right-hand column is accepted. Questions for the HOA board or the admin office under Open questions stay open.
+
+| # | Decision | Approved |
 |---|---|---|
 | 1 | Option A (email plus printed slips, in two steps), B (printed slips only) or C (self-registration with proof) | **A in two steps**: slips first, email once the provider is chosen |
 | 2 | Invitation expiry | **Settings, defaulting to 7 days for emailed invitations and 30 days for printed slips**, ending at the end of the day shown, Manila time |

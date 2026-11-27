@@ -5,16 +5,18 @@
 | Raised by | Owner: "draft req-001 to 004 and have SA review it. I'll approve it tomorrow" (2026-11-28) |
 | Epic | [EPIC-001 Access and households](../epics/EPIC-001-access-and-households.md) |
 | Backlog story | [03 Household directory: add, edit and import](../backlog/BACKLOG.md#03-household-directory-add-edit-and-import) |
-| Status | **Draft: options for owner approval.** Sol Arch reviewed: supports Option A, CSV only in R1, with changes (applied in r2) |
+| Status | **Approved** by the owner, 2026-11-28 ("approve it"), with every recommendation accepted. Sol Arch reviewed: supports Option A, CSV only in R1, with changes (applied in r2) |
 | Mockup | Screens 3A–3E of the [access and households mockup](https://claude.ai/artifact/KaNMpY53cLTtrk8HARZgUr). Repo copy: [req-001-004-access-mockup.html](../mockups/req-001-004-access-mockup.html) |
 | Architecture | SA-001 §4.2 (`households`, `lots`) and R-8 (onboarding), Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-002 |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch's corrections applied; CSV only in R1; contacts moved to a staff-only record; concurrency and stale-edit cases added |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch's corrections applied; CSV only in R1; contacts moved to a staff-only record; concurrency and stale-edit cases added | · r3, 2026-11-28: owner approval recorded; recommendations accepted
 
-## Decisions for the owner
+## Owner decisions
 
-| # | Decision | Recommendation |
+Approved by the owner on 2026-11-28 ("approve it"): every recommendation in the right-hand column is accepted. Questions for the HOA board or the admin office under Open questions stay open.
+
+| # | Decision | Approved |
 |---|---|---|
 | 1 | Option A (import with preview, plus forms), B (one at a time) or C (developer loads the list) | **A**, CSV only in R1 (`.xlsx` later, about 1 extra day) |
 | 2 | Before the import is **built** (not before approval): do block numbers repeat across phases? If yes, every lot key includes the phase (`P1-B04-L12`). Changing the key after import means rewriting every record | Ask the admin office this week |

@@ -5,16 +5,18 @@
 | Raised by | Owner: "draft req-001 to 004 and have SA review it. I'll approve it tomorrow" (2026-11-28) |
 | Epic | [EPIC-001 Access and households](../epics/EPIC-001-access-and-households.md) |
 | Backlog story | [02 Roles and permissions enforced on the server](../backlog/BACKLOG.md#02-roles-and-permissions-enforced-on-the-server) |
-| Status | **Draft: options for owner approval.** Sol Arch reviewed: supports Option B with changes (applied in r2) |
+| Status | **Approved** by the owner, 2026-11-28 ("approve it"), with every recommendation accepted. Sol Arch reviewed: supports Option B with changes (applied in r2) |
 | Mockup | Screens 2A–2D of the [access and households mockup](https://claude.ai/artifact/KaNMpY53cLTtrk8HARZgUr). Repo copy: [req-001-004-access-mockup.html](../mockups/req-001-004-access-mockup.html) |
 | Architecture | SA-001 §8.1 and ADR-004, Draft on branch `docs/sa-001-architecture`. Sol Arch recommends revising both (see its review) |
 | Depends on | REQ-001 |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch's corrections applied; removal promise made an owner decision; R1 admin menu depends on D4 |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch's corrections applied; removal promise made an owner decision; R1 admin menu depends on D4 | · r3, 2026-11-28: owner approval recorded; recommendations accepted
 
-## Decisions for the owner
+## Owner decisions
 
-| # | Decision | Recommendation |
+Approved by the owner on 2026-11-28 ("approve it"): every recommendation in the right-hand column is accepted. Questions for the HOA board or the admin office under Open questions stay open.
+
+| # | Decision | Approved |
 |---|---|---|
 | 1 | How fast a removed staff role stops working. **"At once"**: Firestore rules also check a staff record only the server writes (`staff/{uid}`), costing about one extra read per staff request. **"Within 1 hour"**: rules check only the role in the sign-in token, which stays valid for up to an hour after removal. SA-001 currently says "within the hour or at once", which Sol Arch says is wrong. | **At once.** The cost is small, and an ex-treasurer keeping access to approvals for an hour is not acceptable for money |
 | 2 | Option A (Staff and roles page now) or Option B (developer sets roles on the board's written request; read-only staff list) | **B for R1**, A with the gate add-on |
@@ -26,7 +28,7 @@ In the mock-up anyone can press "Admin" and approve payments, change settings or
 
 ## Roles
 
-A **staff role** is held by a few people (SA-001: a custom claim set by a Cloud Function, plus the server-written `staff/{uid}` record if decision 1 is "at once"). Being a **homeowner** is not a role: it means being a member of a household (REQ-004). One person can be both, for example a treasurer who lives in the subdivision.
+A **staff role** is held by a few people (SA-001: a custom claim set by a Cloud Function, plus a server-written `staff/{uid}` record that rules also check). Being a **homeowner** is not a role: it means being a member of a household (REQ-004). One person can be both, for example a treasurer who lives in the subdivision.
 
 | Role | Who | Menu (from the mock-up's `NAV`, line 546) | Can't |
 |---|---|---|---|
@@ -129,14 +131,14 @@ Feature: Roles and permissions
     And Settings → Staff still lists "Carmela Cruz · Treasurer"
 ```
 
-If the owner picks "within 1 hour" (decision 1), the first Then of "Removing a role" becomes: *Then within 1 hour any staff read or approval his device sends is refused*.
+The owner chose "at once" (decision 1), so the `staff/{uid}` check is part of this REQ.
 
 ## Data changes
 
 | What | Where | Written by | Read by |
 |---|---|---|---|
 | Staff role | Firebase Auth custom claim `role` (SA-001, ADR-004) | `setRole` Cloud Function only | Firestore and Storage rules; the app's menu |
-| Staff record (only if decision 1 is "at once") | `staff/{uid}`: role, granted by, request reference, since | `setRole` only; deleted on removal | Firestore and Storage rules, alongside the claim |
+| Staff record (owner chose "at once") | `staff/{uid}`: role, granted by, request reference, since | `setRole` only; deleted on removal | Firestore and Storage rules, alongside the claim |
 | Mirror of the role, for listing staff | `users/{uid}.staffRole` | `setRole` only | Settings → Staff |
 | Role change record: who ran it, whom, old role, new role, board request reference, when | `auditLog` (SA-001 §8.3) | `setRole` only | Board, treasurer (activity log UI is backlog story 06) |
 

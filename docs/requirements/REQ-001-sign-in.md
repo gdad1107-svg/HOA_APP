@@ -5,15 +5,17 @@
 | Raised by | Owner: "Yes, start REQ-001" and "draft req-001 to 004 and have SA review it. I'll approve it tomorrow" (2026-11-28) |
 | Epic | [EPIC-001 Access and households](../epics/EPIC-001-access-and-households.md) |
 | Backlog story | [01 Sign in to the portal](../backlog/BACKLOG.md#01-sign-in-to-the-portal) |
-| Status | **Draft: options for owner approval.** Sol Arch reviewed: supports Option A with changes (applied in r2) |
+| Status | **Approved** by the owner, 2026-11-28 ("approve it"), with every recommendation accepted. Sol Arch reviewed: supports Option A with changes (applied in r2) |
 | Mockup | Screens 1A–1G of the [access and households mockup](https://claude.ai/artifact/KaNMpY53cLTtrk8HARZgUr) (comment there). Repo copy: [req-001-004-access-mockup.html](../mockups/req-001-004-access-mockup.html) |
 | Architecture | SA-001 §8.1 and ADR-004, both Draft on branch `docs/sa-001-architecture` (links work once that branch is merged) |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch's corrections applied to the criteria, copy and data; owner decisions listed |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch's corrections applied to the criteria, copy and data; owner decisions listed | · r3, 2026-11-28: owner approval recorded; recommendations accepted
 
-## Decisions for the owner
+## Owner decisions
 
-| # | Decision | Recommendation |
+Approved by the owner on 2026-11-28 ("approve it"): every recommendation in the right-hand column is accepted. Questions for the HOA board or the admin office under Open questions stay open.
+
+| # | Decision | Approved |
 |---|---|---|
 | 1 | D1 sign-in method: Option A, B or C | **A**: email and password, or Google |
 | 2 | 2-step verification for staff. It needs the Firebase project upgraded to "Firebase Authentication with Identity Platform" and verified staff emails. Whether that upgrade costs anything at our size is not confirmed yet (Sol Arch review). | Decide separately, before the first staff account goes live. If yes, use an authenticator app, not SMS. It does not block approving this REQ |
