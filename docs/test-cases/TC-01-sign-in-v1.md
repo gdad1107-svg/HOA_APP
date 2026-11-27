@@ -14,7 +14,7 @@
 | Environment | Firebase **Emulator Suite** (Auth + Firestore) by default. **Emulator gaps** (Sol Arch review, 2026-11-28): the Auth emulator does not copy console settings; it has **email enumeration protection off** unless the seed turns it on (R9), **does not enforce the password policy**, may not reproduce the **Google takeover** of an unverified account, and does not model **token expiry** realistically. Cases that depend on those say **Env: staging only** and run on **`hoa-portal-staging`**. Block R inspects production projects **read-only, in the console, by the owner**. No sign-ins and no test data ever go to production |
 | Author / date | QA, 2026-11-28 |
 | Revision | **v1**, 2026-11-28: first version, approved by the owner ("Approve, send gaps"), gaps G-1 to G-14 sent to the BA. **v1.1**, 2026-11-28: owner asked for Sol Arch and QA reviews ("have SA and QA review it"). Applied both: emulator limits and staging-only cases; Gmail-only Google takeover; stale token after disabling; `members` self-read; `users` rule matrix; sign-up write failure and email case; App Check and account-linking settings; XSS through the name; every case now names its role and has setup, action, expected and don't-assert; fixtures split so no case changes a shared fixture; mixed cases split; status enumeration per staff role; gaps G-9 and G-10 withdrawn (answered), G-15 to G-21 added |
-| Status | **v1.1 awaiting the owner's approval.** v1 was approved; QE does not start on v1.1 until the owner approves it |
+| Status | **Approved** by the owner, 2026-11-28: v1 ("Approve, send gaps") and v1.1 ("Approve and merge"). QE may start triage. The 16 blocked cases wait for the BA's answers to their gaps |
 
 ## Roles and what crosses between them
 
