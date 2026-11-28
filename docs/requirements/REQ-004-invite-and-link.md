@@ -10,7 +10,7 @@
 | Architecture | SA-001 §8.1 (household linking), ADR-004 and ADR-002 (email), Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-001, REQ-003 |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch's corrections applied (codes stored hashed, per-account guess limit, queued not sent); expiry, bounces, D3 and sale privacy listed as owner decisions · r3, 2026-11-28: owner approval recorded; recommendations accepted · r4, 2026-11-28: `redeemInvite` and `removeMember` also keep `memberOf/{uid}` (requested by the S3 BA, TC-16 G-13 and TC-13 G-7; REQ-016) · **r5, 2026-11-28: QA's requirement gaps from TC-04 v1 answered (G-1 to G-33); owner decisions 6 to 9 added; Sol Arch's r5 changes C-1 to C-6 applied, and decision 9's recommendation revised after its cost note; see [r5 change log](#r5-change-log); owner approval recorded** |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch's corrections applied (codes stored hashed, per-account guess limit, queued not sent); expiry, bounces, D3 and sale privacy listed as owner decisions · r3, 2026-11-28: owner approval recorded; recommendations accepted · r4, 2026-11-28: `redeemInvite` and `removeMember` also keep `memberOf/{uid}` (requested by the S3 BA, TC-16 G-13 and TC-13 G-7; REQ-016) · **r5, 2026-11-28: QA's requirement gaps from TC-04 v1 answered (G-1 to G-33); owner decisions 6 to 9 added; Sol Arch's r5 changes C-1 to C-6 applied, and decision 9's recommendation revised after its cost note; see [r5 change log](#r5-change-log); owner approval recorded** · r6, 2026-11-28: follow-up from approved REQ-001 r4, added at the owner's request: `redeemInvite` refuses while the person record is missing (code not used up), and code calls give up after 15 seconds; "Linking…" added to the copy. No r5 behaviour changes. See [New in r6](#new-in-r6-follow-up-from-req-001-r4-person-record-15-second-limit) |
 
 **Reading r5:** new scenarios carry the tag `@r5-new` and changed ones `@r5-changed`. New or changed rows and lines elsewhere end with **(r5)**. Untagged text is unchanged from approved r3.
 
@@ -490,6 +490,46 @@ Feature: Linking an account to a lot
     And the code was not used, so it still works for the right person
 ```
 
+### New in r6: follow-up from REQ-001 r4 (person record, 15-second limit)
+
+Asked for by approved REQ-001 r4 ("Follow-up for REQ-004", from Sol Arch's REQ-001 r4 review, question 5, and its offline note). No approved r5 behaviour changes. These rules only make two things explicit: the server refuses to link when the person record is missing, and the page sets a time limit on the code calls.
+
+Normally the app creates a missing person record (`users/{uid}`) when it opens (REQ-001, "Missing record"), before "Enter your invite code" appears. The rule below is the server's backstop for when that save hasn't finished or failed.
+
+```gherkin
+  @r6-new
+  Scenario: Linking is refused while the person record is missing
+    Given Ana is signed in with no household, and her person record has not been saved
+    And she is on the confirm screen for Blk 2 Lot 7
+    When she presses "Yes, link my account"
+    Then she sees "We couldn't save your details. Check your connection and try again."
+    And she is not linked to Blk 2 Lot 7
+    And her invite code is not used up, and the wrong-code count does not change
+    When her person record is saved and she presses "Yes, link my account" again
+    Then she lands on the Blk 2 Lot 7 dashboard
+
+  @r6-new
+  Scenario Outline: A code call that gets no answer gives up after 15 seconds
+    Given a signed-in person with no household is on <screen>
+    And the server does not answer
+    When they press "<button>"
+    Then within 15 seconds "<in flight>" ends and they see "<message>"
+    And the code is kept, "<button>" can be pressed again, and the wrong-code count does not change
+
+    Examples:
+      | screen                   | button               | in flight | message                                                             |
+      | "Enter your invite code" | Continue             | Checking… | We couldn't check the code. Check your connection and try again.    |
+      | the confirm screen       | Yes, link my account | Linking…  | We couldn't link your account. Check your connection and try again. |
+```
+
+If the link did go through on the server after the page gave up, pressing "Yes, link my account" again lands on the dashboard with one membership (r5, "Pressing "Yes, link my account" again after a lost reply").
+
+**Design (r6):**
+- `redeemInvite` reads `users/{uid}` inside its transaction. If the record is missing, it refuses with `failed-precondition` and writes nothing: the invitation stays active, no membership is made, and `inviteAttempts` doesn't change.
+- `checkInvite` doesn't need the person record. It only shows the lot.
+- The page calls `checkInvite` and `redeemInvite` with a 15-second limit, not the 70-second default for callable functions (Sol Arch's REQ-001 r4 review, "Offline, timeouts").
+- "Linking…" is new copy, added to the copy of record (r6).
+
 ### New in r5: removing people and changing the owner (G-9, G-10, G-18, G-26, G-28, G-29)
 
 ```gherkin
@@ -715,6 +755,8 @@ The email link carries the code after `#`, so it never reaches server logs. Clie
 | Empty code **(r5)** | Enter the code from your invitation. |
 | Malformed code **(r5)** | Invite codes have 8 letters and numbers, like K7QX-M9TA. They never use O, 0, I or 1. |
 | Confirm screen | You're joining {lot} ({owner name}). Is this your lot? · Yes, link my account · No, this isn't my lot |
+| Confirm button in flight **(r6)** | Linking… |
+| Person record missing at linking **(r6)** | We couldn't save your details. Check your connection and try again. (same text as REQ-001) |
 | Wrong lot | Please contact the admin office to get the right invitation. **(r5)** Shown above the empty code field on "Enter your invite code" |
 | Errors | That code doesn't match an invitation. Check it, or ask the admin office for a new one. · This invitation has expired. Ask the admin office to send a new one. · This invitation was already used. Ask the admin office for a new one. · This invitation was replaced by a newer one. Use the newest invitation, or ask the admin office. · This invitation is no longer valid. Ask the admin office. · Your account is already linked to {lot}. Ask the admin office if you need access to another lot. · Too many wrong codes. Try again in 15 minutes. |
 | Access removed **(r5)** | Your access to {lot} was removed by the admin office. Ask them if you think this is a mistake. |
