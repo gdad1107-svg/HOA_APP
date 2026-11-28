@@ -3173,10 +3173,8 @@ These are QE's reading of the cases. QE did not change the cases, the requiremen
 
 **For QE TC-04 and QA (other plans; QE didn't edit them)**
 
-- **TC-04-J16 can likely be unblocked.** It's blocked on TC-04's G-5, but REQ-003 r4 Gherkin 12 now says Reactivate never brings a cancelled invitation back. TC-03-H8 relies on J16.
+- **TC-04-J16 and TC-04-S10 can likely be unblocked.** REQ-004 r5 (approved, merged to `main` as `4c98080` while this triage ran) answers G-5 (`cancelInvite` is specified; a cancelled code is refused) and G-3 (header counts are active households only, in five groups that add up). REQ-003 r4 Gherkin 12 also says Reactivate never brings a cancelled invitation back. TC-03-H8 relies on J16 and TC-03-J14 on S10, so both show TC-04's current status until QE re-triages TC-04 against r5.
 - **TC-04-S3** ("a freshly imported household shows Not invited and can be invited") overlaps TC-03-A4 on its first half. A4 checks all 623 stored households. Proposal: S3 keeps only "can be invited".
-- **TC-04-S10** is blocked on TC-04's G-3, and TC-03-J14 relies on it. If G-3 is about something J14 doesn't check, narrowing S10 would let J14 run now.
-
 **For Sol Arch (and Dev)**
 
 - **`shared/domain/` placement keeps 103 cases at Unit.** Above all, `classifyRows(rows, existingLots)` must take the existing lots as an argument, so the browser preview and the commit's recount run the same code with no Firestore read inside.
