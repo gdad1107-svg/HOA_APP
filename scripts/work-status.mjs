@@ -158,8 +158,9 @@ function field(text, name) {
   return line ? strip(line[1]) : null;
 }
 // Approved only when the status *starts* with Final / Approved / Accepted ("Final — approved
-// by …", "Approved by the owner, …", an ADR's "Accepted"). "Draft. Becomes final when …" is not.
-const isApproved = (s) => /^(final|approved|accepted)\b/i.test(strip(s ?? ''));
+// by …", "Approved by the owner, …", an ADR's "Accepted"), optionally after a revision tag
+// ("r4 approved …", "v1.1 approved …"). "Draft. Becomes final when …" and "r4 draft" are not.
+const isApproved = (s) => /^(?:(?:r\d+|v\d+(?:\.\d+)*)\s+)?(final|approved|accepted)\b/i.test(strip(s ?? ''));
 const firstToken = (s) => (s ? s.split(/[.:—–(]/)[0].trim() : null);
 function tableRows(text, heading) {
   const i = text.search(new RegExp(`^##\\s+${heading}`, 'mi'));
@@ -201,7 +202,15 @@ const tcDocs = all.filter((d) => d.kind === 'TC').map((d) => {
   const source = field(d.text, 'Source(?: REQ or DEF)?');
   const head = d.text.split('\n').slice(0, 25).join('\n');
   const status = field(d.text, 'Status');
-  return { ...d, sources: idsIn(source ?? head), status, approved: isApproved(status), tbd: (d.text.match(/\*\*Layer\*\*\s*TBD/gi) || []).length, cases: (d.text.match(/^#{2,4}\s+TC-/gm) || []).length };
+  const tbdIn = (text) => (text.match(/\*\*Layer\*\*\s*TBD/gi) || []).length;
+  // Gates (approved, triaged) are judged on main's copy; work on a branch is only "in progress"
+  const mainText = d.onMain ? git('show', `${MAIN}:${d.path}`) : null;
+  return {
+    ...d, sources: idsIn(source ?? head), status, approved: isApproved(status), tbd: tbdIn(d.text),
+    approvedOnMain: mainText ? isApproved(field(mainText, 'Status')) : false,
+    tbdOnMain: mainText ? tbdIn(mainText) : null,
+    cases: (d.text.match(/^#{2,4}\s+TC-/gm) || []).length,
+  };
 });
 
 const coverage = tryGit('show', `${MAIN}:docs/test-cases/COVERAGE-MAP.md`) ?? '';
@@ -222,8 +231,8 @@ const requirements = reqDocs.map((d) => {
   const tc = tcDocs.filter((t) => t.sources.has(d.id));
   const tcApproved = tc.some((t) => t.approved);
   // QE starts only from a plan the owner approved that has landed on main
-  const tcReady = tc.filter((t) => t.approved && t.onMain && !t.changedOn.length);
-  const qeTriaged = tcReady.length > 0 && tcReady.every((t) => t.tbd === 0);
+  const tcReady = tc.filter((t) => t.approvedOnMain);
+  const qeTriaged = tcReady.length > 0 && tcReady.every((t) => t.tbdOnMain === 0);
   const branchesFor = linkedBranches(d.id);
   const buildBranches = branchesFor.filter((b) => b.files.some(isCode));
   const merged = mergedCodeOnMain(d.id);
@@ -251,8 +260,11 @@ const requirements = reqDocs.map((d) => {
   if (!d.onMain) flags.push(`Not on ${MAIN} yet: lives on ${d.branch}`);
   else if (d.changedOn.length) flags.push(`Newer revision on ${d.changedOn.join(', ')}, not on ${MAIN}`);
   for (const t of tc) {
-    if (!t.approved) flags.push(`${t.id} waits for owner approval`);
-    else if (!t.onMain || t.changedOn.length) flags.push(`${t.id} approved but not merged (on ${t.changedOn.join(', ') || t.branch})`);
+    const where = t.changedOn.join(', ') || t.branch;
+    if (!t.approved && !t.approvedOnMain) flags.push(`${t.id} waits for owner approval`);
+    else if (!t.approvedOnMain) flags.push(`${t.id} approved but not merged (on ${where})`);
+    else if (t.changedOn.length && t.tbd === 0 && t.tbdOnMain > 0) flags.push(`${t.id} QE triage done on ${where}, not merged`);
+    else if (t.changedOn.length) flags.push(`${t.id} has unmerged changes on ${where}`);
   }
   if (decisions.length && !approved) flags.push(`${decisions.length} owner decision(s) open`);
   const unapprovedDeps = deps.filter((x) => { const r = reqDocs.find((q) => q.id === x); return !r || !isApproved(field(r.text, 'Status')); });
