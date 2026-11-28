@@ -721,3 +721,400 @@ The proposal is that TC-04 keeps both tests and the TC-02 rows become cross-refe
 | TC-04-X2 | 20 minutes trying to link to a lot you don't own | exploratory | Manual | Manual: exploratory charter::TC-04-X2 | Planned |
 | TC-04-X3 | 15 minutes looking for directory status drift | exploratory | Manual | Manual: exploratory charter::TC-04-X3 | Planned (Step 2 half deferred) |
 | TC-04-X4 | 15 minutes reading and typing codes from a printed slip | exploratory | Manual | Manual: exploratory charter::TC-04-X4 | Planned |
+
+## TC-03 Household directory (REQ-003): planned for the real app
+
+Triaged by QE 2026-11-28 from [TC-03 v1 r3](TC-03-household-directory-v1.md) (owner-approved, on `main`), against REQ-003 r4 and SA-001 r3 (Final). Like the TC-01, TC-02 and TC-04 rows, these target the **real app** (Firebase Auth, Firestore, Functions and Storage on the Emulator Suite), which doesn't exist yet. Nothing is automated. Each row is:
+
+- **Planned**;
+- **Planned (… part not asserted)**: the case cites an open BA gap (NG*n*) only under *Don't assert*, so it runs now without that part;
+- **Deferred: Step 2**, waiting for REQ-004's email provider;
+- **Blocked** on decision 2 (the lot key, waiting on the admin office) or NG8, with no layer guessed;
+- or **Covered by** a TC-02 or TC-04 row that already proves the same thing. That row's test is reported for both ids, and no second test is written.
+
+Reasons, the Unit list for Dev, the locator contract, the spec list, the automation order and the findings are in TC-03's **QE triage** section. Unit files are Dev's, under `shared/domain/` and `web/src/features/households/` (paths anticipated from SA-001 r3 §9). API specs live in `tests/specs/api/`, the staging spec in `tests/specs/staging/`, UI specs in `tests/specs/ui/`.
+
+| Layer | Cases | Share of new automated | Blocked | Deferred: Step 2 |
+|---|---|---|---|---|
+| Unit | 103 | 32% | 0 | 0 |
+| API | 128 (1 on staging) | 40% | 0 | 2 |
+| UI | 89 (8 `mobile`, 3 `exclusive`) | 28% | 0 | 0 |
+| Journey | 1 | <1% | 0 | 0 |
+| Manual | 5 | — | 0 | 0 |
+| Blocked, no layer yet | 5 | — | 5 | 0 |
+| Covered by another plan | 19 (2 Unit, 13 API, 4 UI) | — | — | — |
+| **Total** | **350** | | **5** | **2** |
+
+21 Planned rows run without an open part; 5 UI rows fail until DEF-001 is fixed.
+
+**Gaps:** none. Every case has a layer, a named test or manual run, a cross-reference, or a stated block.
+
+**Overlaps:** none by layer. 19 TC-03 cases are cross-references to TC-02 and TC-04 rows (listed in TC-03's QE triage), and 8 more are scoped to the part those rows don't cover (the scope is in the Scenario column). One possible overlap is left for TC-04's owner: TC-04-S3's "shows Not invited" half is also TC-03-A4 (TC-03 finding, "For QE TC-04").
+
+**Effect on the rows above:** the mock-up's `SMK-admin-homeowners` (in `SMK-admin-* (11)`) retires with `aHo()` and is replaced by the smoke rows below. It's left as it is until then.
+
+**Smoke additions** (new rows, not TC-03 cases). TC-04's `SMK-admin-homeowners-portal` shares the directory page load with `SMK-admin-directory`.
+
+| Scenario id | Scenario | Type | Layer | Test file::test name | Status |
+|---|---|---|---|---|---|
+| SMK-admin-directory | Real directory loads for admin office staff: heading with a count, Import households, Add household, search, chips | happy | UI | smoke.spec.js::SMK-admin-directory | Planned |
+| SMK-treasurer-directory | The same directory loads for the treasurer | happy | UI | smoke.spec.js::SMK-treasurer-directory | Planned |
+| SMK-admin-import-step1 | Import households step 1: Download template and the labelled file input (no preview: a preview writes a run) | happy | UI | smoke.spec.js::SMK-admin-import-step1 | Planned |
+| SMK-admin-add-household | The Add household dialog opens and closes with Cancel | happy | UI | smoke.spec.js::SMK-admin-add-household | Planned |
+| SMK-admin-household-dialog | A fixture household's dialog opens from its lot label button with Deactivate, Cancel and Save (never pressed) | happy | UI | smoke.spec.js::SMK-admin-household-dialog | Planned |
+| SMK-admin-inactive-filter | The Inactive chip lists the inactive fixture; its dialog shows the Inactive pill and Reactivate | happy | UI | smoke.spec.js::SMK-admin-inactive-filter | Planned |
+
+**Cases**
+
+| Scenario id | Scenario | Type | Layer | Test file::test name | Status |
+|---|---|---|---|---|---|
+| TC-03-A1 | The preview of a clean 623-row file classifies every row as ready and none as rejected | happy path | API | api/households-import-preview.spec.js::TC-03-A1 | Planned |
+| TC-03-A2 | The preview alone saves no household | data integrity | API | api/households-import-preview.spec.js::TC-03-A2 | Planned |
+| TC-03-A3 | Committing the clean file stores exactly 623 households | happy path | API | api/households-import-commit.spec.js::TC-03-A3 | Planned |
+| TC-03-A4 | Every imported household is stored with link status "Not invited" and no members | happy path | API | api/households-import-commit.spec.js::TC-03-A4 | Planned |
+| TC-03-A5 | The preview rejects exactly rows 14, 31, 32 and 57, counting the header as row 1 | negative | Unit | shared/domain/householdPreview.test.js::TC-03-A5 | Planned |
+| TC-03-A6 | The preview counts only the rows that will be added | negative | Unit | shared/domain/householdPreview.test.js::TC-03-A6 | Planned |
+| TC-03-A7 | Neither copy of an in-file duplicate lot is stored | data integrity | API | api/households-import-commit.spec.js::TC-03-A7 | Planned |
+| TC-03-A8 | After a partial import the run record holds 619 imported and the 4 rejected rows | happy path | API | api/households-import-commit.spec.js::TC-03-A8 | Planned |
+| TC-03-A9 | The preview classifies a lot already in the directory as skipped, counted as already, not as won't be imported | negative | API | api/households-import-preview.spec.js::TC-03-A9 | Planned |
+| TC-03-A10 | The import leaves exactly one Blk 4 Lot 12 | data integrity | API | api/households-import-commit.spec.js::TC-03-A10 | Planned |
+| TC-03-A11 | The existing household's name and contacts are unchanged by the import | data integrity | API | api/households-import-commit.spec.js::TC-03-A11 | Planned |
+| TC-03-A12 | The template file's header is the six columns in order | happy path | Unit | shared/domain/householdCsv.test.js::TC-03-A12 | Planned |
+| TC-03-A13 | A treasurer's import preview and commit calls are allowed | security / role | API | api/households-callables-roles.spec.js::TC-03-A13 | Planned |
+| TC-03-A14 | A treasurer's commit stores the file's households | data integrity | API | api/households-import-commit.spec.js::TC-03-A14 | Planned |
+| TC-03-A15 | Ready, won't be imported and already in the directory add up to the file's data rows | data integrity | Unit | shared/domain/householdPreview.test.js::TC-03-A15 | Planned |
+| TC-03-B1 | A 0-byte file is refused with a file message before any preview | negative | Unit | shared/domain/householdCsv.test.js::TC-03-B1 | Planned |
+| TC-03-B2 | A header-only file is refused with a file message, not previewed with zero rows | boundary | Unit | shared/domain/householdCsv.test.js::TC-03-B2 | Planned |
+| TC-03-B3 | A file with one valid row stores one household | boundary | API | api/households-import-commit.spec.js::TC-03-B3 | Planned |
+| TC-03-B4 | A file where every row has a problem is previewed with zero ready rows | boundary | Unit | shared/domain/householdPreview.test.js::TC-03-B4 | Planned |
+| TC-03-B5 | A file that is not valid UTF-8 is refused at file level | negative | Unit | shared/domain/householdCsv.test.js::TC-03-B5 | Planned |
+| TC-03-B6 | A UTF-8 file with a BOM is read correctly, first column included | boundary | Unit | shared/domain/householdCsv.test.js::TC-03-B6 | Planned |
+| TC-03-B7 | A UTF-8 file without a BOM is read correctly | boundary | Unit | shared/domain/householdCsv.test.js::TC-03-B7 | Planned |
+| TC-03-B8 | "ñ" in an owner name is stored unchanged | data integrity | Unit | shared/domain/householdCsv.test.js::TC-03-B8 | Planned |
+| TC-03-B9 | CRLF, LF, CR-only and mixed line endings give the same rows and row numbers | boundary | Unit | shared/domain/householdCsv.test.js::TC-03-B9 | Planned |
+| TC-03-B10 | A last row with no final newline is read; trailing blank lines are not rows | boundary | Unit | shared/domain/householdCsv.test.js::TC-03-B10 | Planned |
+| TC-03-B11 | A quoted field containing a comma stays in one column | boundary | Unit | shared/domain/householdCsv.test.js::TC-03-B11 | Planned |
+| TC-03-B12 | A file with no Lot column is refused at file level naming Lot | negative | Unit | shared/domain/householdCsv.test.js::TC-03-B12 | Planned |
+| TC-03-B13 | An extra unknown column causes no row to be rejected | negative | Unit | shared/domain/householdCsv.test.js::TC-03-B13 | Planned |
+| TC-03-B14 | Reordered columns are matched by heading, never shifted | boundary | Unit | shared/domain/householdCsv.test.js::TC-03-B14 | Planned |
+| TC-03-B15 | A semicolon-separated file is refused as the wrong separator | negative | Unit | shared/domain/householdCsv.test.js::TC-03-B15 | Planned |
+| TC-03-B16 | An .xlsx file is refused before any preview | negative | Unit | shared/domain/householdCsv.test.js::TC-03-B16 | Planned |
+| TC-03-B17 | A file of exactly 2,000 data rows is previewed as normal | boundary | Unit | shared/domain/householdCsv.test.js::TC-03-B17 | Planned |
+| TC-03-B18 | A file of 1,048,577 bytes is refused for size | boundary | Unit | shared/domain/householdCsv.test.js::TC-03-B18 | Planned (NG1 part not asserted) |
+| TC-03-B19 | Each file message reads the copy of record | ui/ux | UI | ui/households-import.spec.js::TC-03-B19 | Planned |
+| TC-03-B20 | The not-UTF-8 file message reads the copy of record | ui/ux | UI | ui/households-import.spec.js::TC-03-B20 | Planned |
+| TC-03-B21 | With zero ready rows the Import button is replaced by a sentence saying why | ui/ux | UI | ui/households-import.spec.js::TC-03-B21 | Planned (NG11 part not asserted) |
+| TC-03-B22 | An owner name with "ñ" is shown unchanged in the preview and directory | ui/ux | UI | ui/households-directory.spec.js::TC-03-B22 | Planned |
+| TC-03-B23 | An extra column's values are stored in no record | data integrity | API | api/households-import-commit.spec.js::TC-03-B23 | Planned |
+| TC-03-B24 | The page stays usable while an over-size file is refused | usability | UI | ui/households-import.spec.js::TC-03-B24 | Planned |
+| TC-03-B25 | A file of 2,001 data rows is refused at file level | boundary | Unit | shared/domain/householdCsv.test.js::TC-03-B25 | Planned |
+| TC-03-B26 | The server refuses a preview call carrying more than 2,000 rows | security / role | API | api/households-import-preview.spec.js::TC-03-B26 | Planned |
+| TC-03-B27 | A file of 1,000,000 bytes is not refused for size | boundary | Unit | shared/domain/householdCsv.test.js::TC-03-B27 | Planned (NG1 part not asserted) |
+| TC-03-B28 | A file over both the size and the row limit gets the size refusal | boundary | Unit | shared/domain/householdCsv.test.js::TC-03-B28 | Planned |
+| TC-03-B29 | A quoted cell containing a line break stays one row | boundary | Unit | shared/domain/householdCsv.test.js::TC-03-B29 | Planned |
+| TC-03-B30 | Blank rows anywhere in the file are neither listed nor counted | boundary | Unit | shared/domain/householdCsv.test.js::TC-03-B30 | Planned |
+| TC-03-B31 | Row numbers count the header and blank rows, matching the spreadsheet | boundary | Unit | shared/domain/householdCsv.test.js::TC-03-B31 | Planned |
+| TC-03-B32 | A header followed only by blank rows is refused like a header-only file | boundary | Unit | shared/domain/householdCsv.test.js::TC-03-B32 | Planned |
+| TC-03-B33 | Several missing required columns are reported together, in template order | negative | Unit | shared/domain/householdCsv.test.js::TC-03-B33 | Planned |
+| TC-03-B34 | A renamed required column counts as missing | negative | Unit | shared/domain/householdCsv.test.js::TC-03-B34 | Planned |
+| TC-03-B35 | A missing optional column leaves that value blank for every row | boundary | Unit | shared/domain/householdCsv.test.js::TC-03-B35 | Planned |
+| TC-03-B36 | Headings are matched trimmed and case-insensitive | boundary | Unit | shared/domain/householdCsv.test.js::TC-03-B36 | Planned |
+| TC-03-B37 | A tab-separated file is refused as the wrong separator | negative | Unit | shared/domain/householdCsv.test.js::TC-03-B37 | Planned |
+| TC-03-B38 | A heading that appears twice is refused at file level | negative | Unit | shared/domain/householdCsv.test.js::TC-03-B38 | Planned |
+| TC-03-B39 | A file message is announced, shown as text with an icon, and leaves focus on the file input | usability | UI | ui/households-import.spec.js::TC-03-B39 | Planned |
+| TC-03-B40 | A file-level refusal sends no rows to the server | data integrity | UI | ui/households-import.spec.js::TC-03-B40 | Planned |
+| TC-03-C1 | A row with no block is rejected for a missing block | negative | Unit | shared/domain/householdFields.test.js::TC-03-C1 | Planned |
+| TC-03-C2 | A row with no owner name is rejected for a missing owner name | negative | Unit | shared/domain/householdFields.test.js::TC-03-C2 | Planned |
+| TC-03-C3 | An owner name of spaces only is treated as missing | negative | Unit | shared/domain/householdFields.test.js::TC-03-C3 | Planned |
+| TC-03-C4 | An owner name of exactly 80 characters is accepted and stored in full | boundary | Unit | shared/domain/householdFields.test.js::TC-03-C4 | Planned |
+| TC-03-C5 | An owner name of 81 characters is rejected as longer than 80 | boundary | Unit | shared/domain/householdFields.test.js::TC-03-C5 | Planned |
+| TC-03-C6 | Each of the six accepted mobile shapes passes validation | boundary | Unit | shared/domain/householdFields.test.js::TC-03-C6 | Planned |
+| TC-03-C7 | A mobile one digit short is rejected as invalid, quoting the value | boundary | Unit | shared/domain/householdFields.test.js::TC-03-C7 | Planned |
+| TC-03-C8 | A mobile one digit long is rejected as invalid | boundary | Unit | shared/domain/householdFields.test.js::TC-03-C8 | Planned |
+| TC-03-C9 | A mobile in scientific notation is rejected, not guessed | negative | Unit | shared/domain/householdFields.test.js::TC-03-C9 | Planned |
+| TC-03-C10 | A 5,000-digit mobile is rejected promptly | negative | Unit | shared/domain/householdFields.test.js::TC-03-C10 | Planned |
+| TC-03-C11 | Three malformed emails are each rejected as invalid, quoting the value | negative | Unit | shared/domain/householdFields.test.js::TC-03-C11 | Planned |
+| TC-03-C12 | A row with no email and no mobile is stored with both contacts empty | boundary | API | api/households-import-commit.spec.js::TC-03-C12 | Planned |
+| TC-03-C13 | Two households may share one contact email | boundary | API | api/households-import-commit.spec.js::TC-03-C13 | Planned |
+| TC-03-C14 | Lot "12-A" is stored as a lot distinct from Lot 12 | boundary | Unit | shared/domain/lotKey.test.js::TC-03-C14 | Planned |
+| TC-03-C15 | Block "04" and block "4" resolve to the same lot | data integrity | Unit | shared/domain/householdPreview.test.js::TC-03-C15 | Planned |
+| TC-03-C16 | Lot values "012", " 12 " and "12-a" resolve to the existing lots | data integrity | Unit | shared/domain/householdPreview.test.js::TC-03-C16 | Planned |
+| TC-03-C17 | Invalid block values are rejected with the block reason | negative | Unit | shared/domain/householdFields.test.js::TC-03-C17 | Planned |
+| TC-03-C18 | Accepted phase forms are stored as "Phase N" | boundary | Unit | shared/domain/householdFields.test.js::TC-03-C18 | Planned |
+| TC-03-C19 | Three copies of one lot in a file are all rejected as duplicates | boundary | Unit | shared/domain/householdPreview.test.js::TC-03-C19 | Planned |
+| TC-03-C20 | Every row of a lot duplicated in the file and already in the directory is classified already | negative | Unit | shared/domain/householdPreview.test.js::TC-03-C20 | Planned |
+| TC-03-C21 | A row with several problems lists all of them, in column order, joined by "; " | negative | Unit | shared/domain/householdPreview.test.js::TC-03-C21 | Planned |
+| TC-03-C22 | Markup in an owner name is shown as text and never runs | security / role | UI | ui/households-directory.spec.js::TC-03-C22 | Planned |
+| TC-03-C23 | An 80-character owner name is shown in full in the list and household dialog | ui/ux | UI | ui/households-directory.spec.js::TC-03-C23 | Planned |
+| TC-03-C24 | Stored mobiles are shown in the "0900 000 0000" display format | ui/ux | Unit | shared/domain/householdFields.test.js::TC-03-C24 | Planned |
+| TC-03-C25 | A household with no email shows no email in the list and an empty Email field | ui/ux | UI | ui/households-directory.spec.js::TC-03-C25 | Planned |
+| TC-03-C26 | A suffixed lot's label reads "Blk 4 Lot 12-A" | ui/ux | Unit | shared/domain/lotKey.test.js::TC-03-C26 | Planned |
+| TC-03-C27 | A household with no phase shows "Not set" in the household dialog | ui/ux | Blocked | — | Blocked on decision 2 (admin office) |
+| TC-03-C28 | A blank phase is handled by decision 2's rule | boundary | Blocked | — | Blocked on decision 2 (admin office) |
+| TC-03-C29 | The same Block and Lot in two different phases is handled by decision 2's rule | boundary | Blocked | — | Blocked on decision 2 (admin office) |
+| TC-03-C30 | A leading apostrophe before an ordinary character is kept | boundary | Unit | shared/domain/householdFields.test.js::TC-03-C30 | Planned |
+| TC-03-C31 | A value that starts with "=" after the apostrophe is removed is stored as plain text | security / role | Unit | shared/domain/householdFields.test.js::TC-03-C31 | Planned |
+| TC-03-C32 | An 80-character name with spaces around it is accepted after trimming | boundary | Unit | shared/domain/householdFields.test.js::TC-03-C32 | Planned |
+| TC-03-C33 | The in-file duplicate reason comes after the row's field problems | negative | Unit | shared/domain/householdPreview.test.js::TC-03-C33 | Planned |
+| TC-03-C34 | An already-in-directory row with other problems shows only the already reason | negative | Unit | shared/domain/householdPreview.test.js::TC-03-C34 | Planned |
+| TC-03-C35 | Block prefixes "Blk" and "Block" in any case resolve to the plain block number | data integrity | Unit | shared/domain/householdPreview.test.js::TC-03-C35 | Planned |
+| TC-03-C36 | Lot forms "12A", "12 a" and "Lot 12-A" resolve to Lot 12-A | data integrity | Unit | shared/domain/householdPreview.test.js::TC-03-C36 | Planned |
+| TC-03-C37 | Blocks 1 and 999 are accepted | boundary | Unit | shared/domain/householdFields.test.js::TC-03-C37 | Planned |
+| TC-03-C38 | Invalid lot values are rejected with the lot reason | negative | Unit | shared/domain/householdFields.test.js::TC-03-C38 | Planned |
+| TC-03-C39 | Lots 1, 9999 and a two-letter suffix are accepted and stored normalised | boundary | Unit | shared/domain/householdFields.test.js::TC-03-C39 | Planned |
+| TC-03-C40 | A lot value over 10 characters is refused before matching | boundary | Unit | shared/domain/householdPreview.test.js::TC-03-C40 | Planned |
+| TC-03-C41 | Block "04" with Lot "12a" is the existing Blk 4 Lot 12-A | data integrity | Unit | shared/domain/householdPreview.test.js::TC-03-C41 | Planned |
+| TC-03-C42 | The stored label is built from the normalised values | data integrity | Unit | shared/domain/lotKey.test.js::TC-03-C42 | Planned |
+| TC-03-C43 | Out-of-range phase values are rejected with the phase reason | negative | Unit | shared/domain/householdFields.test.js::TC-03-C43 | Planned |
+| TC-03-C44 | Phase 1 and Phase 4 are accepted | boundary | Unit | shared/domain/householdFields.test.js::TC-03-C44 | Planned |
+| TC-03-D1 | While committing, the page shows a progress count, then the finished banner *(the one import Journey: choose file, preview, Import, banner, listed)* | happy path | Journey | ui/households-import.journey.spec.js::TC-03-D1 | Planned |
+| TC-03-D2 | Pressing Import twice quickly imports each row once | concurrency | Unit | web/src/features/households/import-controller.test.js::TC-03-D2 | Planned |
+| TC-03-D3 | A second commit call for a running import is refused by the server | concurrency | API | api/households-race.spec.js::TC-03-D3 | Planned |
+| TC-03-D4 | While importing, the button reads "Importing…" and is disabled | usability | UI | ui/households-import.spec.js::TC-03-D4 | Planned (NG12 part not asserted) |
+| TC-03-D5 | Two admins importing the same file at once store 623 households | concurrency | API | api/households-race.spec.js::TC-03-D5 | Planned |
+| TC-03-D6 | Two racing imports' "Imported" counts add up to exactly 623 | concurrency | API | api/households-race.spec.js::TC-03-D6 | Planned |
+| TC-03-D7 | Re-uploading the file after an interrupted import previews only the unwritten rows as ready | data integrity | API | api/households-import-preview.spec.js::TC-03-D7 | Planned |
+| TC-03-D8 | A lot added by the form between preview and commit is counted as already at commit | stale reference | API | api/households-import-commit.spec.js::TC-03-D8 | Planned |
+| TC-03-D9 | Form save and import commit on the same new lot at once store one household | concurrency | API | api/households-race.spec.js::TC-03-D9 | Planned |
+| TC-03-D10 | Committing another staff member's previewed run is refused | security / role | API | api/households-import-runs.spec.js::TC-03-D10 | Planned |
+| TC-03-D11 | Committing an unknown import id is refused | negative | API | api/households-import-runs.spec.js::TC-03-D11 | Planned |
+| TC-03-D12 | Committing a completed run again is refused | negative | API | api/households-import-runs.spec.js::TC-03-D12 | Planned |
+| TC-03-D13 | Uploading the same file again classifies every row as already in the directory | data integrity | API | api/households-import-preview.spec.js::TC-03-D13 | Planned |
+| TC-03-D14 | A fixed rejected-rows file previews only the fixed rows as ready | integration | Unit | shared/domain/householdPreview.test.js::TC-03-D14 | Planned |
+| TC-03-D15 | A re-import with changed names updates no existing household | data integrity | API | api/households-import-commit.spec.js::TC-03-D15 | Planned |
+| TC-03-D16 | An inactive household's lot is classified as already in the directory (inactive) | data integrity | API | api/households-import-preview.spec.js::TC-03-D16 | Planned |
+| TC-03-D17 | A household added by the form survives a later import of its lot unchanged | data integrity | API | api/households-import-commit.spec.js::TC-03-D17 | Planned |
+| TC-03-D18 | The losing write of a form-versus-import race is refused as a duplicate | concurrency | API | api/households-race.spec.js::TC-03-D18 | Planned |
+| TC-03-D19 | Committing the fixed file adds exactly the three fixed rows | integration | API | api/households-import-commit.spec.js::TC-03-D19 | Planned |
+| TC-03-D20 | A re-import with changed names classifies every row as already in the directory | data integrity | Unit | shared/domain/householdPreview.test.js::TC-03-D20 | Planned |
+| TC-03-D21 | An import never creates or reactivates a household on an inactive lot | data integrity | API | api/households-import-commit.spec.js::TC-03-D21 | Planned |
+| TC-03-D22 | Each racing import reports every row it did not write as already in the directory | concurrency | API | api/households-race.spec.js::TC-03-D22 | Planned |
+| TC-03-D23 | Committing the re-upload after an interruption leaves exactly 623 households | data integrity | API | api/households-import-runs.spec.js::TC-03-D23 | Planned |
+| TC-03-D24 | Rows written before an interruption stay written | data integrity | API | api/households-import-runs.spec.js::TC-03-D24 | Planned |
+| TC-03-D25 | A running import with no progress for 15 minutes is marked interrupted | boundary | API | api/households-import-runs.spec.js::TC-03-D25 | Planned (NG9 part not asserted) |
+| TC-03-D26 | A running import with progress in the last 15 minutes is not marked interrupted | boundary | API | api/households-import-runs.spec.js::TC-03-D26 | Planned (NG9 part not asserted) |
+| TC-03-D27 | Committing an interrupted run is refused | negative | API | api/households-import-runs.spec.js::TC-03-D27 | Planned |
+| TC-03-D28 | Committing a cancelled run is refused | negative | API | api/households-import-runs.spec.js::TC-03-D28 | Planned |
+| TC-03-D29 | A previewed run 59 minutes old can still be committed | boundary | API | api/households-import-runs.spec.js::TC-03-D29 | Planned (NG9 part not asserted) |
+| TC-03-D30 | A previewed run 61 minutes old can't be committed | boundary | API | api/households-import-runs.spec.js::TC-03-D30 | Planned (NG9, NG13 part not asserted) |
+| TC-03-D31 | Cancel on the preview marks the run cancelled and deletes its rejected rows at once | data integrity | API | api/households-import-runs.spec.js::TC-03-D31 | Planned |
+| TC-03-D32 | "Choose a different file" cancels the run the same way | data integrity | UI | ui/households-import.spec.js::TC-03-D32 | Planned |
+| TC-03-D33 | The run's progress count rises while it commits | data integrity | API | api/households-import-runs.spec.js::TC-03-D33 | Planned |
+| TC-03-E1 | The download holds exactly the rejected rows with their reasons | happy path | Unit | shared/domain/rejectedRowsCsv.test.js::TC-03-E1 | Planned |
+| TC-03-E2 | Already-in-directory rows are not in the download | negative | Unit | shared/domain/rejectedRowsCsv.test.js::TC-03-E2 | Planned |
+| TC-03-E3 | Cells starting with "=", "+", "-" or "@" are escaped in the download file | security / role | Unit | shared/domain/rejectedRowsCsv.test.js::TC-03-E3 | Planned |
+| TC-03-E4 | A "+639…" mobile in the download is accepted again after a fix | usability | Unit | shared/domain/rejectedRowsCsv.test.js::TC-03-E4 | Planned |
+| TC-03-E5 | The download is UTF-8 and keeps "ñ" | data integrity | Unit | shared/domain/rejectedRowsCsv.test.js::TC-03-E5 | Planned |
+| TC-03-E6 | Board, Guard and Homeowner can't read an import run's rejected rows | security / role | API | api/rules-households.spec.js::TC-03-E6 | Planned |
+| TC-03-E7 | Escaped cells don't evaluate as formulas when the download is opened in a spreadsheet app | security / role | Manual | Manual: open the download in Excel and Google Sheets::TC-03-E7 | Planned |
+| TC-03-E8 | The download's Reason column joins a row's reasons with "; " as the preview does | data integrity | Unit | shared/domain/rejectedRowsCsv.test.js::TC-03-E8 | Planned |
+| TC-03-E9 | Another staff member can't read an import run they didn't start | security / role | API | api/rules-households.spec.js::TC-03-E9 | Planned |
+| TC-03-E10 | The staff member who ran an import can read it | security / role | API | api/rules-households.spec.js::TC-03-E10 | Planned |
+| TC-03-E11 | Step 1 shows each staff member only their own last import | security / role | API | api/households-import-runs.spec.js::TC-03-E11 | Planned |
+| TC-03-E12 | A value stored as "=…" is escaped again on the next download | security / role | Unit | shared/domain/rejectedRowsCsv.test.js::TC-03-E12 | Planned |
+| TC-03-F1 | Adding Block 8 Lot 2 stores one household with link status "Not invited" | happy path | API | api/households-create.spec.js::TC-03-F1 | Planned |
+| TC-03-F2 | Mobile and phase from the Add form are stored | integration | API | api/households-create.spec.js::TC-03-F2 | Planned |
+| TC-03-F3 | The form's lot check reports an existing lot as taken before Save | negative | API | api/households-create.spec.js::TC-03-F3 | Planned |
+| TC-03-F4 | A forced save of a duplicate lot is refused by the server | data integrity | API | api/households-create.spec.js::TC-03-F4 | Planned |
+| TC-03-F5 | Double-tapping Save creates one household | concurrency | Unit | web/src/features/households/household-dialog-controller.test.js::TC-03-F5 | Planned |
+| TC-03-F6 | Two admins saving a new Blk 9 Lot 1 at once store exactly one household | concurrency | API | api/households-race.spec.js::TC-03-F6 | Planned |
+| TC-03-F7 | Leaving an empty required field shows a text message under it | usability | UI | ui/household-dialog.spec.js::TC-03-F7 | Planned |
+| TC-03-F8 | The form's email check rejects an invalid email by the import's rule | negative | API | api/households-create.spec.js::TC-03-F8 | Planned |
+| TC-03-F9 | Adding the lot of an inactive household is refused with the inactive result | negative | API | api/households-create.spec.js::TC-03-F9 | Planned |
+| TC-03-F10 | After Save the Add dialog closes and the new household is listed | ui/ux | UI | ui/households-directory.spec.js::TC-03-F10 | Planned |
+| TC-03-F11 | The edit form shows back the mobile and phase entered on Add | ui/ux | UI | ui/household-dialog.spec.js::TC-03-F11 | Planned |
+| TC-03-F12 | Save is disabled while an add is in flight | usability | Unit | web/src/features/households/household-dialog-controller.test.js::TC-03-F12 | Planned |
+| TC-03-F13 | The losing add of two simultaneous saves is refused as a duplicate | concurrency | API | api/households-race.spec.js::TC-03-F13 | Planned |
+| TC-03-F14 | A household with no block, lot or owner name is refused by validation | negative | API | api/households-create.spec.js::TC-03-F14 | Planned |
+| TC-03-F15 | An invalid email on the form shows the import's reason under Email | ui/ux | UI | ui/household-dialog.spec.js::TC-03-F15 | Planned |
+| TC-03-F16 | The form applies the import's normalisation when checking for a duplicate | data integrity | API | api/households-create.spec.js::TC-03-F16 | Planned |
+| TC-03-F17 | The form stores normalised block, lot and label | data integrity | API | api/households-create.spec.js::TC-03-F17 | Planned |
+| TC-03-F18 | An 81-character owner name is refused by the server on add | boundary | API | api/households-create.spec.js::TC-03-F18 | Planned (NG15 part not asserted) |
+| TC-03-F19 | The form rejects invalid block and lot values by the import's rule | negative | API | api/households-create.spec.js::TC-03-F19 | Planned |
+| TC-03-G1 | A mobile edit stores the new number on the contact record | happy path | API | api/households-update.spec.js::TC-03-G1 | Planned |
+| TC-03-G2 | The edit writes one activity record with who and when | data integrity | API | api/households-update.spec.js::TC-03-G2 | Planned |
+| TC-03-G3 | The edit's audit record holds ids only | data integrity | API | api/households-update.spec.js::TC-03-G3 | Planned |
+| TC-03-G4 | Renaming the owner makes the new name searchable and the old one not | integration | API | api/households-queries.spec.js::TC-03-G4 | Planned |
+| TC-03-G5 | Clearing the email removes it from the contact record | boundary | API | api/households-update.spec.js::TC-03-G5 | Planned |
+| TC-03-G6 | The second of two edits loaded at the same time is refused as stale | concurrency | API | api/households-update.spec.js::TC-03-G6 | Planned |
+| TC-03-G7 | The first editor's change is kept after a stale save | data integrity | API | api/households-update.spec.js::TC-03-G7 | Planned |
+| TC-03-G8 | The same admin editing in two tabs is refused as stale on the second save | stale reference | API | api/households-update.spec.js::TC-03-G8 | Planned |
+| TC-03-G9 | Saving an edit on a household deactivated meanwhile is refused | stale reference | API | api/households-update.spec.js::TC-03-G9 | Planned |
+| TC-03-G10 | Double-tapping Save on an edit writes one change | concurrency | Unit | web/src/features/households/household-dialog-controller.test.js::TC-03-G10 | Planned |
+| TC-03-G11 | A confirmed lot change stores the household under the new lot with the same id | happy path | API | api/households-update.spec.js::TC-03-G11 | Planned |
+| TC-03-G12 | An edit request without the loaded time is refused | security / role | API | api/households-update.spec.js::TC-03-G12 | Planned |
+| TC-03-G13 | The list shows the edited mobile without a reload | ui/ux | UI | ui/households-directory.spec.js::TC-03-G13 | Planned |
+| TC-03-G14 | A double-tapped edit shows its author no stale-edit message | usability | Unit | web/src/features/households/household-dialog-controller.test.js::TC-03-G14 | Planned |
+| TC-03-G15 | A lot change keeps the household's members and link status | data integrity | API | api/households-update.spec.js::TC-03-G15 | Planned |
+| TC-03-G16 | A lot change keeps an unused invitation working for the same household | integration | API | api/households-invites.spec.js::TC-03-G16 | Planned (NG7 part not asserted) |
+| TC-03-G17 | A lot change writes one `household.relotted` record and keeps the household's earlier history | data integrity | API | api/households-update.spec.js::TC-03-G17 | Planned |
+| TC-03-G18 | After a lot change the old lot can be added again | happy path | API | api/households-create.spec.js::TC-03-G18 | Planned |
+| TC-03-G19 | A lot change leaves exactly one lot entry for the household, at the new lot | data integrity | API | api/households-update.spec.js::TC-03-G19 | Planned |
+| TC-03-G20 | A lot change to a lot already in the directory is refused and moves nothing | negative | API | api/households-update.spec.js::TC-03-G20 | Planned |
+| TC-03-G21 | Cancel on the "Change lot" confirm leaves the lot unchanged | negative | UI | ui/household-dialog.spec.js::TC-03-G21 | Planned |
+| TC-03-G22 | A lot change saved after someone else's edit is refused as stale and moves nothing | stale reference | API | api/households-update.spec.js::TC-03-G22 | Planned |
+| TC-03-G23 | An edit loaded before someone else's lot change is refused as stale | stale reference | API | api/households-update.spec.js::TC-03-G23 | Planned |
+| TC-03-G24 | Two households moved to the same free lot at once: exactly one moves | concurrency | API | api/households-race.spec.js::TC-03-G24 | Planned |
+| TC-03-G25 | Changing the block moves the lot the same way | happy path | API | api/households-update.spec.js::TC-03-G25 | Planned |
+| TC-03-G26 | A lot change to an inactive household's lot is refused | negative | API | api/households-update.spec.js::TC-03-G26 | Planned (NG6 part not asserted) |
+| TC-03-G27 | A lot change that normalises to the current lot moves nothing | boundary | API | api/households-update.spec.js::TC-03-G27 | Planned (NG6 part not asserted) |
+| TC-03-G28 | An inactive household's edit is saved and it stays inactive | happy path | API | api/households-update.spec.js::TC-03-G28 | Planned |
+| TC-03-G29 | After a lot change the list shows the new label without a reload | ui/ux | UI | ui/households-directory.spec.js::TC-03-G29 | Planned |
+| TC-03-H1 | The Deactivate confirm reads the copy of record | ui/ux | UI | ui/household-dialog.spec.js::TC-03-H1 | Planned |
+| TC-03-H2 | Confirming Deactivate stores the household as inactive | happy path | API | api/households-active.spec.js::TC-03-H2 | Planned |
+| TC-03-H3 | A deactivated household's records are kept | data integrity | API | api/households-active.spec.js::TC-03-H3 | Planned |
+| TC-03-H4 | Deactivating stops the household's unused invitation | integration | API | api/invites-redeem.spec.js::TC-04-J13 | Covered by TC-04-J13: no new test · Planned |
+| TC-03-H5 | Deactivate writes one `household.deactivated` record | data integrity | API | api/households-active.spec.js::TC-03-H5 | Planned |
+| TC-03-H6 | After Reactivate the default list includes the household and the Inactive filter doesn't | happy path | API | api/households-active.spec.js::TC-03-H6 | Planned |
+| TC-03-H7 | Reactivate keeps the name, contacts and members | data integrity | API | api/households-active.spec.js::TC-03-H7 | Planned |
+| TC-03-H8 | Reactivate doesn't bring a cancelled invitation back | integration | API | api/invites-redeem.spec.js::TC-04-J16 | Covered by TC-04-J16: no new test · Blocked on TC-04 G-5 (see TC-03 QE findings) |
+| TC-03-H9 | Double-tapping Deactivate's confirm writes one change | concurrency | Unit | web/src/features/households/household-dialog-controller.test.js::TC-03-H9 | Planned |
+| TC-03-H10 | Deactivate on an inactive household or Reactivate on an active one is refused with no record | negative | API | api/households-active.spec.js::TC-03-H10 | Planned |
+| TC-03-H11 | Deactivating a "Not invited" household changes only its active state | boundary | API | api/households-active.spec.js::TC-03-H11 | Planned |
+| TC-03-H12 | Deactivating an "Invite expired" household keeps the code refused | boundary | API | api/households-active.spec.js::TC-03-H12 | Planned |
+| TC-03-H13 | An inactive household's row offers only Reactivate | ui/ux | UI | ui/households-directory.spec.js::TC-03-H13 | Planned |
+| TC-03-H14 | Deactivating a "Linked" household leaves its member records in place | boundary | API | api/households-active.spec.js::TC-03-H14 | Planned |
+| TC-03-H15 | Cancel on the Deactivate confirm leaves the household active | negative | UI | ui/household-dialog.spec.js::TC-03-H15 | Planned |
+| TC-03-H16 | The default list excludes an inactive household and the Inactive filter includes it | integration | API | api/households-queries.spec.js::TC-03-H16 | Planned |
+| TC-03-H17 | After a deactivation the Inactive chip rises by one and All falls by one, without a reload | ui/ux | UI | ui/households-directory.spec.js::TC-03-H17 | Planned |
+| TC-03-H18 | Reactivate writes one `household.reactivated` record | data integrity | API | api/households-active.spec.js::TC-03-H18 | Planned |
+| TC-03-H19 | A reactivated household that still has members gets link status "Linked" | integration | API | api/households-active.spec.js::TC-03-H19 | Planned |
+| TC-03-H20 | A reactivated household with no members gets link status "Not invited" | integration | API | api/households-active.spec.js::TC-03-H20 | Planned |
+| TC-03-H21 | An invitation for an inactive household is refused by the server | security / role | API | api/invites-create.spec.js::TC-04-J17 | Covered by TC-04-J17: no new test · Planned · *provisional* |
+| TC-03-H22 | An inactive household can't be selected for "Invite selected" | negative | UI | ui/households-directory.spec.js::TC-03-H22 | Planned |
+| TC-03-H23 | Undo on the deactivate toast within 10 seconds makes the household active again | happy path | Blocked | — | Blocked on NG8 |
+| TC-03-H24 | Cancel on the Reactivate confirm leaves the household inactive | negative | UI | ui/household-dialog.spec.js::TC-03-H24 | Planned |
+| TC-03-H25 | Deactivate and Reactivate each update the household's last-changed time | data integrity | API | api/households-active.spec.js::TC-03-H25 | Planned |
+| TC-03-J1 | A search for "blk 4" returns every Block 4 household | happy path | API | api/households-queries.spec.js::TC-03-J1 | Planned |
+| TC-03-J2 | A search for "blk 4" returns no household from Blocks 40 to 49 or Blk 14 | boundary | Unit | shared/domain/householdSearch.test.js::TC-03-J2 | Planned |
+| TC-03-J3 | Typing re-renders only the list, keeping focus and text | usability | UI | ui/households-directory.spec.js::TC-03-J3 | Planned |
+| TC-03-J4 | A search for "santos" returns every owner with the word Santos in the name | happy path | Unit | shared/domain/householdSearch.test.js::TC-03-J4 | Planned |
+| TC-03-J5 | A search for "santos" also returns "Santoson", a word starting with it | boundary | Unit | shared/domain/householdSearch.test.js::TC-03-J5 | Planned |
+| TC-03-J6 | Search ignores letter case | boundary | Unit | shared/domain/householdSearch.test.js::TC-03-J6 | Planned |
+| TC-03-J7 | "peña", "pena" and "PENA" all return "ZZ Test Peña" | boundary | Unit | shared/domain/householdSearch.test.js::TC-03-J7 | Planned |
+| TC-03-J8 | A search with no match reads the copy of record, distinct from the empty directory | ui/ux | UI | ui/households-directory.spec.js::TC-03-J8 | Planned |
+| TC-03-J9 | The empty directory shows the empty state and its three actions | ui/ux | UI | ui/households-directory.spec.js::TC-03-J9 | Planned |
+| TC-03-J10 | The first page holds 50 households and the 51st is on the next page | boundary | API | api/households-queries.spec.js::TC-03-J10 | Planned |
+| TC-03-J11 | Opening the directory reads about one page, not every household | data integrity | API | api/households-queries.spec.js::TC-03-J11 | Planned |
+| TC-03-J12 | Search results over 50 page the same way | boundary | API | api/households-queries.spec.js::TC-03-J12 | Planned |
+| TC-03-J13 | An inactive household is excluded from search under All and found under Inactive | integration | API | api/households-queries.spec.js::TC-03-J13 | Planned |
+| TC-03-J14 | Each filter chip's count matches the rows it lists | integration | UI | ui/invite-directory-counts.exclusive.spec.js::TC-04-S10 | Covered by TC-04-S10: no new test · Blocked on TC-04 G-3 |
+| TC-03-J15 | With exactly 50 households no next-page control is offered | ui/ux | UI | ui/households-directory.spec.js::TC-03-J15 | Planned |
+| TC-03-J16 | A search for "tos" returns no Santos (no match inside a word) | boundary | Unit | shared/domain/householdSearch.test.js::TC-03-J16 | Planned |
+| TC-03-J17 | A search for "san" returns every name with a word starting "San" | boundary | Unit | shared/domain/householdSearch.test.js::TC-03-J17 | Planned |
+| TC-03-J18 | A search for "peña" also returns a name typed without the ñ | boundary | Unit | shared/domain/householdSearch.test.js::TC-03-J18 | Planned |
+| TC-03-J19 | The lot forms "block 4", "b4" and "4" return the same Block 4 set as "blk 4" | boundary | Unit | shared/domain/householdSearch.test.js::TC-03-J19 | Planned |
+| TC-03-J20 | The lot forms "blk 4 lot 12", "b4 l12" and "4-12" return Blk 4 Lot 12 and no other Block 4 lot | boundary | Unit | shared/domain/householdSearch.test.js::TC-03-J20 | Planned (NG5 part not asserted) |
+| TC-03-J21 | A two-word name search returns the owner whose words start with both | boundary | Unit | shared/domain/householdSearch.test.js::TC-03-J21 | Planned (NG4 part not asserted) |
+| TC-03-J22 | The All chip and the heading count active households only; Inactive counts its own | integration | API | api/households-queries.spec.js::TC-03-J22 | Planned |
+| TC-03-J23 | "Clear search" restores the unfiltered list within the chosen chip | usability | UI | ui/households-directory.spec.js::TC-03-J23 | Planned |
+| TC-03-K1 | On a 375 px phone each household shows as a card with lot, owner, link status and balance | responsive | UI *(mobile)* | ui/households-phone.spec.js::TC-03-K1 | Planned · fails until DEF-001 is fixed |
+| TC-03-K2 | The phone directory doesn't scroll sideways | responsive | UI *(mobile)* | ui/households-phone.spec.js::TC-03-K2 | Planned · fails until DEF-001 is fixed |
+| TC-03-K3 | Balance shows "—" before the first billing run, not ₱0 | boundary | Unit | shared/domain/money.test.js::TC-03-K3 | Planned |
+| TC-03-K4 | 640 px shows cards; 641 px shows the table | responsive | UI *(mobile)* | ui/households-phone.spec.js::TC-03-K4 | Planned · fails until DEF-001 is fixed |
+| TC-03-K5 | On a phone the import page says "Import works best on a computer" | responsive | UI *(mobile)* | ui/households-phone.spec.js::TC-03-K5 | Planned |
+| TC-03-K6 | The Add dialog is usable at 375 px | responsive | Manual | Manual: real phone keyboard::TC-03-K6 | Planned |
+| TC-03-K7 | Loading shows a skeleton, never a flash of the empty state | ui/ux | UI | ui/households-directory.spec.js::TC-03-K7 | Planned |
+| TC-03-K8 | A network error on Import keeps the preview | ui/ux | UI | ui/households-import.spec.js::TC-03-K8 | Planned |
+| TC-03-K9 | A click outside the Add dialog keeps it open with the typed name | usability | UI | ui/household-dialog.spec.js::TC-03-K9 | Planned |
+| TC-03-K10 | A click outside the Edit dialog keeps unsaved changes | usability | UI | ui/household-dialog.spec.js::TC-03-K10 | Planned |
+| TC-03-K11 | Escape on a half-filled dialog asks "Discard your changes to this household?" with "Keep editing" focused | usability | UI | ui/household-dialog.spec.js::TC-03-K11 | Planned (NG14 part not asserted) |
+| TC-03-K12 | An important-announcement pop-up doesn't break the preview or Add dialog | usability | UI | ui/household-dialog.spec.js::TC-03-K12 | Planned |
+| TC-03-K13 | Link status pills carry words and meet AA contrast | ui/ux | UI | ui/invite-directory.spec.js::TC-04-Q9 | Covered by TC-04-Q9: no new test · Planned |
+| TC-03-K14 | The preview table has a caption, row numbers and text reasons | ui/ux | UI | ui/households-import.spec.js::TC-03-K14 | Planned |
+| TC-03-K15 | The whole import works by keyboard with a visible file-input label | usability | UI | ui/households-import.spec.js::TC-03-K15 | Planned |
+| TC-03-K16 | Form errors are announced and Save moves focus to the first error | usability | UI | ui/household-dialog.spec.js::TC-03-K16 | Planned |
+| TC-03-K17 | Buttons and chips are at least 24 × 24 px on a phone | usability | UI *(mobile)* | ui/households-phone.spec.js::TC-03-K17 | Planned |
+| TC-03-K18 | The same concept uses the same word on every screen size *(scope: button labels; pill words are TC-04-R3)* | ui/ux | UI | ui/households-directory.spec.js::TC-03-K18 | Planned |
+| TC-03-K19 | The page heading reads "Homeowners · {n} households" with the stored count | ui/ux | UI | ui/households-counts.exclusive.spec.js::TC-03-K19 | Planned |
+| TC-03-K20 | The preview heading and Import button read the copy of record with the preview's counts | ui/ux | UI | ui/households-import.spec.js::TC-03-K20 | Planned |
+| TC-03-K21 | Each preview row reason reads the copy of record | ui/ux | Unit | shared/domain/householdMessages.test.js::TC-03-K21 | Planned |
+| TC-03-K22 | The finished banner reads the copy of record with the run's counts | ui/ux | UI | ui/households-import.spec.js::TC-03-K22 | Planned (NG2 part not asserted) |
+| TC-03-K23 | The duplicate-lot message reads "{lot} is already in the directory." under Lot and Save is disabled | ui/ux | UI | ui/household-dialog.spec.js::TC-03-K23 | Planned |
+| TC-03-K24 | The stale-edit message reads the copy of record and the dialog keeps the typing | ui/ux | UI | ui/household-dialog.spec.js::TC-03-K24 | Planned |
+| TC-03-K25 | The import hint and the directory buttons read the copy of record | ui/ux | UI | ui/households-directory.spec.js::TC-03-K25 | Planned |
+| TC-03-K26 | An import run from a phone stores the file's households | responsive | UI *(mobile)* | ui/households-phone.spec.js::TC-03-K26 | Planned |
+| TC-03-K27 | Ignored columns are named above the tiles, except our own Row and Reason | ui/ux | UI | ui/households-import.spec.js::TC-03-K27 | Planned |
+| TC-03-K28 | Adding an inactive household's lot shows the inactive duplicate message under Lot | ui/ux | UI | ui/household-dialog.spec.js::TC-03-K28 | Planned |
+| TC-03-K29 | The lot change confirm reads the copy of record | ui/ux | UI | ui/household-dialog.spec.js::TC-03-K29 | Planned |
+| TC-03-K30 | The Reactivate confirm reads the copy of record, with and without linked members | ui/ux | UI | ui/household-dialog.spec.js::TC-03-K30 | Planned (NG2 part not asserted) |
+| TC-03-K31 | A stale Deactivate or Reactivate says the household is already in that state and refreshes the list | ui/ux | UI | ui/household-dialog.spec.js::TC-03-K31 | Planned |
+| TC-03-K32 | A stale invite on an inactive household reads the copy of record | ui/ux | UI | ui/households-directory.spec.js::TC-03-K32 | Planned |
+| TC-03-K33 | The deactivate and reactivate toasts read the copy of record | ui/ux | UI | ui/households-directory.spec.js::TC-03-K33 | Planned |
+| TC-03-K34 | The household dialog shows the lot as its title and the r4 buttons, active and inactive | ui/ux | UI | ui/household-dialog.spec.js::TC-03-K34 | Planned |
+| TC-03-K35 | Escape on a dialog with no changes closes it | navigation | UI | ui/household-dialog.spec.js::TC-03-K35 | Planned |
+| TC-03-K36 | The × button on a dialog with unsaved changes asks the same as Escape | usability | UI | ui/household-dialog.spec.js::TC-03-K36 | Planned |
+| TC-03-K37 | Cancel on a dialog with unsaved changes closes it without asking | usability | UI | ui/household-dialog.spec.js::TC-03-K37 | Planned |
+| TC-03-K38 | Discard on the discard confirm closes the dialog and saves nothing | usability | UI | ui/household-dialog.spec.js::TC-03-K38 | Planned |
+| TC-03-K39 | "Keep editing" returns to the dialog with the typing intact | usability | UI | ui/household-dialog.spec.js::TC-03-K39 | Planned |
+| TC-03-K40 | At 320 px the two directory buttons fit side by side or stack full width with Add household first | responsive | UI *(mobile)* | ui/households-phone.spec.js::TC-03-K40 | Planned · fails until DEF-001 is fixed |
+| TC-03-K41 | Counts follow the count rule: singular for 1, zero parts dropped, a comma from 1,000 | ui/ux | Unit | shared/domain/householdMessages.test.js::TC-03-K41 | Planned (NG2 part not asserted) |
+| TC-03-K42 | Already-in-directory rows are listed in row order with muted reasons that are words, not colour alone | ui/ux | UI | ui/households-import.spec.js::TC-03-K42 | Planned |
+| TC-03-K43 | During a commit the page shows "Importing… {x} of {n}" and asks to keep the page open | ui/ux | UI | ui/households-import.spec.js::TC-03-K43 | Planned (NG12 part not asserted) |
+| TC-03-K44 | A failed commit call shows how many households were imported and how to finish | ui/ux | UI | ui/households-import.spec.js::TC-03-K44 | Planned |
+| TC-03-K45 | If the run can't be read after a failure, the page says the import may not have finished | ui/ux | UI | ui/households-import.spec.js::TC-03-K45 | Planned |
+| TC-03-K46 | After an interrupted import, step 1 shows the stopped message the next time | ui/ux | UI | ui/households-import.spec.js::TC-03-K46 | Planned |
+| TC-03-K47 | Step 1 shows "Your last import" with a download link within 30 days | ui/ux | UI | ui/households-import.spec.js::TC-03-K47 | Planned (NG10 part not asserted) |
+| TC-03-K48 | After 30 days "Your last import" drops the download | ui/ux | UI | ui/households-import.spec.js::TC-03-K48 | Planned (NG10 part not asserted) |
+| TC-03-L1 | Admin reaches Homeowners from the menu with that item highlighted | navigation | UI | ui/households-access.spec.js::TC-03-L1 | Planned |
+| TC-03-L2 | Treasurer reaches Homeowners from the menu | navigation | UI | ui/households-access.spec.js::TC-03-L2 | Planned |
+| TC-03-L3 | "Choose a different file" returns to step 1 | navigation | UI | ui/households-import.spec.js::TC-03-L3 | Planned |
+| TC-03-L4 | Cancel on the preview returns to Homeowners | navigation | UI | ui/households-import.spec.js::TC-03-L4 | Planned |
+| TC-03-L5 | After the import finishes, the admin is on Homeowners with the banner | navigation | UI | ui/households-import.spec.js::TC-03-L5 | Planned |
+| TC-03-L6 | Browser Back after a finished import doesn't import again | navigation | UI | ui/households-import.spec.js::TC-03-L6 | Planned |
+| TC-03-L7 | Reloading on the preview returns to step 1 with an empty file input and no message | navigation | UI | ui/households-import.spec.js::TC-03-L7 | Planned |
+| TC-03-L8 | After Save in Add, the list keeps its search and filter | navigation | UI | ui/households-directory.spec.js::TC-03-L8 | Planned |
+| TC-03-L9 | A board member opening the Homeowners address gets the no-access page, with no rows shown first *(scope: no rows rendered before the no-access page; the route rule is TC-02-G7)* | navigation | UI | ui/households-access.spec.js::TC-03-L9 | Planned |
+| TC-03-L10 | A guard opening the Homeowners or Import address gets the no-access page *(scope: Import address; the Homeowners address is TC-02-G8)* | navigation | Unit | route-access.test.js::TC-03-L10 | Planned |
+| TC-03-L11 | A homeowner opening the Homeowners or Import address gets the no-access page *(scope: Import address; the Homeowners address is TC-04-P11)* | navigation | Unit | route-access.test.js::TC-03-L11 | Planned |
+| TC-03-L12 | A user with no role or household gets the "not linked" screen, never the directory | navigation | Unit | route-access.test.js::TC-03-L12 | Planned |
+| TC-03-L13 | In "My household" view the treasurer-homeowner has no Homeowners item | navigation | Unit | menu.test.js::TC-02-F3 | Covered by TC-02-F3: no new test · Planned |
+| TC-03-L14 | Homeowners is absent from the Board, Guard and Homeowner menus | navigation | Unit | menu.test.js::TC-02-A2, TC-02-A8, TC-02-A9 | Covered by TC-02-A2, A8, A9: no new test · Planned |
+| TC-03-L15 | Reloading on the preview stores no household and leaves the run previewed | data integrity | API | api/households-import-runs.spec.js::TC-03-L15 | Planned |
+| TC-03-L16 | The lot label button opens the household dialog, by mouse and by keyboard | navigation | UI | ui/households-directory.spec.js::TC-03-L16 | Planned |
+| TC-03-L17 | Clicking elsewhere on a row opens the same household dialog | navigation | UI | ui/households-directory.spec.js::TC-03-L17 | Planned |
+| TC-03-L18 | On a phone the card's "Open" opens the household dialog | navigation | UI *(mobile)* | ui/households-phone.spec.js::TC-03-L18 | Planned · fails until DEF-001 is fixed |
+| TC-03-L19 | After a confirmed Deactivate the dialog closes and the list refreshes in place | navigation | UI | ui/households-directory.spec.js::TC-03-L19 | Planned |
+| TC-03-M1 | A board member's request for the household list is refused | security / role | API | rules-roles.spec.js::TC-02-B30 | Covered by TC-02-B30: no new test · Planned |
+| TC-03-M2 | A board member's request for a household's contacts is refused | security / role | API | rules-roles.spec.js::TC-02-B31 | Covered by TC-02-B31: no new test · Planned |
+| TC-03-M3 | A guard's request for the household list is refused | security / role | API | rules-roles.spec.js::TC-02-B37 | Covered by TC-02-B37: no new test · Planned |
+| TC-03-M4 | A guard's request for any household's contacts is refused | security / role | API | api/rules-households.spec.js::TC-03-M4 | Planned |
+| TC-03-M5 | A homeowner's request for their own household's contacts is refused | security / role | API | api/members-remove.spec.js::TC-04-K13 | Covered by TC-04-K13: no new test · Planned |
+| TC-03-M6 | A homeowner's request for another household is refused | security / role | API | rules-roles.spec.js::TC-02-B2 | Covered by TC-02-B2: no new test · Planned |
+| TC-03-M7 | A homeowner's query for the household list is refused | security / role | API | rules-roles.spec.js::TC-02-B3 | Covered by TC-02-B3: no new test · Planned |
+| TC-03-M8 | Create, update and set-active calls are refused for Board, Guard, Homeowner and No-role *(scope: Guard, Homeowner, No-role; Board is TC-02-C12)* | security / role | API | api/households-callables-roles.spec.js::TC-03-M8 | Planned |
+| TC-03-M9 | Import preview and commit calls are refused for Board, Guard, Homeowner and No-role | security / role | API | api/households-callables-roles.spec.js::TC-03-M9 | Planned |
+| TC-03-M10 | A direct client write to a household is refused, even for an admin | security / role | API | api/rules-households.spec.js::TC-03-M10 | Planned |
+| TC-03-M11 | Direct client writes to lots, contacts and import runs are refused for every role | security / role | API | api/rules-households.spec.js::TC-03-M11 | Planned |
+| TC-03-M12 | A removed admin holding a valid token is refused the list and contacts *(scope: contacts half; the list half is TC-02-B44)* | security / role | API | api/rules-households.spec.js::TC-03-M12 | Planned |
+| TC-03-M13 | Admin and treasurer may read the list and contacts *(scope: treasurer contacts half; admin list and contacts and treasurer list are TC-02-B13, B14, B23)* | security / role | API | api/rules-households.spec.js::TC-03-M13 | Planned |
+| TC-03-M14 | A signed-out request for any household collection is refused | security / role | API | rules-roles.spec.js::TC-02-B50 | Covered by TC-02-B50: no new test · Planned |
+| TC-03-M15 | Board, Guard and Homeowner reads of import runs are refused | security / role | API | api/rules-households.spec.js::TC-03-M15 | Planned |
+| TC-03-M16 | Household audit records are readable by treasurer and board | security / role | API | rules-roles.spec.js::TC-02-B29, TC-02-B32 | Covered by TC-02-B29, B32: no new test · Planned |
+| TC-03-M17 | Admin office staff and guards can't read household audit records *(scope: admin office half; the guard half is TC-02-B39)* | security / role | API | api/rules-households.spec.js::TC-03-M17 | Planned |
+| TC-03-N1 | No household document holds an email or mobile | data integrity | API | api/households-privacy.spec.js::TC-03-N1 | Planned |
+| TC-03-N2 | A homeowner's own household record carries no contacts | data integrity | API | api/households-privacy.spec.js::TC-03-N2 | Planned |
+| TC-03-N3 | Every mobile is stored in one format | data integrity | Unit | shared/domain/householdFields.test.js::TC-03-N3 | Planned |
+| TC-03-N4 | Each imported household has one lot entry and one contact record | data integrity | API | api/households-integrity.spec.js::TC-03-N4 | Planned |
+| TC-03-N5 | Adding a household writes one `household.created` record | data integrity | API | api/households-create.spec.js::TC-03-N5 | Planned |
+| TC-03-N6 | An import writes one completion record carrying its three counts | data integrity | API | api/households-import-commit.spec.js::TC-03-N6 | Planned |
+| TC-03-N7 | Household audit records hold no names, emails or mobiles | data integrity | API | api/households-privacy.spec.js::TC-03-N7 | Planned |
+| TC-03-N8 | Function logs after an import hold no row data | data integrity | API | api/households-privacy.spec.js::TC-03-N8 | Planned |
+| TC-03-N9 | The uploaded file itself is not stored | data integrity | API | api/households-privacy.spec.js::TC-03-N9 | Planned |
+| TC-03-N10 | Rejected rows are deleted from an import run after 30 days | data integrity | API | api/households-import-runs.spec.js::TC-03-N10 | Planned |
+| TC-03-N11 | Personal data never appears in the address bar | data integrity | UI | ui/households-directory.spec.js::TC-03-N11 | Planned |
+| TC-03-N12 | A homeowner's read of their own household is allowed | security / role | API | rules-roles.spec.js::TC-02-B1 | Covered by TC-02-B1: no new test · Planned |
+| TC-03-P1 | An invitation for an imported household goes to its contact email | integration | API | api/households-invites.spec.js::TC-03-P1 | Deferred: Step 2 (email provider) |
+| TC-03-P2 | An edited contact email is used by the next invitation | integration | API | api/households-invites.spec.js::TC-03-P2 | Deferred: Step 2 (email provider) |
+| TC-03-P3 | The join screen shows the current owner name after an edit | integration | API | api/invites-redeem.spec.js::TC-04-C15 | Covered by TC-04-C15: no new test · Planned |
+| TC-03-P4 | Editing a household doesn't reset its link status or member count | integration | API | api/households-update.spec.js::TC-03-P4 | Planned |
+| TC-03-P5 | A household with no email counts in REQ-004's "have no email" figure | integration | UI | ui/bulk-invite.spec.js::TC-04-H1 | Covered by TC-04-H1: no new test · Deferred: Step 2 (email provider) |
+| TC-03-P6 | The heading count updates after add, import, deactivate and reactivate without a reload | integration | UI | ui/households-counts.exclusive.spec.js::TC-03-P6 | Planned |
+| TC-03-P7 | The admin dashboard's household count matches the directory after an import | integration | UI | ui/households-counts.exclusive.spec.js::TC-03-P7 | Planned |
+| TC-03-Q1 | The real directory holds none of the mock-up's 20 sample households | back-compat | API (staging) | staging/households-empty.staging.spec.js::TC-03-Q1 | Planned |
+| TC-03-Q2 | An edit to a household with no phase saves and leaves the phase not set | back-compat | Blocked | — | Blocked on decision 2 (admin office) |
+| TC-03-Q3 | A household doc without link status or member count renders as "Not invited" | back-compat | UI | ui/invite-directory.spec.js::TC-04-S1 | Covered by TC-04-S1: no new test · Planned |
+| TC-03-Q4 | A household doc without link status is counted under "Not invited" | back-compat | API | api/households-queries.spec.js::TC-03-Q4 | Planned |
+| TC-03-X1 | Charter: break the import with messy spreadsheets (45 min) | exploratory | Manual | Manual: exploratory charter::TC-03-X1 | Planned |
+| TC-03-X2 | Charter: two staff, one directory (30 min) | exploratory | Manual | Manual: exploratory charter::TC-03-X2 | Planned |
+| TC-03-X3 | Charter: phone directory one-handed (20 min) | exploratory | Manual | Manual: exploratory charter::TC-03-X3 | Planned |
