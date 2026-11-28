@@ -51,7 +51,7 @@ Revision 1 · Business Analyst · 2026-11-27 · Draft for owner review
 | Slot | A fixed time range for an amenity, e.g. "07:00–08:00". | Time, schedule |
 | Booking | A household's request for one slot. Status: **Pending approval**, **Approved**, **Rejected**, **Cancelled**. | Reservation |
 | On hold | What other homeowners see for a slot with a pending booking. | Reserved |
-| Fee | The charge for a slot. Counted as income when the booking is approved. | Rate |
+| Fee | The charge for a slot. Counted as income in the month the treasurer approves the fee payment (REQ-023, REQ-031). | Rate |
 | Deposit | A refundable amount held for an amenity. Never counted as income. | Bond |
 | Booking pause | The board setting that stops delinquent households from booking. The mock-up calls it both "Block amenity booking" and "Booking is paused"; use **booking pause** in documents and "Booking is paused for your account" on screen. | Block |
 | Vehicle registration | A household's request to register a vehicle. Status: **Pending approval**, **Approved**, **Rejected**. | Car registration |

@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Guest Passes and Gate Mockup</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap">
+<style>
+/* The app's own tokens and components, copied from the mock-up (index.html) via req-001-004-access-mockup.html. */
+:root{
+  --bg:#FFFFFF; --surface:#F4F8F5; --surface-2:#E9F2EC; --line:#DAE6DE; --fg:#13241B; --muted:#5A6D62;
+  --accent:#1C7A4A; --accent-strong:#135B36; --accent-soft:#E2F1E8; --on-accent:#FFFFFF;
+  --ok:#1C7A4A; --ok-bg:#E2F1E8; --warn:#8F5B00; --warn-bg:#FCF0D6; --bad:#B42318; --bad-bg:#FDE7E4; --info:#1F5E8C; --info-bg:#E3EEF8;
+  --paper:#FFFFFF; --scrim:rgba(10,25,17,.45);
+  --shadow:0 1px 2px rgba(19,36,27,.05),0 6px 20px rgba(19,36,27,.06);
+  --f-head:"Plus Jakarta Sans",Inter,system-ui,sans-serif; --f-body:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:10px; color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:#EEF3F0;color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.5}
+h1,h2,h3{font-family:var(--f-head);text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:1.6rem;font-weight:800} h2{font-size:1.1rem;font-weight:700} h3{font-size:.98rem;font-weight:700}
+p{margin:0}
+.num{font-variant-numeric:tabular-nums}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.top{position:relative;z-index:20;background:var(--accent);color:var(--on-accent)}
+.top-in{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 16px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.logo{width:34px;height:34px;border-radius:9px;background:var(--on-accent);display:grid;place-items:center;flex:none}
+.logo svg{width:20px;height:20px;stroke:var(--accent)}
+.brand b{font-family:var(--f-head);font-size:1rem;display:block;line-height:1.1}
+.brand small{color:rgba(255,255,255,.8);font-size:.75rem}
+.top-r{margin-left:auto;display:flex;align-items:center;gap:10px}
+.who-admin{font-size:.85rem;color:rgba(255,255,255,.85)}
+.bell{position:relative;width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.4);background:transparent;display:grid;place-items:center}
+.bell svg{width:18px;height:18px;stroke:var(--on-accent)}
+.bell .dot{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;border-radius:9px;background:var(--bad);color:#fff;font-size:.68rem;font-weight:700;display:grid;place-items:center;padding:0 4px}
+.menu-btn{width:38px;height:38px;border-radius:8px;border:1px solid rgba(255,255,255,.4);background:transparent;display:grid;place-items:center;flex:none}
+.menu-btn svg{width:20px;height:20px;stroke:var(--on-accent)}
+
+.shell{display:grid;grid-template-columns:220px minmax(0,1fr);gap:28px;padding:24px 16px 40px}
+nav.side{display:flex;flex-direction:column;gap:2px}
+nav.side .navlbl{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:0 12px 6px}
+nav.side button{text-align:left;border:0;background:transparent;padding:9px 12px;border-radius:8px;font-weight:500}
+nav.side button[aria-current="page"]{background:var(--accent-soft);color:var(--accent-strong);font-weight:700}
+main{min-width:0;display:flex;flex-direction:column;gap:18px}
+.pad{padding:16px;display:flex;flex-direction:column;gap:14px}
+
+.ph{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.ph p{color:var(--muted);margin-top:4px}
+.card{background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:16px;min-width:0;display:flex;flex-direction:column;gap:12px}
+.card-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.card-h p{color:var(--muted);font-size:.85rem}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.tile{background:var(--surface);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:2px}
+.tile-l{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+.tile-v{font-family:var(--f-head);font-size:1.5rem;font-weight:800}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:8px 14px;border-radius:8px;font-weight:600;cursor:pointer;white-space:nowrap;min-height:40px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.danger{color:var(--bad);border-color:var(--bad-bg)}
+.btn.sm{padding:5px 10px;font-size:.8rem;min-height:32px}
+.btn.big{min-height:48px;width:100%;font-size:1rem}
+.btn.link{border:0;background:none;padding:0;min-height:0;color:var(--accent)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;font-size:.75rem;font-weight:600;white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.p-ok{background:var(--ok-bg);color:var(--ok)} .p-warn{background:var(--warn-bg);color:var(--warn)}
+.p-bad{background:var(--bad-bg);color:var(--bad)} .p-info{background:var(--info-bg);color:var(--info)}
+.p-muted{background:var(--surface-2);color:var(--muted)}
+.alert{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:var(--r)}
+.alert.warn{background:var(--warn-bg)} .alert.bad{background:var(--bad-bg)} .alert.info{background:var(--info-bg)}
+.alert b{display:block} .alert .grow{flex:1;min-width:0}
+
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+.sub{color:var(--muted);font-size:.78rem;display:block}
+.empty{color:var(--muted);text-align:center;padding:24px 8px;font-size:.9rem}
+
+form.f{display:flex;flex-direction:column;gap:12px}
+label.fl,.fl{display:flex;flex-direction:column;gap:5px;font-size:.8rem;font-weight:600;color:var(--muted)}
+input[type=text],input[type=number],input[type=date],input[type=search],select{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:9px 10px;font-weight:400;color:var(--fg);min-height:44px}
+.row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.hint{font-size:.78rem;color:var(--muted);font-weight:400}
+.ferr{color:var(--bad);font-size:.78rem;font-weight:600;min-height:1.2em}
+input.bad{border-color:var(--bad)!important;box-shadow:0 0 0 1px var(--bad)}
+fieldset{border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+legend{font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:4px;padding:0}
+.dyn{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:8px;align-items:end}
+.dyn .x{width:44px;height:44px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:1.2rem;color:var(--muted)}
+.check{display:flex;gap:8px;align-items:center;font-size:.88rem;font-weight:600;color:var(--fg)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line)}
+.tabs button{border:0;background:none;padding:10px 14px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button[aria-selected="true"]{color:var(--accent-strong);border-bottom-color:var(--accent)}
+
+.passes{display:flex;flex-direction:column;gap:10px}
+.pass{border:1px solid var(--line);border-radius:var(--r);padding:12px;display:flex;gap:12px;align-items:flex-start}
+.pass.dim{opacity:.7}
+.pass .qr{width:72px;height:72px;flex:none;border:1px solid var(--line);border-radius:6px;background:#fff;padding:3px}
+.pass .grow{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.qrbig{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;align-self:center;width:min(240px,100%)}
+.code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:1.35rem;font-weight:700;letter-spacing:.12em;text-align:center}
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 16px;font-size:.88rem;margin:0}
+.kv dt{color:var(--muted)} .kv dd{margin:0;font-weight:600}
+
+.verdict{border-radius:var(--r);padding:14px 16px;display:flex;gap:14px;align-items:center}
+.verdict b{font-family:var(--f-head);font-size:1.4rem;display:block;line-height:1.2}
+.verdict.ok{background:var(--accent);color:#fff}
+.verdict.bad{background:var(--bad);color:#fff}
+.verdict.warn{background:var(--warn-bg);color:var(--fg);border:2px solid var(--warn)}
+.verdict .ic{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.22);display:grid;place-items:center;font-size:1.5rem;font-weight:800;flex:none}
+.verdict.warn .ic{background:var(--warn);color:#fff}
+.gst{border:1px solid var(--line);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:10px}
+.gst-h{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+.gst-h b{font-size:1rem}
+.cam{position:relative;background:#0d1a13;border-radius:12px;aspect-ratio:4/3;display:grid;place-items:center;overflow:hidden;color:#cfe3d7}
+.cam .vf{width:58%;aspect-ratio:1;position:relative}
+.cam .vf i{position:absolute;width:26px;height:26px;border:4px solid #fff}
+.cam .vf i:nth-child(1){top:0;left:0;border-right:0;border-bottom:0}.cam .vf i:nth-child(2){top:0;right:0;border-left:0;border-bottom:0}
+.cam .vf i:nth-child(3){bottom:0;left:0;border-right:0;border-top:0}.cam .vf i:nth-child(4){bottom:0;right:0;border-left:0;border-top:0}
+.cam .lbl{position:absolute;bottom:10px;left:0;right:0;text-align:center;font-size:.82rem}
+.codein{font-family:ui-monospace,SFMono-Regular,Menlo,monospace!important;font-size:1.15rem!important;letter-spacing:.12em;text-transform:uppercase}
+.photo{width:100%;max-width:240px;aspect-ratio:1.58;border-radius:8px;background:linear-gradient(135deg,#e8eef6,#cbd8e6);border:1px solid var(--line);display:grid;place-items:center;color:#55667a;font-size:.8rem;font-weight:600}
+
+.modal-wrap{position:absolute;inset:0;background:var(--scrim);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px}
+.modal{background:var(--bg);border-radius:14px;width:min(520px,100%);box-shadow:0 20px 60px rgba(0,0,0,.25);display:flex;flex-direction:column}
+.modal-h{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line);gap:10px}
+.modal-b{padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.modal-f{padding:12px 18px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.x{border:0;background:none;font-size:1.4rem;line-height:1;color:var(--muted);min-width:44px;min-height:44px}
+.toast{background:var(--fg);color:#fff;padding:10px 16px;border-radius:10px;font-weight:600;font-size:.88rem;align-self:center}
+.notif{padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:.85rem;background:var(--accent-soft)}
+.notif small{display:block;color:var(--muted)}
+.hocard{border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.hocard .r{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.passimg{width:100%;max-width:420px;margin:24px auto;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#fff}
+.passimg .hd{background:var(--accent);color:#fff;padding:18px 22px}
+.passimg .hd b{font-family:var(--f-head);font-size:1.2rem;display:block}
+.passimg .bd{padding:18px 22px;display:flex;flex-direction:column;gap:12px}
+.passimg .ft{margin:0 18px 18px;background:var(--accent-soft);color:var(--accent-strong);font-weight:600;padding:10px 12px;border-radius:6px;font-size:.85rem}
+
+/* Mockup viewer */
+.mkbar{position:sticky;top:0;z-index:80;background:#13241B;color:#fff;padding:12px 16px;display:flex;flex-direction:column;gap:10px}
+.mkbar h1{font-size:1.05rem;color:#fff}
+.mkbar p{font-size:.8rem;color:rgba(255,255,255,.75)}
+.mkrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.mkrow select{width:auto;max-width:100%;min-height:34px;background:#fff;color:#13241B}
+.mkrow .btn{background:transparent;color:#fff;border-color:rgba(255,255,255,.35)}
+.mkreq{display:flex;gap:6px;flex-wrap:wrap}
+.mkreq button{border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:999px;padding:4px 12px;font-weight:600;font-size:.8rem;cursor:pointer}
+.mkreq button[aria-pressed="true"]{background:#fff;color:#13241B}
+.mkwrap{max-width:1180px;margin:0 auto;padding:20px 16px 60px;display:flex;flex-direction:column;gap:14px}
+.mkinfo{background:#fff;border:1px solid #D2DFD7;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.mkinfo .k{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:#135B36}
+.mkinfo p{font-size:.86rem;color:#3d4f45}
+.mkopt{display:inline-flex;font-size:.75rem;font-weight:700;border-radius:999px;padding:2px 10px}
+.mkopt.rec{background:#E2F1E8;color:#135B36}.mkopt.alt{background:#FCF0D6;color:#8F5B00}
+.frame{background:#fff;border:1px solid #C9D8CF;border-radius:14px;overflow:hidden;box-shadow:0 10px 30px rgba(19,36,27,.08);position:relative;align-self:center;width:100%}
+.frame.phone{max-width:390px;border-radius:28px;border:8px solid #13241B;min-height:640px}
+.frame.desk{max-width:1180px;min-height:520px}
+.frame.paper{max-width:720px;border-radius:4px;background:#EEF3F0}
+.callout{font-size:.75rem;font-weight:700;color:#8F5B00;background:#FCF0D6;border-radius:6px;padding:4px 8px;align-self:flex-start}
+.banner{background:#FCF0D6;color:#13241B;border-radius:8px;padding:8px 12px;font-size:.82rem}
+</style>
+
+<div class="mkbar">
+  <div><h1>Guest passes and gate mockup · REQ-040 to REQ-045</h1><p>Draft for owner review. <b>Blocked by board decision D9</b> (is the gate add-on in scope). Sample HOA and invented people only. The QR codes are drawings and do not scan. Each screen names the REQ scenario it shows.</p></div>
+  <div class="mkrow"><div class="mkreq" id="mkreq" role="group" aria-label="Requirement"></div></div>
+  <div class="mkrow">
+    <label for="mksel" style="font-size:.8rem;color:rgba(255,255,255,.8)">Screen</label>
+    <select id="mksel"></select>
+    <button class="btn sm" id="mkprev" type="button">&lsaquo; Previous</button>
+    <button class="btn sm" id="mknext" type="button">Next &rsaquo;</button>
+  </div>
+</div>
+<div class="mkwrap">
+  <div class="mkinfo" id="mkinfo"></div>
+  <div id="mkstage" style="display:flex;flex-direction:column"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const HOA='Greenfield Homes HOA';
+const HOUSE='<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>';
+const BELL='<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1112 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 004 0"/></svg>';
+const MENU='<button class="menu-btn" aria-label="Open menu" type="button"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>';
+
+function header(sub,right,menu){
+  return `<header class="top"><div class="top-in">${menu?MENU:''}<div class="brand"><span class="logo">${HOUSE}</span><div><b>${HOA}</b><small>${sub}</small></div></div><div class="top-r">${right||''}</div></div></header>`;
+}
+const bell=n=>`<button class="bell" aria-label="Notifications" type="button">${BELL}${n?`<span class="dot">${n}</span>`:''}</button>`;
+const hoTop=(n)=>header('Resident portal',bell(n||0),true);
+const gdTop=()=>header('Guard · Main Gate',`<span class="who-admin">Ramil S.</span>`,true);
+const adTop=()=>header('Administration',`<span class="who-admin">Signed in as <b>Paolo Aquino</b></span>${bell(0)}`,false);
+const ADNAV=['Dashboard','Approvals','Homeowners','Visitor Log','Announcements','Settings'];
+function nav(items,cur){return `<nav class="side" aria-label="Sections"><div class="navlbl">Administration</div>${items.map(i=>`<button type="button" ${i===cur?'aria-current="page"':''}>${i}</button>`).join('')}</nav>`}
+const shell=(cur,m)=>`<div class="shell">${nav(ADNAV,cur)}<main>${m}</main></div>`;
+const ph=(t,s,r)=>`<div class="ph"><div><h1>${t}</h1>${s?`<p>${s}</p>`:''}</div>${r?`<div class="actions">${r}</div>`:''}</div>`;
+const pill=(k,t)=>`<span class="pill p-${k}">${t}</span>`;
+const PS={Valid:pill('ok','Valid'),Upcoming:pill('info','Upcoming'),Expired:pill('muted','Expired'),Cancelled:pill('bad','Cancelled'),Invalid:pill('bad','Invalid')};
+
+/* Illustrative QR drawing (deterministic pattern, not a real QR code). */
+function qrSvg(seed){
+  const n=25;let s=seed>>>0;const rnd=()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296};
+  let r='';
+  const finder=(x,y)=>`<rect x="${x}" y="${y}" width="7" height="7" fill="#000"/><rect x="${x+1}" y="${y+1}" width="5" height="5" fill="#fff"/><rect x="${x+2}" y="${y+2}" width="3" height="3" fill="#000"/>`;
+  for(let y=0;y<n;y++)for(let x=0;x<n;x++){
+    const inF=(x<8&&y<8)||(x>n-9&&y<8)||(x<8&&y>n-9);
+    if(!inF&&rnd()>.52)r+=`<rect x="${x}" y="${y}" width="1" height="1" fill="#000"/>`;
+  }
+  return `<svg viewBox="-2 -2 ${n+4} ${n+4}" role="img" aria-label="QR code (illustration)" style="display:block;width:100%;height:auto;shape-rendering:crispEdges"><rect x="-2" y="-2" width="${n+4}" height="${n+4}" fill="#fff"/>${r}${finder(0,0)}${finder(n-7,0)}${finder(0,n-7)}</svg>`;
+}
+
+const passCard=(id,st,dates,guests,plates,extra,seed)=>`<div class="pass ${['Valid','Upcoming'].includes(st)?'':'dim'}">${st==='Cancelled'?`<div class="qr" style="display:grid;place-items:center;font-size:.65rem;color:var(--muted);text-align:center">Cancelled</div>`:`<div class="qr">${qrSvg(seed)}</div>`}<div class="grow"><div class="card-h" style="gap:6px"><b>${id}</b>${PS[st]}</div><span class="sub">${dates}</span><span style="font-size:.85rem">${guests}</span>${plates?`<span class="sub">${plates}</span>`:''}${extra||''}</div></div>`;
+
+function passesPage(){
+  return hoTop(0)+`<div class="pad">${ph('Guest Passes','Create a pass for your visitors. The guard checks it at the gate.')}
+  <button class="btn primary big" type="button">New guest pass</button>
+  <section class="card"><div class="card-h"><h2>Active and upcoming</h2><p>2 passes</p></div><div class="passes">
+   ${passCard('GP-1041','Valid','Fri, Nov 27 · Family visit','Rosa Dela Cruz, Miguel Dela Cruz','NDA4471','<span class="sub" style="color:var(--ok);font-weight:600">1 of 2 arrived</span>',41)}
+   ${passCard('GP-1043','Upcoming','Sat, Dec 5 · Party or event','Tess Ramos, Carlo Ramos, Jun Ramos, Liza Ramos','ABE2210','',43)}
+  </div></section>
+  <section class="card"><div class="card-h"><h2>Past passes</h2></div><div class="passes">
+   ${passCard('GP-1030','Expired','Sat, Nov 21 · Friends','Lito Garcia','','<span class="sub">1 of 1 arrived</span>',30)}
+  </div></section></div>`;
+}
+function newPass(){
+  return hoTop(0)+`<div class="pad">${ph('New guest pass','Visiting Blk 4 Lot 12')}
+  <div class="alert info"><div class="grow">Your guests' names and plates are shared with the HOA's guards. Let your guests know the guard will check their ID at the gate. <button class="btn link" type="button">How the HOA uses visitor information</button></div></div>
+  <form class="f" onsubmit="return false">
+   <div class="row2"><label class="fl" for="d1">Visit date<input id="d1" type="date" value="2026-11-27"></label>
+   <label class="fl" for="d2">Valid until<input id="d2" type="date" value="2026-12-02" class="bad" aria-describedby="d2e"><span class="hint">Up to 3 days</span><span class="ferr" id="d2e" role="alert">A guest pass can cover up to 3 days.</span></label></div>
+   <label class="fl" for="pu">Purpose<select id="pu"><option>Family visit</option><option>Friends</option><option>Party or event</option><option>Contractor or repair</option><option>Delivery</option><option>Household help</option><option>Other</option></select></label>
+   <fieldset><legend>Guests' full names <span class="hint">As on their ID</span></legend>
+    <div class="dyn"><label class="fl" for="g1">Guest 1<input id="g1" type="text" value="Rosa Dela Cruz"></label><button class="x" type="button" aria-label="Remove guest 1">&times;</button></div>
+    <div class="dyn"><label class="fl" for="g2">Guest 2<input id="g2" type="text" value="Rosa Dela Cruz" class="bad"><span class="ferr" role="alert">Rosa Dela Cruz is listed twice.</span></label><button class="x" type="button" aria-label="Remove guest 2">&times;</button></div>
+    <div><button class="btn sm" type="button">+ Add guest</button></div></fieldset>
+   <fieldset><legend>Vehicles <span class="hint">Leave blank if arriving on foot or by taxi</span></legend>
+    <div class="row2"><label class="fl" for="vp">Plate number<input id="vp" type="text" value="NDA4471" autocapitalize="characters"></label><label class="fl" for="vd">Colour and model<input id="vd" type="text" value="Gray Toyota Innova"></label></div>
+    <div><button class="btn sm" type="button">+ Add vehicle</button></div></fieldset>
+   <label class="fl" for="nt">Note for the guard <span class="hint">Optional</span><input id="nt" type="text" placeholder="e.g. Staying for lunch"></label>
+   <label class="fl" for="nc">Number the guard can call <span class="hint">Optional. Shown to the guard only on this pass.</span><input id="nc" type="tel" inputmode="tel" value="0917 555 0101"></label>
+   <button class="btn primary big" type="button">Create pass</button>
+  </form></div>`;
+}
+function passView(){
+  return hoTop(0)+`<div class="pad"><div class="toast">Pass GP-1041 created</div>${ph('Guest pass GP-1041','')}
+  <div class="qrbig">${qrSvg(41)}</div><div class="code">K7QX-M9TA</div><p class="hint" style="text-align:center">Pass code, if the QR can't be scanned</p>
+  <dl class="kv"><dt>Visiting</dt><dd>Blk 4 Lot 12</dd><dt>Valid</dt><dd>Fri, Nov 27, 2026</dd><dt>Guests</dt><dd>Rosa Dela Cruz<br>Miguel Dela Cruz</dd><dt>Vehicles</dt><dd>NDA4471 · Gray Toyota Innova</dd><dt>Status</dt><dd>${PS.Valid}</dd></dl>
+  <p class="hint">Send the pass image to your guests. They show it at the gate.</p>
+  <button class="btn primary big" type="button">Share pass</button>
+  <div class="row2"><button class="btn" type="button">Download pass image</button><button class="btn" type="button">Copy code</button></div>
+  <button class="btn danger big" type="button" style="margin-top:12px">Cancel pass</button></div>`;
+}
+function passImage(){
+  return `<div class="passimg"><div class="hd"><b>${HOA}</b><span style="font-size:.85rem;opacity:.9">GUEST PASS · GP-1041</span></div><div class="bd">
+  <div style="width:220px;align-self:center">${qrSvg(41)}</div><div class="code">K7QX-M9TA</div><p class="hint" style="text-align:center;margin-top:-8px">Pass code, if the QR can't be scanned</p>
+  <dl class="kv"><dt>Visiting</dt><dd>Blk 4 Lot 12</dd><dt>Valid</dt><dd>Nov 27, 2026</dd><dt>Guests</dt><dd>Rosa Dela Cruz<br>Miguel Dela Cruz</dd><dt>Vehicles</dt><dd>NDA4471 · Gray Toyota Innova</dd></dl></div>
+  <div class="ft">Show this at the gate. Each guest needs a valid ID.</div></div>`;
+}
+const emptyPasses=()=>hoTop(0)+`<div class="pad">${ph('Guest Passes','Create a pass for your visitors. The guard checks it at the gate.')}<button class="btn primary big" type="button">New guest pass</button><section class="card"><div class="empty">No guest passes yet. Create one before your visitor arrives, then send them the pass image.</div></section>
+  <div class="alert bad"><div class="grow"><b>Couldn't create the pass.</b>Check your connection and try again. Everything you typed is still in the form.</div></div><span class="callout">Second state: the error after "Create pass" fails</span></div>`;
+
+function cancelConfirm(){
+  return `<div style="position:relative;min-height:620px">`+passView()+`<div class="modal-wrap"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="cch"><div class="modal-h"><h2 id="cch">Cancel guest pass GP-1041?</h2><button class="x" aria-label="Close" type="button">&times;</button></div>
+  <div class="modal-b"><p>1 guest is inside now. The guard can still check them out, but nobody else can come in with this pass. This can't be undone.</p></div>
+  <div class="modal-f"><button class="btn" type="button">Keep pass</button><button class="btn primary" style="background:var(--bad);border-color:var(--bad)" type="button">Yes, cancel pass</button></div></div></div></div>`;
+}
+function cancelled(){
+  return hoTop(1)+`<div class="pad"><div class="toast">Pass GP-1043 cancelled</div>
+  <div class="notif"><b>Someone tried to use your cancelled guest pass GP-1043 at the gate at 4:12 PM.</b><small>Today, 4:12 PM</small></div>
+  ${ph('Guest Passes','')}
+  <section class="card"><div class="card-h"><h2>Past passes</h2></div><div class="passes">${passCard('GP-1043','Cancelled','Sat, Dec 5 · Party or event','Tess Ramos, Carlo Ramos, Jun Ramos, Liza Ramos','ABE2210','<span class="sub">Cancelled on Nov 27</span>',43)}</div></section></div>`;
+}
+
+const scanBox=(lbl)=>`<div class="cam" aria-label="Camera view"><div class="vf"><i></i><i></i><i></i><i></i></div><span class="lbl">${lbl}</span></div>`;
+const codeForm=(v,err)=>`<form class="f" onsubmit="return false"><label class="fl" for="pc">Or type the pass code<input id="pc" type="text" class="codein ${err?'bad':''}" placeholder="e.g. K7QX-M9TA" value="${v||''}" autocomplete="off" autocapitalize="characters"></label>${err?`<span class="ferr" role="alert">${err}</span>`:''}<button class="btn primary big" type="button">Check code</button></form>`;
+function scanPage(){
+  return gdTop()+`<div class="pad">${ph('Scan Guest Pass','Point the camera at the guest\'s QR.')}${scanBox('Looking for a QR…')}${codeForm()}
+  <button class="btn big" type="button">Expected today · 6 passes</button></div>`;
+}
+function gRow(name,state,form){
+  return `<div class="gst"><div class="gst-h"><b>${name}</b>${state}</div>${form||''}</div>`;
+}
+const letForm=(i,opts)=>{const o=opts||{};return `<form class="f" onsubmit="return false">
+  <label class="fl" for="it${i}">ID type<select id="it${i}" ${o.err?'class="bad"':''}><option value="">Pick the ID the guest showed</option><option ${o.pick?'selected':''}>PhilSys National ID</option><option>Driver's license</option><option>UMID</option><option>Passport</option><option>Postal ID</option><option>PRC ID</option><option>Company or school ID</option><option>Other</option></select></label>
+  ${o.err?`<span class="ferr" role="alert">${o.err}</span>`:''}
+  ${o.photo?o.photo:''}
+  <label class="fl" for="ab${i}">Arrived by<select id="ab${i}"><option>NDA4471</option><option>Other vehicle</option><option>On foot or taxi</option></select></label>
+  <button class="btn primary big" type="button" ${o.busy?'disabled':''}>${o.busy?'Letting in…':'Let in'}</button></form>`};
+function validResult(){
+  return gdTop()+`<div class="pad">
+  <div class="verdict ok" role="status"><span class="ic" aria-hidden="true">&#10003;</span><div><b>Valid pass · GP-1041</b>Check each guest's ID before letting them in.</div></div>
+  <dl class="kv"><dt>Visiting</dt><dd>Blk 4 Lot 12</dd><dt>Valid</dt><dd>Fri, Nov 27</dd><dt>Purpose</dt><dd>Family visit</dd><dt>Vehicles</dt><dd>NDA4471 · Gray Toyota Innova</dd><dt>Number to call</dt><dd><button class="btn sm" type="button">Call 0917 555 0101</button></dd></dl>
+  <p class="hint">Guest or car not on this list? Call the homeowner before letting them in.</p>
+  <h3>Guests (2)</h3>
+  ${gRow('Rosa Dela Cruz',pill('warn','Not yet arrived'),letForm(1,{pick:true}))}
+  ${gRow('Miguel Dela Cruz',pill('warn','Not yet arrived'),letForm(2))}
+  <button class="btn big" type="button">Scan next</button></div>`;
+}
+function refused(){
+  const v=(k,ic,t,d)=>`<div class="verdict ${k}" role="alert"><span class="ic" aria-hidden="true">${ic}</span><div><b>${t}</b>${d}</div></div>`;
+  return gdTop()+`<div class="pad"><span class="callout">Four verdicts stacked for review. The guard sees one at a time.</span>
+  ${v('warn','!','Not valid yet · GP-1043','This pass starts on Sat, Dec 5. Call the homeowner before letting anyone in.')}
+  <dl class="kv"><dt>Visiting</dt><dd>Blk 4 Lot 12</dd><dt>Valid</dt><dd>Sat, Dec 5</dd><dt>Number to call</dt><dd>0917 555 0101</dd></dl>
+  <p class="hint">No guest names are shown for a pass that isn't valid.</p>
+  ${v('bad','&#10005;','Pass expired · GP-1030','It was valid for Sat, Nov 21. Ask the homeowner to create a new pass.')}
+  ${v('bad','&#10005;','Pass cancelled · GP-1043','The homeowner cancelled this pass. Do not let the guests in without calling the homeowner.')}
+  ${v('bad','&#10005;','Not a valid pass','This QR is not a valid guest pass for this subdivision. It may be fake or altered.')}
+  <button class="btn big" type="button">Scan next</button></div>`;
+}
+function scanStates(){
+  return gdTop()+`<div class="pad"><span class="callout">Error and loading states, stacked</span>
+  ${scanBox('Checking pass…')}
+  <div class="alert bad" role="alert"><div class="grow"><b>No connection.</b>The pass could not be checked. Use the paper log and call the homeowner.</div><button class="btn sm" type="button">Try again</button></div>
+  <div class="alert warn" role="status"><div class="grow"><b>Still checking.</b>If the signal is weak, use the paper log and call the homeowner.</div><button class="btn sm" type="button">Try again</button></div>
+  <div class="alert warn"><div class="grow"><b>The camera is blocked.</b>Allow camera access for this app in the phone's settings, or type the pass code.</div></div>
+  ${codeForm('GP-1041','No guest pass matches GP-1041. Ask the guest for the 8-character pass code under the QR, or call the homeowner.')}
+  <div class="alert bad"><div class="grow"><b>Too many codes that don't match.</b>Wait 10 minutes, or call the homeowner.</div></div></div>`;
+}
+function expected(){
+  const rows=[['Blk 4 Lot 12','2 guests','NDA4471','1/2 in'],['Blk 2 Lot 7','1 guest','UV6620','1/1 in'],['Blk 6 Lot 3','3 guests','On foot','0/3 in'],['Blk 9 Lot 21','1 guest','TQE118','0/1 in']];
+  return gdTop()+`<div class="pad">${ph('Expected today','6 passes · Fri, Nov 27')}
+  <label class="fl" for="ef">Find a lot or plate<input id="ef" type="search" placeholder="e.g. Blk 4 or NDA"></label>
+  <div class="passes">${rows.map(r=>`<button type="button" class="hocard" style="text-align:left;background:#fff;cursor:pointer"><div class="r"><b>${r[0]}</b><span class="pill p-muted">${r[3]}</span></div><span class="sub">${r[1]} · ${r[2]}</span></button>`).join('')}</div>
+  <p class="hint">Tap a row to open the pass without scanning, for example when the guest's phone is dead.</p>
+  <span class="callout">Empty state</span><div class="card"><div class="empty">No passes for today. A guest without a pass: call the homeowner and use the paper log.</div></div></div>`;
+}
+function letInA(){
+  return gdTop()+`<div class="pad">
+  <div class="verdict ok" role="status"><span class="ic" aria-hidden="true">&#10003;</span><div><b>Valid pass · GP-1041</b>Check each guest's ID before letting them in.</div></div>
+  <h3>Guests (2)</h3>
+  ${gRow('Rosa Dela Cruz',`<span class="actions">${pill('ok','Inside since 9:12 AM')}<button class="btn sm" type="button">Check out</button></span>`)}
+  ${gRow('Miguel Dela Cruz',pill('warn','Not yet arrived'),letForm(2,{err:'Pick the ID the guest showed.'}))}
+  <div class="toast">Rosa Dela Cruz let in</div>
+  <span class="callout">Option A: ID checked and its type recorded. No photo.</span></div>`;
+}
+function letInB(){
+  const ph1=`<div class="fl">Photo of ID<div class="photo">ID photo preview</div><div class="actions"><button class="btn sm" type="button">Retake</button></div></div>`;
+  return gdTop()+`<div class="pad"><span class="callout">Option B only: ID photo required</span>
+  <div class="verdict ok" role="status"><span class="ic" aria-hidden="true">&#10003;</span><div><b>Valid pass · GP-1041</b>Check each guest's ID before letting them in.</div></div>
+  ${gRow('Rosa Dela Cruz',pill('warn','Not yet arrived'),letForm(1,{pick:true,photo:ph1}))}
+  <div class="alert bad" role="alert"><div class="grow"><b>The ID photo didn't upload.</b>Try again, or use the paper log and call the homeowner.</div><button class="btn sm" type="button">Try again</button></div>
+  <p class="hint">Guest won't allow an ID photo? Call the homeowner.</p></div>`;
+}
+function alreadyInside(){
+  return gdTop()+`<div class="pad">
+  <div class="verdict ok" role="status"><span class="ic" aria-hidden="true">&#10003;</span><div><b>Valid pass · GP-1041</b>Check each guest's ID before letting them in.</div></div>
+  ${gRow('Rosa Dela Cruz',pill('ok','Inside since 9:12 AM'))}
+  <div class="alert warn" role="alert"><div class="grow"><b>Already inside.</b>If someone else is using this name, check their ID and call the homeowner.</div></div>
+  <span class="callout">Other refusals at "Let in"</span>
+  <div class="alert bad"><div class="grow">This pass was cancelled a moment ago. Do not let the guests in without calling the homeowner.</div></div>
+  <div class="alert bad"><div class="grow">This pass has expired. Do not let the guests in without calling the homeowner.</div></div>
+  <div class="alert bad"><div class="grow">No connection. Nothing was saved. Write this guest in the paper log and try again when the signal returns.</div></div>
+  <div class="alert info"><div class="grow">Miguel Dela Cruz was let in a moment ago by another guard.</div></div></div>`;
+}
+function inside(){
+  const rows=[['Rosa Dela Cruz','Blk 4 Lot 12','9:12 AM','NDA4471',''],['Ana Lim','Blk 6 Lot 3','10:40 AM','On foot',''],['Ramon Bautista','Blk 2 Lot 7','Nov 26, 8:05 AM','UV6620','ended']];
+  return gdTop()+`<div class="pad">${ph('Visitors Inside','3 guests inside now')}
+  <div class="passes">${rows.map(r=>`<div class="hocard"><div class="r"><b>${r[0]}</b>${r[4]?pill('warn','Pass ended: check if still inside'):''}</div><span class="sub">${r[1]} · in ${r[2]} · ${r[3]}</span><button class="btn big" type="button">Check out</button></div>`).join('')}</div>
+  <span class="callout">Empty state</span><div class="card"><div class="empty">No guests inside right now.</div></div></div>`;
+}
+
+function visitorLog(photo){
+  const V=[['Nov 27','Rosa Dela Cruz','Blk 4 Lot 12','9:12 AM','',"NDA4471",'PhilSys National ID','GP-1041','R. Santos'],['Nov 27','Ramon Bautista','Blk 2 Lot 7','8:05 AM','','UV6620','Company or school ID','GP-1042','R. Santos'],['Nov 25','Edna Garcia','Blk 9 Lot 21','2:30 PM','6:45 PM','—',"Driver's license",'GP-1044','J. Reyes'],['Oct 12','Pedro Santos','Blk 7 Lot 4','10:00 AM','1:20 PM','TQE118','UMID','GP-1001','J. Reyes']];
+  const idc=(v,i)=>photo?(i===3?`${v[6]}<span class="sub">Deleted</span>`:`${v[6]}<span class="sub"><button class="btn link" type="button">View ID</button></span>`):v[6];
+  return adTop()+shell('Visitor Log',ph('Visitor Log','Every guest let in at the gate, and every pass check.')+
+  `<div class="tiles"><div class="tile"><span class="tile-l">Inside now</span><span class="tile-v">3</span></div><div class="tile"><span class="tile-l">Arrivals today</span><span class="tile-v">5</span></div><div class="tile"><span class="tile-l">Passes valid today</span><span class="tile-v">6</span></div></div>
+  ${photo?`<p class="hint">Last ID photo cleanup: Nov 27, 2:00 AM · 3 deleted</p>`:''}
+  <div class="tabs" role="tablist"><button role="tab" aria-selected="true" type="button">Arrivals</button><button role="tab" aria-selected="false" type="button">Gate scans</button></div>
+  <div class="actions"><label class="fl" for="vq" style="flex:1;min-width:220px">Search guest, lot, plate or pass<input id="vq" type="search" value="nda 4471"></label><label class="fl" for="vf">From<input id="vf" type="date" value="2026-11-21"></label><label class="fl" for="vt">To<input id="vt" type="date" value="2026-11-27"></label></div>
+  <section class="card"><div class="tbl"><table><thead><tr><th>Date</th><th>Guest</th><th>Visiting</th><th>In</th><th>Out</th><th>Vehicle</th><th>ID</th><th>Pass</th><th>Guard</th></tr></thead><tbody>
+  ${V.map((v,i)=>`<tr><td>${v[0]}</td><td><b>${v[1]}</b></td><td>${v[2]}</td><td class="num">${v[3]}</td><td class="num">${v[4]||pill('ok','Inside')}</td><td>${v[5]}</td><td>${idc(v,i)}</td><td>${v[7]}</td><td>${v[8]}</td></tr>`).join('')}
+  </tbody></table></div><p class="hint">Showing all 4 rows for review; a search for "nda 4471" would list only the first.</p></section>`);
+}
+function scanLog(){
+  const R=[['Nov 27','4:12 PM','QR','Cancelled','GP-1043','Blk 4 Lot 12','R. Santos','Pass was cancelled by the homeowner'],['Nov 27','9:41 AM','Code','Invalid','—','—','R. Santos','No pass matches K7QX-M9TB'],['Nov 27','7:58 AM','QR','Invalid','—','—','R. Santos','Not a guest pass for this subdivision'],['Nov 26','4:15 PM','QR','Expired','GP-1044','Blk 9 Lot 21','J. Reyes','Pass was valid Wed, Nov 25']];
+  return adTop()+shell('Visitor Log',ph('Visitor Log','Every guest let in at the gate, and every pass check.')+
+  `<div class="tabs" role="tablist"><button role="tab" aria-selected="false" type="button">Arrivals</button><button role="tab" aria-selected="true" type="button">Gate scans ${pill('warn','4 refused')}</button></div>
+  <div class="actions"><label class="check"><input type="checkbox" checked> Refused only</label></div>
+  <section class="card"><div class="tbl"><table><thead><tr><th>Date</th><th>Time</th><th>Method</th><th>Result</th><th>Pass</th><th>Visiting</th><th>Guard</th><th>Detail</th></tr></thead><tbody>
+  ${R.map(r=>`<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td>${r[2]}</td><td>${PS[r[3]]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td><td>${r[7]}</td></tr>`).join('')}
+  </tbody></table></div></section>`);
+}
+function logPhone(){
+  return header('Administration',bell(0),true)+`<div class="pad">${ph('Visitor Log','')}
+  <label class="fl" for="vq2">Search guest, lot, plate or pass<input id="vq2" type="search"></label><button class="btn" type="button">Filters</button>
+  <div class="passes">${[['Rosa Dela Cruz','Blk 4 Lot 12','Nov 27 · in 9:12 AM',pill('ok','Inside'),'NDA4471 · PhilSys National ID · GP-1041'],['Edna Garcia','Blk 9 Lot 21','Nov 25 · in 2:30 PM · out 6:45 PM','',"On foot · Driver's license · GP-1044"]].map(r=>`<div class="hocard"><div class="r"><b>${r[0]}</b>${r[3]}</div><span>${r[1]}</span><span class="sub">${r[2]}</span><span class="sub">${r[4]}</span></div>`).join('')}</div>
+  <span class="callout">Loading and error states</span>
+  <div class="card"><div style="height:14px;background:var(--surface-2);border-radius:6px"></div><div style="height:14px;width:70%;background:var(--surface-2);border-radius:6px"></div></div>
+  <div class="alert bad"><div class="grow">Couldn't load the visitor log. Check your connection and try again.</div><button class="btn sm" type="button">Try again</button></div></div>`;
+}
+function photoViewer(){
+  return `<div style="position:relative;min-height:560px">`+visitorLog(true)+`<div class="modal-wrap"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="pvh"><div class="modal-h"><h2 id="pvh">ID photo · Rosa Dela Cruz · Nov 27</h2><button class="x" aria-label="Close" type="button">&times;</button></div>
+  <div class="modal-b"><div class="alert warn"><div class="grow">Viewing ID photos is recorded. Open one only when you need it.</div></div><div class="photo" style="max-width:none">Photo appears after "Show photo"</div></div>
+  <div class="modal-f"><button class="btn" type="button">Close</button><button class="btn primary" type="button">Show photo</button></div></div></div></div>`;
+}
+function hoSummary(){
+  return hoTop(0)+`<div class="pad">${ph('Guest pass GP-1041','Fri, Nov 27 · Family visit')}
+  <section class="card"><div class="card-h"><h2>Arrivals</h2>${pill('ok','2 of 2 guests arrived')}</div>
+  <div class="passes"><div class="hocard"><b>Rosa Dela Cruz</b><span class="sub">in 9:12 AM · out 1:20 PM</span></div><div class="hocard"><b>Miguel Dela Cruz</b><span class="sub">in 9:14 AM · out 1:20 PM</span></div></div>
+  <p class="hint">Only arrival and departure times are shown. ID details stay with the HOA.</p></section></div>`;
+}
+function todayLog(){
+  return gdTop()+`<div class="pad">${ph("Today's Log",'Fri, Nov 27 · 5 arrivals · 9 scans')}
+  <h3>Arrivals</h3><div class="passes"><div class="hocard"><div class="r"><b>Rosa Dela Cruz</b>${pill('ok','Inside')}</div><span class="sub">Blk 4 Lot 12 · in 9:12 AM · NDA4471</span></div></div>
+  <h3>Scans and code checks</h3><p class="hint">Every check is recorded, including refused passes.</p>
+  <div class="passes"><div class="hocard"><div class="r"><b>9:41 AM · Code</b>${PS.Invalid}</div><span class="sub">No pass matches K7QX-M9TB</span></div><div class="hocard"><div class="r"><b>9:10 AM · QR</b>${PS.Valid}</div><span class="sub">GP-1041 · Blk 4 Lot 12</span></div></div></div>`;
+}
+
+function settingsGate(){
+  return `<div style="position:relative;min-height:620px">`+adTop()+shell('Settings',ph('Settings','Dues, QR payment details, staff and gate.')+
+  `<section class="card" style="max-width:560px"><h2>Gate</h2><form class="f" onsubmit="return false">
+  <div class="row2"><label class="fl" for="s1">Longest guest pass (days)<input id="s1" type="number" inputmode="numeric" value="3"></label><label class="fl" for="s2">How far ahead a pass can start (days)<input id="s2" type="number" inputmode="numeric" value="30"></label></div>
+  <div class="row2"><label class="fl" for="s3">Most guests per pass<input id="s3" type="number" inputmode="numeric" value="10"></label><label class="fl" for="s4">Most vehicles per pass<input id="s4" type="number" inputmode="numeric" value="5"></label></div>
+  <label class="check"><input type="checkbox" checked> Require an ID photo at check-in</label>
+  <label class="fl" for="s5">Keep ID photos for (days)<input id="s5" type="number" inputmode="numeric" value="14"><span class="hint">7 to 90. Photos are deleted automatically after this.</span></label>
+  <label class="fl" for="s6">Keep visit and scan records for (months)<input id="s6" type="number" inputmode="numeric" value="12"><span class="hint">1 to 36</span></label>
+  <button class="btn primary" type="button">Save</button></form></section>`)+
+  `<div class="modal-wrap"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="shh"><div class="modal-h"><h2 id="shh">Shorten to 14 days?</h2><button class="x" aria-label="Close" type="button">&times;</button></div>
+  <div class="modal-b"><p>ID photos older than 14 days will be deleted at the next cleanup, tonight at 2:00 AM. Deleted photos can't be recovered.</p></div>
+  <div class="modal-f"><button class="btn" type="button">Keep 30 days</button><button class="btn primary" type="button">Yes, shorten</button></div></div></div></div>`;
+}
+function settingsOff(){
+  return adTop()+shell('Settings',`<section class="card" style="max-width:560px"><h2>Gate</h2>
+  <label class="check" style="opacity:.6"><input type="checkbox" disabled> Require an ID photo at check-in</label><span class="hint">Available once the daily ID photo cleanup is running.</span>
+  <span class="callout">Lengthening the period</span><div class="alert info"><div class="grow">Photos already deleted can't be brought back. Newer photos will be kept for 60 days.</div></div>
+  <span class="callout">Out of range</span><label class="fl" for="s7">Keep ID photos for (days)<input id="s7" type="number" class="bad" value="120"><span class="ferr" role="alert">Choose between 7 and 90 days.</span></label></section>`);
+}
+function cleanupHealth(){
+  return adTop()+shell('Visitor Log',ph('Visitor Log','Every guest let in at the gate, and every pass check.')+
+  `<span class="callout">Healthy</span><p class="hint">Last ID photo cleanup: Nov 12, 2:00 AM · 3 deleted</p>
+  <span class="callout">Late</span><div class="alert warn" role="alert"><div class="grow"><b>The daily ID photo cleanup hasn't run since Nov 10, 2:00 AM.</b>Tell the developer. Photos are still deleted by a backstop after 91 days.</div></div>
+  <section class="card"><div class="tbl"><table><thead><tr><th>Date</th><th>Guest</th><th>Visiting</th><th>ID</th></tr></thead><tbody><tr><td>Oct 12</td><td><b>Pedro Santos</b></td><td>Blk 7 Lot 4</td><td>UMID<span class="sub">Deleted</span></td></tr></tbody></table></div></section>`);
+}
+
+const COPY=[
+ ['REQ-040','Data notice',"Your guests' names and plates are shared with the HOA's guards. Let your guests know the guard will check their ID at the gate."],
+ ['REQ-040','Empty','No guest passes yet. Create one before your visitor arrives, then send them the pass image.'],
+ ['REQ-040','Errors',"Add at least one guest's full name, as on their ID. · A guest pass can cover up to {n} days. · {name} is listed twice. · Couldn't create the pass. Check your connection and try again."],
+ ['REQ-041','Confirm',"Cancel guest pass {GP-n}? Your guests won't be able to use it at the gate. This can't be undone. · Yes, cancel pass · Keep pass"],
+ ['REQ-041','Notification','Someone tried to use your cancelled guest pass {GP-n} at the gate at {time}.'],
+ ['REQ-042','Verdicts',"Valid pass · Not valid yet · Pass expired · Pass cancelled · Not a valid pass"],
+ ['REQ-042','Errors',"No connection. The pass could not be checked. Use the paper log and call the homeowner. · The camera is blocked. Allow camera access for this app in the phone's settings, or type the pass code. · Too many codes that don't match. Wait 10 minutes, or call the homeowner."],
+ ['REQ-043','Guest states','Not yet arrived · Inside since {time} · Left {time} · Pass ended: check if still inside'],
+ ['REQ-043','Errors',"Pick the ID the guest showed. · Already inside. If someone else is using this name, check their ID and call the homeowner. · The ID photo didn't upload. Try again, or use the paper log and call the homeowner."],
+ ['REQ-044','Photo viewer','Viewing ID photos is recorded. Open one only when you need it. · Show photo'],
+ ['REQ-044','Empty','No arrivals yet. Visits appear here when the guard lets a guest in.'],
+ ['REQ-045','Shorten confirm',"Shorten to {n} days? ID photos older than {n} days will be deleted at the next cleanup, tonight at 2:00 AM. Deleted photos can't be recovered."],
+ ['REQ-045','Late cleanup',"The daily ID photo cleanup hasn't run since {date}, {time}. Tell the developer. Photos are still deleted by a backstop after 91 days."]
+];
+const copyTable=()=>`<div class="pad"><h2>Copy of record (key lines)</h2><p class="hint">The full copy of record is in each REQ. These are the lines most worth commenting on.</p><div class="tbl"><table><thead><tr><th>REQ</th><th>Where</th><th>Text</th></tr></thead><tbody>${COPY.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</tbody></table></div></div>`;
+
+const S=[
+{id:'40A',req:'REQ-040',dev:'phone',opt:'rec',title:'Guest Passes list',scn:'"Create a pass" (the list after), "Reopen a pass later".',note:'Cards, not a table, at 375 px. Arrival counts come from REQ-044.',html:passesPage},
+{id:'40B',req:'REQ-040',dev:'phone',opt:'rec',title:'New guest pass, with errors',scn:'"Longer than allowed", "The same guest twice", "What Juan is told about his guests\' data", "A number for the guard".',note:'Every row has a visible label (the mock-up used placeholders). Errors sit under their field and reserve their space.',html:newPass},
+{id:'40C',req:'REQ-040',dev:'phone',opt:'rec',title:'Pass created: QR, code, share',scn:'"Create a pass", "Share the pass image".',note:'"Share pass" shows only where the phone can share files. "Cancel pass" is at the bottom in the danger style (REQ-041).',html:passView},
+{id:'40D',req:'REQ-040',dev:'paper',opt:'rec',title:'The pass image the guest receives',scn:'"Share the pass image": shows the lot, not the owner name or a phone number.',note:'Drawn on the phone as GP-1041.png. Works offline on the guest\'s phone.',html:passImage},
+{id:'40E',req:'REQ-040',dev:'phone',opt:'rec',title:'Empty list, and a failed create',scn:'"First visit to Guest Passes", "Losing the connection while creating".',note:'Two states stacked.',html:emptyPasses},
+{id:'41A',req:'REQ-041',dev:'phone',opt:'rec',title:'Cancel a pass: confirm',scn:'"Cancel a pass", "Cancelling while a guest is inside".',note:'This version of the dialog appears when a guest is inside. The dialog does not close on a backdrop click while saving.',html:cancelConfirm},
+{id:'41B',req:'REQ-041',dev:'phone',opt:'rec',title:'Cancelled, and someone tried to use it',scn:'"Someone uses a cancelled pass" (homeowner side).',note:'The QR is replaced by "Cancelled" in the same space so the card does not jump.',html:cancelled},
+{id:'42A',req:'REQ-042',dev:'phone',opt:'rec',title:'Scan Pass: live camera',scn:'"The verdict the guard sees", "Typing the pass code".',note:'Option A. The camera fills the top; code entry and Expected today are within thumb reach.',html:scanPage},
+{id:'42B',req:'REQ-042',dev:'phone',opt:'rec',title:'Valid pass with guests',scn:'"A valid pass shows the guests".',note:'Colour, icon and words together. "Call" appears only if the homeowner put a number on the pass (REQ-040 decision 5).',html:validResult},
+{id:'42C',req:'REQ-042',dev:'phone',opt:'rec',title:'Refused verdicts',scn:'"The verdict the guard sees" (Upcoming, Expired, Cancelled), "A fake or altered QR", "A pass that isn\'t valid shows no guest names".',note:'Not valid yet uses amber with a border so it reads differently from red in sunlight.',html:refused},
+{id:'42D',req:'REQ-042',dev:'phone',opt:'rec',title:'Checking, no connection, camera blocked, wrong codes',scn:'"Checking takes a moment", "No connection", "A weak signal", "The camera is blocked", "Typing a pass number is not enough", "Too many codes that don\'t match".',note:'The guard never sees "Valid pass" for a pass that was not checked.',html:scanStates},
+{id:'42E',req:'REQ-042',dev:'phone',opt:'rec',title:'Expected today',scn:'"The guest\'s phone is dead", "Expected today shows no codes or names", "Nothing expected today".',note:'Lots, counts and plates only. Opening a row is recorded as a scan.',html:expected},
+{id:'43A',req:'REQ-043',dev:'phone',opt:'rec',title:'Let in (Option A: no photo)',scn:'"Let a guest in (Option A)", "No ID type chosen", "Check out".',note:'Recommended first slice. The ID type is picked for every guest, so a carload can\'t be let in without looking.',html:letInA},
+{id:'43B',req:'REQ-043',dev:'phone',opt:'alt',title:'Option B: ID photo and a failed upload',scn:'"Let a guest in with an ID photo (Option B)", "The photo doesn\'t upload", "A guest refuses an ID photo".',note:'Only if the board and DPO choose photos, and only once REQ-045 is live.',html:letInB},
+{id:'43C',req:'REQ-043',dev:'phone',opt:'rec',title:'Already inside, and other refusals',scn:'"The same guest can\'t be let in twice", "The pass stops being valid before Let in", "Two guards let the same guest in at once", "No connection at Let in", REQ-041 "The pass is cancelled after the guard opened it".',note:'Messages stacked for review.',html:alreadyInside},
+{id:'43D',req:'REQ-043',dev:'phone',opt:'rec',title:'Visitors Inside',scn:'"Visitors Inside", "Nobody inside", "A guest still inside after the pass ended".',note:'No ID photos here.',html:inside},
+{id:'44A',req:'REQ-044',dev:'desk',opt:'rec',title:'Visitor Log: arrivals',scn:'"Open the visitor log", "Search by plate", "A date range", "No photos kept (Option A)".',note:'Option A shows the ID type only. Search is debounced and updates only the table.',html:()=>visitorLog(false)},
+{id:'44B',req:'REQ-044',dev:'desk',opt:'rec',title:'Gate scans, refused only',scn:'"Gate scans, refused only", "A guessed code shows in the scan log".',note:'Same result words as the guard\'s verdicts.',html:scanLog},
+{id:'44C',req:'REQ-044',dev:'phone',opt:'rec',title:'Visitor Log on a phone, loading and error',scn:'"The log on a phone", "Loading and errors".',note:'Cards, no sideways scrolling.',html:logPhone},
+{id:'44D',req:'REQ-044',dev:'desk',opt:'alt',title:'Option B: opening an ID photo',scn:'"Opening an ID photo is recorded", "A deleted photo".',note:'Two steps so a stray click doesn\'t expose a photo on a shared office screen. No thumbnails in the table.',html:photoViewer},
+{id:'44E',req:'REQ-044',dev:'phone',opt:'rec',title:'Homeowner: who arrived on my pass',scn:'"Homeowners don\'t see ID details".',note:'Names and times only.',html:hoSummary},
+{id:'44F',req:'REQ-044',dev:'phone',opt:'rec',title:'Guard: Today\'s Log',scn:'"The guard\'s Today\'s Log".',note:'Today only. No ID photos.',html:todayLog},
+{id:'45A',req:'REQ-045',dev:'desk',opt:'rec',title:'Settings → Gate, shortening the period',scn:'"Shortening the retention period".',note:'All gate settings live here (REQ-040 limits, REQ-043 photo switch, REQ-045 periods).',html:settingsGate},
+{id:'45B',req:'REQ-045',dev:'desk',opt:'rec',title:'Photo switch locked, lengthening, out of range',scn:'"Photos can\'t be switched on before the cleanup is set up", "Lengthening the retention period", "A period outside the allowed range".',note:'States stacked.',html:settingsOff},
+{id:'45C',req:'REQ-045',dev:'desk',opt:'rec',title:'Cleanup health on the Visitor Log',scn:'"When the cleanup last ran", "The cleanup stops running", "Old photos are deleted on schedule".',note:'The late warning also fires the developer\'s alert.',html:cleanupHealth},
+{id:'CR',req:'Copy',dev:'desk',opt:'rec',title:'Copy of record (key lines)',scn:'Wording to comment on.',note:'Full tables are in each REQ.',html:copyTable}
+];
+const REQS=[['REQ-040','Create'],['REQ-041','Cancel'],['REQ-042','Verify'],['REQ-043','Check in/out'],['REQ-044','Logs'],['REQ-045','Retention'],['Copy','Copy of record']];
+let cur=0;
+function draw(){
+  const s=S[cur];
+  document.getElementById('mkreq').innerHTML=REQS.map(([r,l])=>`<button type="button" data-req="${r}" aria-pressed="${s.req===r}">${r==='Copy'?l:r+' · '+l}</button>`).join('');
+  document.getElementById('mksel').innerHTML=S.map((x,i)=>`<option value="${i}" ${i===cur?'selected':''}>${x.id} · ${x.title}</option>`).join('');
+  document.getElementById('mkinfo').innerHTML=`<span class="k">${s.req} · Screen ${s.id}</span><h2>${s.title}</h2><div><span class="mkopt ${s.opt}">${s.opt==='rec'?'Recommended option':'Alternative option, for comparison'}</span></div><p><b>Shows:</b> ${s.scn}</p><p>${s.note}</p><p class="banner">Blocked by D9: nothing here is built until the HOA board puts the gate add-on in scope.</p>`;
+  document.getElementById('mkstage').innerHTML=`<div class="frame ${s.dev}">${s.html()}</div>`;
+  document.getElementById('mkprev').disabled=cur===0;document.getElementById('mknext').disabled=cur===S.length-1;
+  try{history.replaceState(null,'','#s'+s.id)}catch(e){}
+}
+document.addEventListener('click',e=>{
+  const r=e.target.closest('[data-req]');if(r){cur=S.findIndex(x=>x.req===r.dataset.req);draw();return}
+  if(e.target.id==='mkprev'&&cur>0){cur--;draw()}
+  if(e.target.id==='mknext'&&cur<S.length-1){cur++;draw()}
+});
+document.getElementById('mksel').addEventListener('change',e=>{cur=+e.target.value;draw()});
+const h=(location.hash||'').replace('#s','');const hi=S.findIndex(x=>x.id===h);if(hi>=0)cur=hi;
+draw();
+})();
+</script>
+</html>
