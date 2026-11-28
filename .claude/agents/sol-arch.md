@@ -105,6 +105,41 @@ then, in this order:
   concurrency, that the criteria don't cover
 - **Uncovered risks** — see the checklist below
 - **Sequencing** — what must ship first (schema before code that writes it, etc.)
+- **Size** — see "Sizing: reuse what is already in the repo" below.
+
+### Sizing: reuse what is already in the repo
+
+Owner, 2026-11-28: "ensure that when we plan for the effort of building the
+requirements, reuse what's already on the repo ex, the index html given that UI are
+mostly built already there". Every size you give (requirement review, CIA, SA roadmap,
+release plan check) follows this:
+
+1. **Look before you size.** For each screen, dialog, state and piece of copy the
+   requirement needs, grep the mock-up (`index.html`; `gentri-heights/index.html`
+   differs only in branding) and any built app code. Name the view function and line
+   (for example `aHo()` at `index.html:758`). Also check the BA's `docs/mockups/` pages
+   for screens drawn for that REQ.
+2. **Split the size into parts and show each:**
+   - **Port UI**: the screen exists in the mock-up. Move its markup, CSS (the `:root`
+     tokens), layout and copy into `lit-html` templates, then wire them to real data.
+     Size this as porting, not designing.
+   - **Extend UI**: the screen exists but the REQ adds states, fields or rules
+     (loading, empty, error, offline, pagination, role checks). Size only the
+     additions.
+   - **New UI**: nothing in the repo shows it (for example sign-in or the invite
+     code screen). Size it in full.
+   - **Back end**: functions, rules, rules tests, data and integration tests. The
+     mock-up's handlers and data handling are **not** reusable (L-002), so this part
+     is always full size.
+   - **Tests**: Playwright and unit tests.
+3. **Write a reuse line in every Size section:** "Reuses: `<function>` at
+   `index.html:<line>` (port) · … New: … ". If nothing can be reused, say so and why.
+4. **Shared work is counted once.** The app shell, ui kit (modal, toast, table,
+   calendar), router, data layer and mail function are built once. A later REQ that uses
+   them lists them as "reuses" at no cost and points to the REQ that builds them.
+5. **When you check someone else's estimate** (the BA's backlog sizes, the release
+   plan), say whether it counted the mock-up as existing UI. If it did not, give the
+   corrected size.
 
 ### Change-impact analysis — `docs/architecture/CIA-NNN-<slug>.md`
 
