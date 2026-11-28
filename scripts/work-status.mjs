@@ -265,10 +265,17 @@ const coverage = tryGit('show', `${MAIN}:docs/test-cases/COVERAGE-MAP.md`) ?? ''
 // ---------- requirements ----------
 
 const linkedBranches = (id) => branches.filter((b) => b.ids.has(id) && b.ahead > 0);
-const isCode = (f) => !/^docs\//.test(f) && !/\.md$/i.test(f);
-// One log of main's commits that touch code (not docs), instead of a `git log --grep` per
+// "Code" means the app Dev builds. Docs, tests (QE's), the team's tooling (scripts/,
+// .claude/) and repo config are not a build of a requirement, even when a commit message
+// names one (a scanner fix that mentions "REQ-001 r4" is not REQ-001 being built).
+const NOT_APP = [/^docs\//, /\.md$/i, /^tests\//, /^scripts\//, /^\.claude\//, /^\.github\//,
+  /^package(-lock)?\.json$/, /^playwright\.config\.js$/, /^\.gitignore$/];
+const isCode = (f) => !NOT_APP.some((re) => re.test(f));
+const NOT_APP_PATHSPECS = [':!docs', ':!*.md', ':!tests', ':!scripts', ':!.claude', ':!.github',
+  ':!package.json', ':!package-lock.json', ':!playwright.config.js', ':!.gitignore'];
+// One log of main's commits that touch app code, instead of a `git log --grep` per
 // requirement. Ids are matched exactly as idsIn reads them, ranges included.
-const CODE_COMMIT_IDS = idsIn(tryGit('log', MAIN, '--format=%s%n%b', '--', '.', ':!docs', ':!*.md') ?? '');
+const CODE_COMMIT_IDS = idsIn(tryGit('log', MAIN, '--format=%s%n%b', '--', '.', ...NOT_APP_PATHSPECS) ?? '');
 const mergedCodeOnMain = (id) => CODE_COMMIT_IDS.has(id);
 
 const requirements = reqDocs.map((d) => {
