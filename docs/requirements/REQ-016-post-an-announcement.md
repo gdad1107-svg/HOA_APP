@@ -10,11 +10,11 @@
 | Architecture | SA-001 §3 (announcements: client write, no fan-out), §4.2 (`announcements`, `announcements/{id}/reads/{uid}`), §4.4 items 8, 11 and 12, §8.2; CODING-STANDARDS rules 10, 15. Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-002 (roles), REQ-006 (activity log) |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (reads limited to staff and household members via `memberOf/{uid}`, actor fields, retry-safe double-post check, offline "not posted yet" wording, rendering rule, banner date range); editing after "Got it" and the payment-account footer added as open decisions 6 and 7 · r4, 2026-11-28: owner approval recorded; recommendations accepted |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (reads limited to staff and household members via `memberOf/{uid}`, actor fields, retry-safe double-post check, offline "not posted yet" wording, rendering rule, banner date range); editing after "Got it" and the payment-account footer added as open decisions 6 and 7 · r4, 2026-11-28: owner approval recorded; recommendations accepted · r5, 2026-11-28: answers TC-16 gaps G-1 to G-14 (and TC-17 G-1, G-2): banner end date in the staff list; "Edited" in the list only; trimmed text checked by rules; form clears after posting and warns before losing a draft; where the banner shows; staff list hides deleted ones; activity-log entries; board menu; banner and pop-up selection rule (query for Sol Arch to confirm); edit range for the banner date; edit-after-delete copy and last save wins; `memberOf` backfill at release; "Show more" and load-failure copy; important announcements appear as the pop-up, not the banner. Banner refresh for people already signed in is open decision 8 · r6, 2026-11-28: decisions 6 (a), 7 (footer plus in-app alert to the other staff) and 8 (b) approved (owner: "Approve all"); edit-block, footer, staff-alert and live-banner scenarios, rules and copy made unconditional |
 
 ## Owner decisions
 
-Approved by the owner on 2026-11-28 ("Approve all as shown"): every recommendation in the right-hand column is accepted. Decisions 6 and 7 were added afterwards from Sol Arch's review and are still open. Questions for the HOA board or admin office under Open questions stay open.
+Approved by the owner on 2026-11-28 ("Approve all as shown"): every recommendation in the right-hand column is accepted. Decisions 6 and 7 were added afterwards from Sol Arch's review, and decision 8 from the test plan; all three were approved as recommended on 2026-11-28 ("Approve all"). Questions for the HOA board or admin office under Open questions stay open.
 
 | # | Decision | Approved |
 |---|---|---|
@@ -23,8 +23,9 @@ Approved by the owner on 2026-11-28 ("Approve all as shown"): every recommendati
 | 3 | Fixing a typo after posting | **Allow "Edit"** of title and message, shown as "Edited {date}". Deleting and reposting would lose the seen-by count (REQ-017) |
 | 4 | Who can post | **Admin office staff and the treasurer** (REQ-002). Board members read only; the board asks the office to post |
 | 5 | Dismissing the banner: per person on every device, or per device | **Per person, every device** (a small write when they press ×). Per device would show it again on their laptop |
-| 6 | *Open, added after approval (Sol Arch change 5).* Editing an important announcement after people pressed "Got it" (REQ-017) can change what they confirmed they read | **Open.** Recommended **(a)**: once anyone has pressed "Got it", block edits to the title and message of an important announcement, with "Post a correction instead" (a cheap rules check). Alternative (b): allow the edit and show staff "Edited after {n} households pressed Got it" |
-| 7 | *Open, added after approval (Sol Arch risk).* A compromised staff account could post "pay to this new GCash number" to every resident | **Open.** Sol Arch recommends: every announcement shows the fixed footer "The HOA never changes its payment account by announcement. Pay only through Pay with QR.", and every post notifies the other staff in-app (REQ-011). Staff 2-step verification (SA-001 §8.4) stays the main control |
+| 6 | *Added after approval (Sol Arch change 5).* Editing an important announcement after people pressed "Got it" (REQ-017) can change what they confirmed they read | **(a)**, approved 2026-11-28 ("Approve all"): once anyone has pressed "Got it", block edits to the title and message of an important announcement, with "Post a correction instead" (a cheap rules check). Not chosen: (b) allow the edit and show staff "Edited after {n} households pressed Got it"; under (b) the edited text does **not** pop up again for people who already pressed "Got it" (a change everyone must re-read is posted as a new important announcement) (r5, TC-17 G-9) |
+| 7 | *Added after approval (Sol Arch risk).* A compromised staff account could post "pay to this new GCash number" to every resident | **Footer plus alert to the other staff**, approved 2026-11-28 ("Approve all"): every announcement shows the fixed footer "The HOA never changes its payment account by announcement. Pay only through Pay with QR.", and every post notifies the other staff in-app (REQ-011). Staff 2-step verification (SA-001 §8.4) stays the main control |
+| 8 | *Added 2026-11-28 from the test plan (TC-16 G-12).* The banner is fetched once per session, so a homeowner already signed in keeps seeing a deleted or edited announcement until they next open the portal. That matters most for a wrong or fraudulent post (decision 7) | **(b)**, approved 2026-11-28 ("Approve all"): the banner and pop-up results are kept live while the portal is open, so a delete or edit shows within seconds (about 0 days; a few extra reads only when an announcement changes; Sol Arch to confirm the read cost). Not chosen: (a) accept it; a deleted announcement disappears at the person's next open |
 
 ## Problem
 
@@ -71,14 +72,27 @@ Feature: Announcements
     When Paolo of the admin office enters the title "Christmas party sign-ups are open" and a message, keeps the banner end date Dec 12, 2026 and presses "Post to all homeowners"
     Then the button reads "Posting…" and is disabled until the save finishes
     And he sees "Posted. Homeowners see it the next time they open the portal."
+    And the form is cleared, with "Show banner until" back to 14 days ahead (G-4)
     And every homeowner sees it as a banner at the top of their pages
-    And it is listed first under Announcements
-    And the activity log records who posted it and when
+    And it is listed first under Announcements, with "Banner until Dec 12, 2026" in the staff list (G-1)
+    And the activity log shows "Paolo Aquino posted an announcement" with the time, under the type "Announcements" (G-7)
 
   Scenario: Title and message are required
     When Paolo presses "Post to all homeowners" with an empty title
     Then "Add a title" shows under the title field
     And the message he typed is still there
+
+  Scenario: Spaces alone are not a title (G-3)
+    When Paolo types only spaces in the title and leaves the field
+    Then "Add a title" shows under the title field
+    And if his browser writes a title of only spaces anyway, the server refuses it
+    And a title typed with spaces around it is saved without them
+
+  Scenario: Leaving with an unposted draft (G-4)
+    Given Paolo has typed a title but not posted it
+    When he opens another page of the portal
+    Then he sees "Leave without posting? What you typed will be lost." with "Stay" and "Leave"
+    And pressing "Stay" keeps him on the form with his text
 
   Scenario: Pressing twice posts once
     When Paolo presses "Post to all homeowners" twice quickly
@@ -107,6 +121,21 @@ Feature: Announcements
     When Juan dismisses it
     Then the banner shows the Nov 20 one
 
+  Scenario: The newest one is shown even when many are live (G-9)
+    Given 12 announcements have live banners, the newest posted Nov 28 with the earliest end date
+    Then the banner shows the Nov 28 one
+
+  Scenario: Important announcements appear as the pop-up, not the banner (TC-17 G-1)
+    Given the newest live announcement is important and a normal one was posted the day before
+    Then the important one shows as the pop-up (REQ-017)
+    And the banner shows the normal one
+
+  Scenario: Where the banner shows (G-5)
+    Given Juan hasn't dismissed the Nov 28 banner
+    Then it shows at the top of every homeowner page, including Pay with QR, without covering the form
+    And Liza, the treasurer, doesn't see it in the treasurer view
+    And she sees it when she switches to "My household"
+
   Scenario: A homeowner dismisses the banner
     When Juan presses × on the banner
     Then the banner is gone for Juan on his phone and on his laptop
@@ -121,8 +150,27 @@ Feature: Announcements
 
   Scenario: Edit a typo
     When Paolo edits the title to "Christmas party sign-ups are now open" and saves
-    Then homeowners see the new title with "Edited Nov 28, 2026"
+    Then homeowners see the new title in the banner and the list
+    And the list item shows "Edited Nov 28, 2026"; the banner shows the posting date only (G-2)
     And people who dismissed the banner don't see it again
+
+  Scenario: Changing the banner end date when editing (G-10)
+    Given the announcement was posted on Nov 28, 2026 and today is Dec 5, 2026
+    When Paolo edits "Show banner until"
+    Then he can pick any date from Dec 5, 2026 up to Feb 26, 2027 (90 days after posting)
+    And picking Dec 5, 2026 ends the banner after today
+    And a date before today shows "Pick a date from today up to 90 days after it was posted."
+
+  Scenario: Editing an announcement someone else deleted (G-11)
+    Given Mark deleted the announcement while Paolo had it open to edit
+    When Paolo saves his edit
+    Then he sees "This announcement was deleted, so your changes weren't saved."
+
+  Scenario: Two staff edit at once (G-11)
+    Given Paolo and Mark both opened the announcement to edit
+    When Paolo saves, then Mark saves
+    Then Mark's text is the one shown, with "Edited" by Mark
+    And the activity log records both edits
 
   Scenario: Deleting asks first
     When Paolo presses "Delete" on an announcement
@@ -132,13 +180,36 @@ Feature: Announcements
   Scenario: A deleted announcement disappears for homeowners but stays on record
     When Paolo confirms the delete
     Then homeowners no longer see it as a banner or in the list
+    And staff no longer see it in the Announcements list either (G-6)
     And the activity log records who deleted it and when
 
-  Scenario: Editing an important announcement after "Got it" (if decision 6 (a) is accepted)
+  Scenario: Homeowners linked before this release still see announcements (G-13)
+    Given Juan was linked to Blk 4 Lot 12 before announcements were released
+    When he opens Announcements after the release
+    Then he sees the live announcements
+
+  Scenario: Editing an important announcement after "Got it" (decision 6 (a))
     Given an important announcement that at least one household has pressed "Got it" on
     When Paolo opens it to edit
     Then he can't change the title or message, and sees "Post a correction instead"
-    And if his browser sends the edit anyway, the server refuses it
+    And he can still change "Show banner until"
+    And if his browser sends a title or message edit anyway, the server refuses it
+
+  Scenario: Every announcement carries the payment-account footer (decision 7)
+    When a homeowner sees any announcement, as the banner, the pop-up or in the list
+    Then it ends with "The HOA never changes its payment account by announcement. Pay only through Pay with QR."
+    And the footer is added by the portal, not typed by staff, so no post can leave it out
+
+  Scenario: The other staff are told of every post (decision 7)
+    When Paolo posts "Christmas party sign-ups are open"
+    Then the bell of every other admin office staff member and treasurer shows "Paolo Aquino posted an announcement: Christmas party sign-ups are open. If you didn't expect this, contact the board."
+    And Paolo's own bell shows nothing for it
+
+  Scenario: A deleted announcement disappears for people already signed in (decision 8 (b))
+    Given Juan has the portal open with the banner showing
+    When Paolo deletes that announcement
+    Then within a few seconds the banner is gone from Juan's screen without a reload
+    And an edit to it shows on Juan's screen the same way
 
   Scenario: A signed-in person with no household can't read announcements
     Given Dina has signed in but hasn't been linked to a household and has no staff role
@@ -152,14 +223,25 @@ Feature: Announcements
 
   Scenario: Board members read only
     Given Rosa has the board role
-    When she opens Announcements
-    Then she sees every announcement and no post, edit or delete controls
+    When she opens Announcements from her menu (G-8)
+    Then she sees every live announcement and no post, edit or delete controls
 
   Scenario: Nothing posted yet
     Given no announcements exist
     When a homeowner opens Announcements
     Then they see "No announcements yet. News from the HOA will appear here."
     And no banner shows
+
+  Scenario: More than 20 announcements (G-14)
+    Given 25 live announcements exist
+    When a homeowner opens Announcements
+    Then the 20 newest show, then "Show more announcements"
+    And pressing it adds the other 5 below without moving what is on screen
+
+  Scenario: The list can't load (G-14)
+    Given the connection is lost
+    When a homeowner opens Announcements
+    Then they see "Couldn't load announcements. Check your connection and try again." with "Try again"
 
   Scenario: Posting while offline
     Given the connection is lost
@@ -180,12 +262,18 @@ Feature: Announcements
 
 | What | Where | Rule | Written by | Read by |
 |---|---|---|---|---|
-| Announcement: title (1–100 characters), message (1–2,000), `important` (REQ-017), `postedAt`, `postedBy`, `bannerUntil` (`YYYY-MM-DD`, Asia/Manila), `editedAt`, `editedBy`, `deletedAt`, `deletedBy`, `status` (`live` / `deleted`), `seenHouseholdCount` (REQ-017) | `announcements/{id}` | Client write by admin or treasurer (claim **and** `staff/{uid}`), checked by rules. **Create:** keys limited to `title, message, important, bannerUntil, status, postedAt, postedBy`; lengths as stated; `status == 'live'`, `postedBy` is the signed-in person, `postedAt` is the server time. **Edit:** only `title, message, bannerUntil, editedAt, editedBy` change, with `editedBy` the signed-in person and `editedAt` the server time, and only while `live`. **Delete:** `status` from `live` to `deleted` with `deletedAt` and `deletedBy` checked the same way; no hard delete. `important`, `postedAt`, `postedBy` and `seenHouseholdCount` are never changeable by clients. If decision 6 (a): no title or message edit when `important` and `seenHouseholdCount > 0` | Staff | Staff (admin, treasurer, board): everything. **Members of a household** (checked through `memberOf/{uid}`): `live` only, and their query must ask for `live`. Signed-in people with no household, and guards: denied |
-| Household membership index | `memberOf/{uid}`: `householdIds` (new; new SA-001 item) | Server-written only, because `users/{uid}` is written by the person themselves | `redeemInvite`, `removeMember` (REQ-004) | Rules here and in REQ-017 |
+| Announcement: title (1–100 characters after trimming; the form trims before saving and rules refuse a title or message whose trimmed length is 0, G-3; Sol Arch to confirm the rules' string `trim()`), message (1–2,000), `important` (REQ-017), `postedAt`, `postedBy`, `bannerUntil` (`YYYY-MM-DD`, Asia/Manila), `editedAt`, `editedBy`, `deletedAt`, `deletedBy`, `status` (`live` / `deleted`), `seenHouseholdCount` (REQ-017) | `announcements/{id}` | Client write by admin or treasurer (claim **and** `staff/{uid}`), checked by rules. **Create:** keys limited to `title, message, important, bannerUntil, status, postedAt, postedBy`; lengths as stated; `status == 'live'`, `postedBy` is the signed-in person, `postedAt` is the server time. **Edit:** only `title, message, bannerUntil, editedAt, editedBy` change, with `editedBy` the signed-in person and `editedAt` the server time, and only while `live`. **Delete:** `status` from `live` to `deleted` with `deletedAt` and `deletedBy` checked the same way; no hard delete. `important`, `postedAt`, `postedBy` and `seenHouseholdCount` are never changeable by clients. Decision 6 (a): no title or message edit when `important` and `seenHouseholdCount > 0` | Staff | Staff (admin, treasurer, board): everything. **Members of a household** (checked through `memberOf/{uid}`): `live` only, and their query must ask for `live`. Signed-in people with no household, and guards: denied |
+| Household membership index | `memberOf/{uid}`: `householdIds` (new; new SA-001 item) | Server-written only, because `users/{uid}` is written by the person themselves. **Backfill (G-13):** people linked before this release have none, so a one-off developer script creates `memberOf/{uid}` from the existing `members` records, run in staging and then production **before** the announcement rules are deployed; the release checklist confirms the number of `memberOf` documents equals the number of distinct linked people. `redeemInvite` and `removeMember` keep it from then on (REQ-004 to say so) | `redeemInvite`, `removeMember` (REQ-004); backfill script | Rules here, in REQ-017 and for `config/features` (REQ-015) |
 | Banner dismissal: `dismissedAt` | `announcements/{id}/reads/{uid}` (shared with REQ-017's `ackAt`) | A person writes only their own document (rules in REQ-017) | Homeowner | Their own banner query |
-| Activity log | `auditLog` | `announcement.posted` / `edited` / `deleted`, ids only, actor from `postedBy`, `editedBy` or `deletedBy`. Written by a trigger (`onDocumentWritten(announcements/{id})`), since the post itself is a client write | Trigger | Board, treasurer |
+| Activity log | `auditLog` | `announcement.posted` / `edited` / `deleted`, ids only, actor from `postedBy`, `editedBy` or `deletedBy`. Written by a trigger (`onDocumentWritten(announcements/{id})`), since the post itself is a client write. REQ-006's rule for trigger-written entries applies: entry id = the trigger's event id (a repeat delivery writes nothing new), and the nightly missing-entry check covers announcements. **Shown (G-7)** under a new type filter "Announcements" as "{name} posted an announcement", "{name} edited an announcement", "{name} deleted an announcement", each opening the announcement for staff (REQ-006 to add the type, filter and sentences) | Trigger | Board, treasurer, admin office (REQ-006 decision 2) |
 | Double-post guard | Announcement id made in the browser before the first press (CODING-STANDARDS rule 5) | A repeat write to the same id is refused as an update. **If saving reports an error, the app reads the announcement by its id; if it exists and was posted by this person, it shows "Posted"** | Web app | — |
-| Indexes | (`status`, `bannerUntil`) for the banner and pop-up query; (`status`, `postedAt` desc) for the page and dashboard card | Banner query: `live`, `bannerUntil >= todayManila`, at most 10, sorted by `postedAt` in the client; run once per session and shared with REQ-015 and REQ-017 | — | — |
+| Indexes | (`status`, `bannerUntil`) for the banner and pop-up query; (`status`, `postedAt` desc) for the page and dashboard card | Banner query: `live`, `bannerUntil >= todayManila`, at most 10, sorted by `postedAt` in the client; shared with REQ-015 and REQ-017. **Decision 8 (b):** started once per session and **kept live** (a listener) while the portal is open, so a delete or edit reaches people already signed in within seconds; later pages add no reads | — | — |
+| Staff alert of a post (decision 7) | `notifications` (REQ-011), id `annpost_{announcementId}_{uid}` | One per other admin and treasurer, written by the audit trigger on `announcement.posted` (the post itself is a client write). Not to the poster. Row to add to REQ-011's catalogue | Trigger | Staff bell |
+| Payment-account footer (decision 7) | Not stored | Drawn by the portal under every announcement (banner, pop-up, list, dashboard card); staff can't remove it | — | — |
+| Banner and pop-up selection (r5, G-9; TC-17 G-1, G-2) | Same queries | **The rule the query must meet, whatever its shape:** the banner is the newest (`postedAt`) live, **non-important** announcement whose banner hasn't ended and that the person hasn't dismissed; the pop-up holds **every** live important announcement whose banner hasn't ended and that the person hasn't acknowledged. Neither may drop an announcement because more than 10 are live. The approved query (ordered by `bannerUntil` ascending, limit 10) can drop the newest. **Sol Arch to confirm the shape**; one that meets the rule: two queries, `important == false` and `important == true`, each `status == 'live'` and `postedAt >= today − 90 days` (every live banner was posted within 90 days, G-10), ordered by `postedAt` descending, filtered by `bannerUntil` in the client, paging on only in the rare case a page holds no usable result | — | — |
+| Banner date on edit (G-10) | `bannerUntil` | From today up to 90 days after **posting** (not after the edit), so an edit can shorten or extend a banner but never keep it beyond 90 days from posting; today ends it at midnight | Staff | — |
+| Staff list | Same page query | Shows live announcements only, newest first, each with "Banner until {date}" or "Banner ended" (G-1) and the "Pop-up on sign-in" pill when important. Deleted ones are not listed (G-6); their record is the activity log and, for the developer, the document | — | Staff |
+| Concurrent edits (G-11) | `announcements/{id}` | Last save wins (a small office; both edits are in the activity log). An edit of a deleted announcement is refused by the rules (`status == 'live'`) and shows "This announcement was deleted, so your changes weren't saved." | Staff | — |
 
 ## UX/UI notes
 
@@ -193,7 +281,8 @@ Feature: Announcements
 - **Consistency:** "Announcement" (glossary), never "post" or "news" as nouns on screen; reuses the mock-up's `.ann` banner and `.news` list; delete uses the shared confirm dialog.
 - **Mobile-first:** the banner wraps at 375 px with × reachable; the post form is one column. Staff post mostly from a desktop (PERSONAS), but the form works on a phone.
 - **States:** empty (list and no banner), loading (list placeholders), error (post failed, text kept), success (toast that says when homeowners see it, not that they did).
-- **Forms:** inline validation on blur; character counters at 100 and 2,000; "Show banner until" from today to 90 days ahead (Sol Arch's proposal, the owner can change the 90), default 14 days (decision 2); a draft being typed is not lost by navigating within the page; the form is not in a modal.
+- **Forms:** inline validation on blur; character counters at 100 and 2,000; "Show banner until" from today to 90 days ahead (Sol Arch's proposal, the owner can change the 90), default 14 days (decision 2); a draft being typed is not lost by navigating within the page; the form is not in a modal. After a successful post the form clears and the date returns to the default. Leaving for another portal page with unposted text asks "Leave without posting? What you typed will be lost." (shared confirm dialog, "Stay" first); closing the tab uses the browser's own "leave site?" prompt (G-4).
+- **Where the banner shows (G-5):** at the top of every homeowner page in the household view, including Pay with QR, above the page content and never over a form; never in the staff views (treasurer, admin, board). A staff member who is also a homeowner sees it under "My household", as REQ-017 does for the pop-up.
 - **Offline:** the Firestore web SDK queues a write while offline instead of failing it, and loses it if the tab closes. After 10 seconds the form says "Not posted yet: waiting for a connection. Keep this page open." and switches to "Posted…" when the write lands. Dev confirms the behaviour with an emulator test (CS-12).
 - **Safe actions:** delete is confirmed and soft; posting has an in-flight label and a fixed id.
 - **Rendering:** title and message are shown as text, never as HTML (CODING-STANDARDS rule 10, SA-001 §4.4 item 11): line breaks kept with CSS `white-space: pre-line` and a lit-html text binding; links are not made clickable. Any `innerHTML` or `unsafeHTML` here is a review finding.
@@ -206,10 +295,16 @@ Feature: Announcements
 |---|---|
 | Staff page | Announcements · Post an announcement |
 | Form | Title · Message · Show banner until · Important: show as a pop-up when homeowners sign in (REQ-017) · Don't include residents' names, balances or contact details. · Post to all homeowners · (in flight) Posting… |
-| Validation | Add a title · Add a message · Title can be up to 100 characters · Message can be up to 2,000 characters · Pick a date from today up to 90 days ahead. |
+| Validation | Add a title · Add a message · Title can be up to 100 characters · Message can be up to 2,000 characters · Pick a date from today up to 90 days ahead. · (editing) Pick a date from today up to 90 days after it was posted. |
+| Leave with a draft | Leave without posting? What you typed will be lost. · Stay · Leave |
+| Staff list item | {date} · {title} · Banner until {date} / Banner ended · Pop-up on sign-in · Edited {date} · Edit · Delete |
+| Edit conflict | This announcement was deleted, so your changes weren't saved. |
+| Activity log (REQ-006 type "Announcements") | {name} posted an announcement · {name} edited an announcement · {name} deleted an announcement |
+| List paging and errors | Show more announcements · Couldn't load announcements. Check your connection and try again. · Try again |
 | Offline | Not posted yet: waiting for a connection. Keep this page open. |
-| Edit blocked (if decision 6 (a)) | Post a correction instead |
-| Footer (if decision 7) | The HOA never changes its payment account by announcement. Pay only through Pay with QR. |
+| Edit blocked (decision 6 (a)) | Post a correction instead |
+| Footer on every announcement (decision 7) | The HOA never changes its payment account by announcement. Pay only through Pay with QR. |
+| Staff alert (decision 7; row for REQ-011's catalogue: each other admin and treasurer, opens Announcements) | {name} posted an announcement: {title}. If you didn't expect this, contact the board. |
 | Toast | Posted. Homeowners see it the next time they open the portal. |
 | Banner | Announcement · {date} · {title} · {message} · All announcements · Dismiss announcement (×) |
 | List item | {date} · {title} · {message} · Edited {date} |
@@ -231,7 +326,7 @@ Feature: Announcements
 
 | Question | Who decides |
 |---|---|
-| Decisions 6 (editing after "Got it") and 7 (payment-account footer and staff notification), added after approval | Owner |
+| The banner and pop-up query shape that meets the selection rule (r5, G-9), and the rules' `trim()` check (G-3) | Sol Arch |
 | `memberOf/{uid}` is a new SA-001 item | Sol Arch, in SA-001 |
 | The 90-day limit on "Show banner until" (Sol Arch's proposal) | Owner, if a different limit is wanted |
 | Should guards see announcements (for example a gate procedure change)? | Admin office, with the gate add-on (D9) |

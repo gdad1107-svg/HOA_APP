@@ -10,11 +10,11 @@
 | Architecture | SA-001 §3 (receipt PDF function), §4.2 (`receipts`, Storage `receipts/{orNo}/issued.pdf` and `void.pdf`), §4.3 Flow 1 points 2 and 4, §8.2, R-1, R-16, Q4, Q12; CODING-STANDARDS rules 9, 12, 14. Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-012 (receipt record and snapshot), REQ-009 (statement, credit display), REQ-007 (HOA name, payee) |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (series in `counters/or` set by a developer script, optional `rangeEnd`, issued and void files kept separately, status read from the payment, sale rule by submission time, D5 "not a BIR receipt" branch, optional TIN and address); change 3 not applied, see note · r4, 2026-11-28: owner approval recorded; recommendations accepted, decision 3 as Sol Arch proposed · r5, 2026-11-28: decision 6 changed by the owner ("Sol Arch: at submission"): "Received from" is the owner on file when the payment is submitted; Sol Arch's change 3 applied, sale-while-pending scenario added |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (series in `counters/or` set by a developer script, optional `rangeEnd`, issued and void files kept separately, status read from the payment, sale rule by submission time, D5 "not a BIR receipt" branch, optional TIN and address); change 3 not applied, see note · r4, 2026-11-28: owner approval recorded; recommendations accepted, decision 3 as Sol Arch proposed · r5, 2026-11-28: decision 6 changed by the owner ("Sol Arch: at submission"): "Received from" is the owner on file when the payment is submitted; Sol Arch's change 3 applied, sale-while-pending scenario added · r6, 2026-11-28: answers TC-13 gaps G-1 to G-11 (and TC-14 G-6, G-7): "Receipt ready" notification; "not a BIR document" line as a setting; amount-in-words rules; where and how the 95% warning shows (`rangeStart` added); HOA name, payee and approver in the snapshot; "Made before you joined" rows hide the receipt number; a person removed from the lot loses receipt access, including receipts they submitted (approved TC-04-L5); void-file states and no fallback to the unstamped file; receipt-title validation; numbers beyond `width`; stale owner name after a sale as open decision 8 · r7, 2026-11-28: decision 8 approved as (a) (owner: "Approve all"); scenario for the name shown on the review screen added |
 
 ## Owner decisions
 
-Approved by the owner on 2026-11-28 ("Approve all as shown"): every recommendation in the right-hand column is accepted, **decision 3 in Sol Arch's version** rather than the BA's draft. D5 (decision 2) is the board's accountant's to answer and stays open under Open questions; it blocks go-live of receipts, not the build.
+Approved by the owner on 2026-11-28 ("Approve all as shown"): every recommendation in the right-hand column is accepted, **decision 3 in Sol Arch's version** rather than the BA's draft. D5 (decision 2) is the board's accountant's to answer and stays open under Open questions; it blocks go-live of receipts, not the build. Decision 8 was added afterwards from the test plan and approved as recommended, (a), on 2026-11-28 ("Approve all").
 
 | # | Decision | Approved |
 |---|---|---|
@@ -25,6 +25,7 @@ Approved by the owner on 2026-11-28 ("Approve all as shown"): every recommendati
 | 5 | **Privacy after a sale** (REQ-004 decision 5, SA-001 R-16). The previous owner's receipts carry their name | **REQ-010 decision 3 option (b):** payments **submitted** before a member's link date (server time, `submittedAt` against `members.linkedAt`) show date, amount and status only, with **no receipt PDF**, unless that member submitted the payment; screenshots are visible only to the uploader and treasurer-role holders (REQ-012 decision 6). The new owner still sees the lot's full **balance**. Data Protection Officer to confirm. *Consequence (Sol Arch): a spouse or co-owner linked after the owner also loses the earlier receipts.* |
 | 6 | Whose name is printed as "Received from" | **The owner on file for the lot at the moment the payment is submitted** (REQ-003), as Sol Arch proposed. Owner: "Sol Arch: at submission" (2026-11-28). `submitPayment` copies `households.displayName` into the payment (`paymentPrivate.receivedFromName`, REQ-010); approval copies it into the receipt, so a sale while the payment is pending, or a later name change, never alters it. Not the name of the person who submitted (it may be a family member) |
 | 7 | Signature block | **"Approved by {treasurer's name}, Treasurer"** with "This receipt was issued electronically by the {HOA name} portal." No image of a signature |
+| 8 | *Added 2026-11-28 from the test plan (TC-13 G-7).* After a sale, if the office hasn't yet changed the owner on file when the new owner submits a payment, decision 6 prints the **previous** owner's name on the new owner's receipt, and an issued receipt is never edited | **(a)**, approved 2026-11-28 ("Approve all"): a process rule, no build: the office changes the owner on file **before** it invites the new owner (REQ-004), so the new owner can't submit while the old name stands; the treasurer's review screen shows "Received from on the receipt: {name}", so a wrong name can be caught before approval, and the treasurer then rejects with "Other: owner name on file needs updating" and the homeowner resubmits. Not chosen: (b) the treasurer can correct the "Received from" name on the review screen before approving, recorded in the activity log (+0.5 day, and a person can then put any name on an official receipt) |
 
 ## Problem
 
@@ -89,9 +90,39 @@ Feature: Official receipt
     When the treasurer approves the payment as OR-00093
     Then OR-00093 shows "Received from: Ana Reyes · Blk 2 Lot 7"
 
+  Scenario: The treasurer sees the name the receipt will carry (decision 8 (a))
+    When the treasurer opens Carlo's pending payment
+    Then the review shows "Received from on the receipt: Ana Reyes"
+    And if that name is out of date, the treasurer rejects with "Other" and a reason such as "Owner name on file needs updating", and Carlo submits again once the office has updated it
+
   Scenario: Centavos are written out
     Given a payment of ₱1,850.50 is approved
     Then its receipt reads "One Thousand Eight Hundred Fifty Pesos and 50/100 Only"
+
+  Scenario Outline: Amount in words (G-3)
+    Given a payment of <amount> is approved
+    Then its receipt reads "<words>"
+
+    Examples:
+      | amount      | words                                          |
+      | ₱1.00       | One Peso Only                                  |
+      | ₱1.25       | One Peso and 25/100 Only                       |
+      | ₱0.50       | Zero Pesos and 50/100 Only                     |
+      | ₱99.00      | Ninety-Nine Pesos Only                         |
+      | ₱1,021.00   | One Thousand Twenty-One Pesos Only             |
+      | ₱100,000.00 | One Hundred Thousand Pesos Only                |
+
+  Scenario: Members are told when the receipt file is ready (G-1)
+    When the file for OR-00093 is ready
+    Then the bell of every member linked to Blk 2 Lot 7 who may download it shows "Receipt OR-00093 is ready to download."
+    And it opens Dues & Payments
+    And a member linked after the payment was submitted gets no such notification
+
+  Scenario: No "ready" notice while the file has failed (G-1)
+    Given the file for OR-00093 failed to generate
+    Then no "Receipt ready" notification is sent
+    When the hourly retry later makes the file
+    Then the "Receipt ready" notification is sent once
 
   Scenario: One payment covers several months, oldest first
     Given Roberto owes October and November 2026 at ₱1,800.00 each
@@ -109,6 +140,19 @@ Feature: Official receipt
     And since then the dues rate changed and the owner on file was renamed
     When the treasurer downloads OR-00093 on Dec 15
     Then the receipt number, name, amounts, lines applied and date issued are the same as on Nov 28
+
+  Scenario: A late first render uses the values at approval (G-5)
+    Given OR-00093 was approved on Nov 28 while the HOA name setting read "Villa Verde HOA" and the payee read "Villa Verde HOA · GCash"
+    And its first render failed
+    And the HOA name, the payee and Liza's display name were changed before the hourly retry
+    When the retry makes the file
+    Then it shows "Villa Verde HOA", "Villa Verde HOA · GCash" and "Approved by Liza Santos, Treasurer"
+
+  Scenario: The "not a BIR document" line is a setting (G-2)
+    Given the treasurer turned on "Print 'This is not a BIR official receipt or invoice.'" in Settings
+    When OR-00094 is issued
+    Then OR-00094 shows "This is not a BIR official receipt or invoice."
+    And OR-00093, issued before, is unchanged
 
   Scenario: The PDF is still being prepared
     Given OR-00093 was issued a moment ago
@@ -135,8 +179,14 @@ Feature: Official receipt
     Given Ana Reyes was removed from Blk 2 Lot 7 and Ben Cruz was linked on Dec 10, 2026
     When Ben opens Dues & Payments
     Then he sees the lot's current balance
-    And payments submitted before Dec 10, 2026 show date, amount and status only, with no "Receipt PDF"
+    And payments submitted before Dec 10, 2026 show date, amount and status only, labelled "Made before you joined", with no receipt number and no "Receipt PDF" (G-6)
     And if he asks for one of those receipts directly, he sees "You don't have access to this receipt."
+
+  Scenario: A person removed from the lot loses its receipts, including ones they submitted (G-8, TC-04-L5)
+    Given Ana Reyes submitted the payment approved as OR-00093 and was then removed from Blk 2 Lot 7
+    When she asks for OR-00093, by the button she had open or by number
+    Then she sees "You don't have access to this receipt."
+    And a download address she copied before the removal stops working within 15 minutes
 
   Scenario: The sale rule uses when the payment was submitted, not the date paid typed in
     Given Ben was linked to Blk 2 Lot 7 on Dec 10, 2026
@@ -156,14 +206,56 @@ Feature: Official receipt
     When OR-04750 is issued
     Then the treasurer sees "95% of receipt numbers in this range are used. Ask the developer to add the next registered range."
 
+  Scenario: Where the 95% warning shows, and for how long (G-4)
+    Given 95% or more of the registered range is used
+    Then the approval toast adds the warning line on that approval and on every later one
+    And Approvals shows the warning as a banner above the list for every treasurer
+    And the banner goes away only when the developer script sets a new range
+
+  Scenario: A range that continues a paper booklet (G-4)
+    Given the developer script set the range from OR-01001 to OR-03000
+    When OR-02900 is issued
+    Then the warning shows, because 1,900 of 2,000 numbers (95%) are used
+    And it did not show when OR-02899 was issued
+
+  Scenario: Numbers longer than the set width (G-11)
+    Given the series has width 5 and no range end, and the last number issued is OR-99999
+    When the next payment is approved
+    Then it is issued as OR-100000, with no number skipped or repeated
+
   Scenario: The receipt number series can't be changed in Settings
     When the treasurer opens Settings
     Then they can change the receipt title
     And they see no field for the receipt prefix or first number
 
+  Scenario: The receipt title is required (G-10)
+    When the treasurer clears the receipt title and leaves the field
+    Then "Add a receipt title" shows under it and the setting is not saved
+    When they type 61 characters
+    Then "Receipt title can be up to 60 characters" shows under it
+
   Scenario: The treasurer downloads any receipt
     When the treasurer opens a payment approved as OR-00093
     Then they can press "Receipt PDF" and get the same file
+
+  Scenario: After a void, homeowners get only the stamped file (G-9, REQ-014)
+    Given OR-00093 was voided a moment ago and its stamped file is still being made
+    When Carlo opens Dues & Payments
+    Then the payment shows "Void" with a disabled "Preparing receipt…"
+    And if his browser asks for the receipt, it is refused rather than given the unstamped file
+    When the stamped file is ready
+    Then "Receipt PDF" gives the file stamped "VOID" without a reload
+
+  Scenario: The stamped file can't be made (G-9)
+    Given the stamped file for OR-00093 failed to generate
+    When Carlo opens Dues & Payments
+    Then he sees "OR-00093 is void, but the void copy of the receipt isn't ready yet. Try again later, or contact the admin office."
+    And no unstamped file is offered to him
+
+  Scenario: The treasurer picks which file of a void receipt (G-7 of TC-14)
+    Given OR-00093 is void and both files are ready
+    When the treasurer opens the payment
+    Then they see "Receipt PDF (void copy)" and "Original as issued"
 
   Scenario: TIN and address print only when set
     Given the HOA's TIN and address settings are empty
@@ -185,14 +277,16 @@ Feature: Official receipt
 
 | What | Where | Rule | Written by | Read by |
 |---|---|---|---|---|
-| Receipt record and snapshot | `receipts/{orNo}` (REQ-012) | Read-only here. The snapshot includes the title, TIN and address in force at issue, so a later settings change never alters an issued receipt. **Readable by staff and functions only**: homeowners never read `receipts` directly, so a previous owner's name can't be read from the database after a sale | `decidePayment` | Receipt PDF function, staff |
+| Receipt record and snapshot | `receipts/{orNo}` (REQ-012) | Read-only here. The snapshot includes **everything the PDF prints that could change later** (G-5): the title, the "not a BIR document" setting, TIN and address, the HOA name, the payee (account name and the account shown in Pay with QR, REQ-007) and the approving treasurer's display name, all as in force at approval, so a later settings change, or a first render that fails and is retried hours later, never alters an issued receipt. **Readable by staff and functions only**: homeowners never read `receipts` directly, so a previous owner's name can't be read from the database after a sale | `decidePayment` | Receipt PDF function, staff |
 | Receipt files | Storage `receipts/{orNo}/issued.pdf`, and on a void `receipts/{orNo}/void.pdf` (REQ-014) | The issued file is made once and **never overwritten**; a void adds a second file. A render gives the same output every time (PDF dates set to `issuedAt`, no "now"), so a retry rebuilds the same file. After a void, homeowners get the void version; the treasurer can still get the original. No client read or write in Storage rules | Receipt PDF trigger (`onDocumentCreated(receipts/{orNo})`, retry on), hourly sweep job | `getReceiptUrl` only |
 | File status: `pdfPath`, `pdfStatus` (`preparing` / `ready` / `failed`) | `receipts/{orNo}` | Upload first, then set `ready`. On the final failure, `failed` and the structured log `receipt.pdf_failed` (`orNo` only), which raises an alert. The sweep job re-renders anything `preparing` over 15 minutes or `failed` (up to 5 tries) | Receipt PDF trigger, sweep job | Staff |
-| Status for homeowners: `receiptPdfStatus` | `payments/{id}` (copied) | Mirrors `pdfStatus`, so "Preparing receipt…" turns into "Receipt PDF" through the payment listener the homeowner already has | Receipt PDF trigger | Homeowner and treasurer screens |
-| Receipt series: `prefix`, `next`, `width`, optional `rangeEnd` | `counters/or` (decision 3) | **Set once by a developer script** on the treasurer's written instruction, after any paper booklet's last number. Not editable in Settings. `decidePayment` refuses past `rangeEnd`; the treasurer is warned at 95% of the range | Developer script; `decidePayment` takes numbers | `decidePayment` |
-| Receipt settings: title; optional `hoaTin`, `hoaAddress` | `config/settings` (SA to name fields) | Title required; TIN and address printed only when set | Treasurer, in Settings | `decidePayment` (into the snapshot) |
-| Download link | `getReceiptUrl(orNo)` callable | Returns a **V4 signed URL valid for 15 minutes** (not `getDownloadURL()`, which makes a permanent link). Refused unless the caller holds the treasurer role, submitted the payment, or is a member whose `linkedAt` is on or before the payment's server `submittedAt` (decision 5) | Function | — |
-| Visibility after a sale | `getReceiptUrl`; the shared payment row in REQ-010 and REQ-015 | Decision 5: no receipt download for a payment **submitted** before the member's `members.linkedAt`, unless they submitted it | Function | — |
+| Status for homeowners: `receiptPdfStatus` | `payments/{id}` (copied) | Mirrors the status of **the file homeowners get**: `pdfStatus` of `issued.pdf` until a void, then the void file's status (`voidPdfStatus`, starting at `preparing`, G-9). "Preparing receipt…" turns into "Receipt PDF" through the payment listener the homeowner already has | Receipt PDF trigger, `voidReceipt` (sets `preparing`) | Homeowner and treasurer screens |
+| Void file status: `voidPdfPath`, `voidPdfStatus` | `receipts/{orNo}` | Same `preparing` / `ready` / `failed` handling, alert and sweep job as `pdfStatus` (G-9) | Receipt PDF trigger, sweep job | Staff |
+| "Receipt ready" notification | `notifications` (REQ-011), id `rcpt_{orNo}_{uid}` | Sent **once**, when the issued file first becomes `ready` (including after a sweep retry), to each linked member who may download it under decision 5. Never for a `failed` file, never for the void file (G-1) | Receipt PDF trigger, sweep job | Homeowner bell |
+| Receipt series: `prefix`, `next`, `width`, `rangeStart`, optional `rangeEnd` | `counters/or` (decision 3) | **Set once by a developer script** on the treasurer's written instruction, after any paper booklet's last number. Not editable in Settings. `decidePayment` refuses past `rangeEnd`. **95% warning (G-4):** shown when `(next − rangeStart) ≥ 0.95 × (rangeEnd − rangeStart + 1)`, only when `rangeEnd` is set. `decidePayment` returns a "nearly used" flag with each approval (for the toast line) and sets a staff-readable flag for the Approvals banner, which the developer script clears when it sets a new range (Sol Arch to name the field; `counters/or` itself stays functions-only). **`width` is a minimum** (G-11): numbers are zero-padded to it and grow past it unchanged; anything that orders receipts sorts by the number, not the document id | Developer script; `decidePayment` takes numbers | `decidePayment` |
+| Receipt settings: title (1–60 characters, trimmed); `printNotBirNotice` (true/false, default false, G-2); optional `hoaTin`, `hoaAddress` | `config/settings` (SA to name fields) | Title required; the "not a BIR document" line printed only when the setting is on; TIN and address printed only when set. All copied into the snapshot at approval | Treasurer, in Settings | `decidePayment` (into the snapshot) |
+| Download link | `getReceiptUrl(orNo)` callable | Returns a **V4 signed URL valid for 15 minutes** (not `getDownloadURL()`, which makes a permanent link). Allowed only if the caller holds the treasurer role, **or** is a **current** member of the payment's household (`members/{hh}_{uid}` exists now) **and** either submitted the payment or has `linkedAt` on or before its server `submittedAt` (decision 5). Being the submitter alone is **not** enough: a person removed from the lot loses every receipt, including ones they submitted (r6, G-8; approved TC-04-L5). Homeowners get the void file after a void and are **refused** while it is `preparing` or `failed`, never given `issued.pdf` (G-9); the treasurer may ask for either (`variant: 'void' | 'issued'`) | Function | — |
+| Visibility after a sale | `getReceiptUrl`; the shared payment row in REQ-010 and REQ-015 | Decision 5: no receipt download for a payment **submitted** before the member's `members.linkedAt`, unless they submitted it. Such rows read "Made before you joined" (REQ-009, REQ-010) and show **no receipt number**, reason or reference (G-6) | Function | — |
 
 No personal data in the file name, the Storage path or the download address (SA-001 §8.2); signed URLs are never logged. A download is not logged in R1.
 
@@ -220,9 +314,14 @@ No personal data in the file name, the Storage path or the download address (SA-
 | PDF note | This receipt was issued electronically by the {HOA name} portal after the treasurer matched the reference number with the collection account. Keep it for your records. |
 | PDF footer | {HOA name} · {OR no.} · {lot} |
 | PDF header (only when set) | TIN {hoaTin} · {hoaAddress} |
-| PDF line if D5 says it isn't the BIR document | This is not a BIR official receipt or invoice. |
+| PDF line if D5 says it isn't the BIR document (printed when the setting is on) | This is not a BIR official receipt or invoice. |
+| Settings | Receipt title · Print "This is not a BIR official receipt or invoice." on new receipts · (validation) Add a receipt title · Receipt title can be up to 60 characters |
+| Amount in words | {Pesos in words} Peso(s) Only · {Pesos in words} Peso(s) and {cc}/100 Only · Zero Pesos and {cc}/100 Only. Title case, compounds 21–99 hyphenated ("Ninety-Nine"), no "and" between hundreds and tens, "Peso" when the whole-peso part is exactly one |
+| Notification (REQ-011 catalogue) | Receipt {OR no.} is ready to download. |
+| Void receipt (homeowner) | (preparing) Preparing receipt… · (failed) {OR no.} is void, but the void copy of the receipt isn't ready yet. Try again later, or contact the admin office. |
+| Void receipt (treasurer) | Receipt PDF (void copy) · Original as issued |
 | Errors | Your receipt {OR no.} is issued, but the file isn't ready yet. Try again later, or contact the admin office. · You don't have access to this receipt. · Couldn't download the receipt. Check your connection and try again. |
-| Series | Receipt numbers have run out. Ask the developer to add the next registered range. · 95% of receipt numbers in this range are used. Ask the developer to add the next registered range. |
+| Series | Receipt numbers have run out. Ask the developer to add the next registered range. · 95% of receipt numbers in this range are used. Ask the developer to add the next registered range. (toast line on each approval and banner on Approvals while it applies) |
 
 ## Out of scope
 
@@ -302,6 +401,8 @@ No personal data in the file name, the Storage path or the download address (SA-
 8. **Add optional `hoaTin` and `hoaAddress` settings**, printed only when set. That is cheap now, and it saves a code change after the accountant answers.
 
 **BA, r3 and r5: how the changes were applied.** All eight changes are applied in the decisions, scenarios, Data changes, UX notes and copy; change 1 is decision 3 as the owner approved it, and change 3 is decision 6 as the owner decided it ("Sol Arch: at submission"). On change 6, Sol Arch's kinder alternative (`households.ownerSince`, members see records from the last sale onward, +0.5–1 day for a "Record a sale" action) is not what the owner approved (REQ-010 option (b) everywhere); it is recorded here only for the DPO conversation.
+
+**BA, r6:** answer 3's "or is the person who submitted it" now also requires a **current** membership, so a person removed from the lot loses access to receipts they submitted (approved TC-04-L5; TC-13 G-8). Sol Arch to note the extra `members` read in `getReceiptUrl` (already read for `linkedAt`, so no new cost).
 
 #### Risks not covered
 

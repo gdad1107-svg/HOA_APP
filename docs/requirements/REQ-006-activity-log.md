@@ -10,7 +10,7 @@
 | Architecture | SA-001 §3 ("Audit log: function / trigger only"), §4.4 item 9, §8.2 (no personal data in free text), §8.3; Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-002 (roles). Entries are already written by REQ-002, REQ-003 and REQ-004; this REQ adds the screen and the common format |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (shared audit helper with allow-list, homeowner actor null, no personal values in before/after, `targetType` and `count`, functions only, Person filter, unknown-code fallback, billing skip / late bill / bill adjusted entries) · r4, 2026-11-28: owner approval recorded; recommendations accepted |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (shared audit helper with allow-list, homeowner actor null, no personal values in before/after, `targetType` and `count`, functions only, Person filter, unknown-code fallback, billing skip / late bill / bill adjusted entries) · r4, 2026-11-28: owner approval recorded; recommendations accepted · **r5, 2026-11-28: answers TC-06 gaps G-1 to G-16** (see [r5 gap answers](#r5-gap-answers-tc-06)): full sentence and type catalogue for every R1 code, one invitation entry per household, payee values kept and instructions as field only, Person filter from an actor list, three more indexes, board lot suggestions from `lots`, date and empty-state copy, filters in memory, no live updates, helper built in S1; plus the S3 BA's request, an "Announcements" type with three sentences (TC-16 G-7). No new owner decision. New scenarios tagged `@r5-new` |
 
 ## Owner decisions
 
@@ -34,7 +34,7 @@ Who has the problem: the [Board member](../product/PERSONAS.md#board-member) and
 ### Option A: One Activity log page with filters (recommended)
 
 - **How it works:** a read-only list, newest first, 50 entries per page. Each entry reads as one sentence: who, did what, to which lot or record, with the date and time (Manila). Filters: type (Payments, Billing, Households, Invitations, Roles, Settings, Privacy), lot, person (staff) and date range.
-- **Where it lives:** "Activity log" in the staff menu, after Settings.
+- **Where it lives:** "Activity log" in the staff menu, after Settings. **(r5, G-1)** The board's R1 menu has no Settings, so for the board it comes after Collections: Dashboard, Collections, Activity log (recorded in REQ-002 r4).
 - **Cost:** cheap. The entries exist; this is a query, a sentence for each entry type, and rules.
 - **Excludes:** homeowners and guards.
 - **Honest downside:** one more page; to answer "what happened to this payment" the treasurer filters by lot instead of clicking from the payment.
@@ -67,13 +67,52 @@ Each REQ that changes money or records writes its own entries from a callable fu
 |---|---|---|
 | Roles | Developer {name} made Carmela Cruz Treasurer (board request {ref}) · …removed the Treasurer role from … | REQ-002 `setRole` |
 | Households | {staff} added Blk 8 Lot 2 · {staff} changed the contact mobile of Blk 4 Lot 12 (the entry names the field only, never the old or new number) · {staff} deactivated Blk 7 Lot 1 · {staff} imported 623 households | REQ-003 |
-| Invitations | {staff} invited Blk 2 Lot 7 · printed 20 invite slips · removed a person from Blk 2 Lot 7 · A person linked their account to Blk 2 Lot 7 | REQ-004 |
-| Settings | {staff} changed monthly dues from ₱1,800.00 to ₱2,000.00 · replaced the payment QR code · changed the payee name | REQ-007 (callables `saveDuesSettings`, `replacePaymentQr`) |
+| Invitations | {staff} invited Blk 2 Lot 7 · ~~printed 20 invite slips~~ **(r5, G-3)** {staff} printed an invite slip for Blk 2 Lot 7 (one entry per household, so the lot filter finds it) · removed a person from Blk 2 Lot 7 · A person linked their account to Blk 2 Lot 7 | REQ-004 |
+| Settings | {staff} changed monthly dues from ₱1,800.00 to ₱2,000.00 · replaced the payment QR code · changed the payee name **(r5, G-4)** from "Greenfield Homes HOA" to "Greenfield Homes HOA Inc." · **(r5, G-5)** changed the payment instructions (field name only) | REQ-007 (callables `saveDuesSettings`, `replacePaymentQr`) |
 | Billing | {staff} generated December 2026 billing: 623 bills, ₱1,121,400.00 · billed Blk 8 Lot 2 for December 2026 (`billing.lateBill`) · chose not to bill Blk 8 Lot 2 for December 2026 (`billing.skip`) · loaded opening balances for 623 households · corrected the December 2026 bill of Blk 5 Lot 1 by −₱200.00 (`bill.adjusted`, REQ-046) | REQ-008, REQ-046 |
 | Payments | Blk 5 Lot 1 submitted ₱1,800.00 (ref ending 9554) · {staff} approved ₱1,800.00 from Blk 5 Lot 1 (OR-00093) · rejected … · voided OR-00093 | REQ-010, REQ-012, REQ-014 |
 | Privacy | Developer published privacy notice version 2 (material change) | REQ-005 |
 
 A reference number is shown by its last 4 digits only. Rejection and void **reasons** are shown on the payment, not copied into the log, because reasons are free text that may contain personal data (SA-001 §8.2).
+
+### Sentence and type for every R1 code (r5, G-2, G-3, G-7)
+
+This is the copy of record for entry sentences. `{actor}` is "Name (Role)" for staff, "Developer {name}" for the developer, and the lot for a homeowner's own action. Each code belongs to one type, fixed in the audit helper's allow-list. A code not in this table shows the unknown-code sentence.
+
+| Code | Type | Sentence |
+|---|---|---|
+| `role.set` | Roles | Developer {name} made {person} {role} (board request {ref}) · Developer {name} removed the {role} role from {person} |
+| `household.created` | Households | {actor} added {lot} |
+| `household.updated` | Households | {actor} changed the {field} of {lot} (field label only, for example "owner name", "contact mobile", "contact email", "phase"; never the old or new value of a personal field) |
+| `household.relotted` | Households | {actor} changed the lot number of {old lot} to {new lot} (lot labels are not personal data) |
+| `household.deactivated` | Households | {actor} deactivated {lot} |
+| `household.reactivated` | Households | {actor} reactivated {lot} |
+| `import.completed` | Households | {actor} imported {count} households |
+| `invite.created` | Invitations | {actor} invited {lot} by email · {actor} printed an invite slip for {lot} (one entry per household) |
+| `invite.replaced` | Invitations | {actor} replaced the invitation for {lot} |
+| `invite.cancelled` | Invitations | {actor} cancelled the invitation for {lot} |
+| `invite.redeemed` | Invitations | A person linked their account to {lot} |
+| `member.removed` | Invitations | {actor} removed a person from {lot} |
+| `settings.changed` | Settings | {actor} changed monthly dues from {old} to {new} · changed the payee name from "{old}" to "{new}" · changed the account label from "{old}" to "{new}" · changed the payment instructions. One entry per changed field (REQ-007) |
+| `settings.qrReplaced` | Settings | {actor} replaced the payment QR code · (first upload, `before` null) {actor} set up the payment QR code |
+| `billing.run` | Billing | {actor} generated {period} billing: {count} bills, {amount} |
+| `billing.lateBill` | Billing | {actor} billed {lot} for {period} |
+| `billing.skip` | Billing | {actor} chose not to bill {lot} for {period} |
+| `billing.opening` | Billing | {actor} loaded opening balances for {count} households |
+| `billing.startAtZero` | Billing | {actor} started every household at ₱0.00 before {period} |
+| `billing.goLive` | Billing | Developer {name} switched billing on for this portal |
+| `bill.adjusted` | Billing | {actor} corrected the {period} bill of {lot} by {signed amount} |
+| `billing.bulkAdjusted` | Billing | {actor} corrected {count} {period} bills by {signed amount} each |
+| `payment.submitted` | Payments | {lot} submitted {amount} (ref ending {last 4}) |
+| `payment.approved` | Payments | {actor} approved {amount} from {lot} ({OR no.}) |
+| `payment.rejected` | Payments | {actor} rejected {amount} from {lot} (ref ending {last 4}) |
+| `payment.voided` | Payments | {actor} voided {OR no.} ({amount}, {lot}) |
+| `privacy.published` | Privacy | Developer {name} published privacy notice version {label} (material change · minor correction) |
+| `announcement.posted` | Announcements | {actor} posted an announcement |
+| `announcement.edited` | Announcements | {actor} edited an announcement |
+| `announcement.deleted` | Announcements | {actor} deleted an announcement |
+
+**(r5, S3 BA, TC-16 G-7)** The type **Announcements** is added to the Type filter (after Privacy) for REQ-016's codes. Those entries are written by REQ-016's trigger under this REQ's rule for unavoidable triggers (entry id = event id, retry on, nightly missing-entry check); they carry no title or message text. Later REQs add their rows here when they add a code.
 
 ## Acceptance criteria (Option A)
 
@@ -170,12 +209,119 @@ Feature: Activity log
     And the filters she picked are kept
 ```
 
+### New in r5: answers to TC-06 gaps
+
+```gherkin
+Feature: Activity log (r5 answers to TC-06 gaps)
+
+  @r5-new
+  Scenario: The board opens the log from its menu (G-1)
+    Given a board member is signed in
+    Then the menu shows "Dashboard", "Collections" and "Activity log", in that order
+
+  @r5-new
+  Scenario Outline: Every R1 code has its own sentence (G-2)
+    Given an entry with code "<code>" by Paolo Aquino (Admin office) about Blk 7 Lot 1
+    When the treasurer opens the Activity log
+    Then it reads "<sentence>"
+    And it does not read "made a change"
+
+    Examples:
+      | code                  | sentence                                                         |
+      | household.reactivated | Paolo Aquino (Admin office) reactivated Blk 7 Lot 1              |
+      | invite.replaced       | Paolo Aquino (Admin office) replaced the invitation for Blk 7 Lot 1 |
+      | invite.cancelled      | Paolo Aquino (Admin office) cancelled the invitation for Blk 7 Lot 1 |
+      | household.updated     | Paolo Aquino (Admin office) changed the owner name of Blk 7 Lot 1 |
+
+  @r5-new
+  Scenario: A relotted household (G-2, G-13)
+    Given Blk 4 Lot 12 was renumbered to Blk 4 Lot 12-A by Paolo Aquino (Admin office)
+    Then the entry reads "Paolo Aquino (Admin office) changed the lot number of Blk 4 Lot 12 to Blk 4 Lot 12-A"
+    When the board member picks Lot "Blk 4 Lot 12-A"
+    Then the entries written before and after the change both show, each with the lot label it was written with
+    And the filter summary reads "Blk 4 Lot 12-A · {n} entries"
+
+  @r5-new
+  Scenario: Printing slips writes one entry per household (G-3)
+    When Paolo prints invite slips for 20 households
+    Then the log has 20 entries, each reading "Paolo Aquino (Admin office) printed an invite slip for {lot}"
+
+  @r5-new
+  Scenario: A payee change shows the values; an instructions change shows the field only (G-4, G-5)
+    When Carmela changes the payee name from "Greenfield Homes HOA" to "Greenfield Homes HOA Inc." and edits the payment instructions in one save
+    Then the log has two entries
+    And one reads "Carmela Cruz (Treasurer) changed the payee name from "Greenfield Homes HOA" to "Greenfield Homes HOA Inc.""
+    And the other reads "Carmela Cruz (Treasurer) changed the payment instructions", with no instruction text
+
+  @r5-new
+  Scenario Outline: Counts and empty results read correctly (G-6)
+    When the treasurer filters by <filter> and <result>
+    Then the page reads "<text>"
+
+    Examples:
+      | filter                         | result           | text                                      |
+      | Lot "Blk 5 Lot 1"              | 1 entry matches  | Blk 5 Lot 1 · 1 entry                     |
+      | Type "Settings"                | 3 entries match  | 3 entries                                 |
+      | Lot "Blk 9 Lot 3" and dates    | nothing matches  | No activity for Blk 9 Lot 3 in this period. |
+      | Lot "Blk 9 Lot 3", no dates    | nothing matches  | No activity for Blk 9 Lot 3 yet.          |
+      | Type "Roles" and person, no lot | nothing matches | No activity matches these filters.        |
+
+  @r5-new
+  Scenario: A former staff member can still be picked for an audit (G-8)
+    Given Paolo Aquino's admin office role was removed after he made 6 changes
+    When the board member opens the Person filter
+    Then "Paolo Aquino" is offered, with "Developer {name}" and every other person who has ever made an entry
+    When she picks him
+    Then his 6 entries show
+
+  @r5-new
+  Scenario: Any combination of filters works (G-9)
+    When the treasurer picks a Person, a Type and a Lot together, with or without dates
+    Then the matching entries show, newest first
+    And no combination is refused
+
+  @r5-new
+  Scenario: The board gets lot suggestions without seeing the directory (G-10)
+    Given a board member types "Blk 5" in the Lot filter
+    Then lots starting "Blk 5" are offered, with no owner names
+    When she types "Blk 99 Lot 1", which isn't in the directory, and presses Enter
+    Then she sees "Blk 99 Lot 1 isn't in the directory." and the filter isn't applied
+
+  @r5-new
+  Scenario: Date range rules (G-11)
+    When the treasurer sets From to Dec 10, 2026 and To to Dec 1, 2026
+    Then To shows "The From date is after the To date." and the list doesn't change
+    When she sets only From to Dec 1, 2026
+    Then entries from Dec 1, 2026 to now show
+    When she sets only To to Dec 1, 2026
+    Then entries up to the end of Dec 1, 2026, Manila time, show
+    And neither date can be set after today in Manila
+
+  @r5-new
+  Scenario: Filters last for the visit, not a reload (G-14)
+    Given the treasurer filtered by Lot "Blk 5 Lot 1"
+    When she opens Approvals and comes back to the Activity log
+    Then the filter is still applied
+    When she reloads the page
+    Then the filters are cleared
+    And the page address never contains a lot, a household id or a person
+
+  @r5-new
+  Scenario: The list does not change by itself (G-16)
+    Given the treasurer has the Activity log open
+    When another treasurer approves a payment
+    Then the open list does not change
+    And the new entry shows when she reloads, changes a filter or presses "Try again"
+```
+
 ## Data changes
 
 | What | Where | Rule | Written by | Read by |
 |---|---|---|---|---|
 | Log entry: `action` (code, e.g. `payment.approved`), `type` (filter group), `targetType` (`payment`, `bill`, `household`, `settings`, `invite`, `role`, `privacy`), `targetId`, `actorUid`, `actorName` and `actorRole` (copied at the time for staff and the developer, so a later name change doesn't rewrite history; for a homeowner's action `actorName` is null and `actorRole` is `homeowner`), `householdId` and `lotLabel` (or null), `before`, `after`, `amountCentavos` (or null), `count` (bulk actions such as an import or a billing run, or null), `refLast4` (or null), `requestRef` (or null), `at` (server time) | `auditLog/{id}` (SA-001 §3, §8.3) | No client writes at all. Ids, codes and amounts only; no free text, no homeowner names, contacts or full reference numbers. **`before` / `after` hold only non-personal values**: statuses, amounts, HOA settings values (dues, payee name) and field names. A contact edit is `{field: 'contactMobile'}` with no old or new number | **Functions only, through the shared audit helper `functions/src/audit/audit.js`, in the same transaction as the change.** The helper has an allow-list of fields per action code and refuses unknown codes and unlisted fields (unit-tested). No function writes `auditLog` any other way | Treasurer, board, admin office (decision 2) |
-| Indexes | `firestore.indexes.json` | (`at` desc); (`householdId`, `at` desc); (`type`, `at` desc); (`householdId`, `type`, `at` desc); (`actorUid`, `at` desc). "{n} entries" uses a `count()` aggregation | — | — |
+| Indexes | `firestore.indexes.json` | (`at` desc); (`householdId`, `at` desc); (`type`, `at` desc); (`householdId`, `type`, `at` desc); (`actorUid`, `at` desc). **(r5, G-9)** plus (`actorUid`, `type`, `at` desc); (`actorUid`, `householdId`, `at` desc); (`actorUid`, `householdId`, `type`, `at` desc), so every filter combination is served and none is refused. "{n} entries" uses a `count()` aggregation | — | — |
+| **(r5, G-8)** Actor list for the Person filter | `auditActors/{uid}` `{name, role, lastAt}` | Upserted by the audit helper **in the same transaction** as each staff or developer entry (homeowner actions are not listed). Kept when a role is removed, so former staff can still be picked. No client writes | Audit helper | Treasurer, board, admin office |
+| **(r5, G-5)** Free text in `before` / `after` | — | Payee name and account label are short HOA values and are stored (REQ-007). **Payment instructions are stored as the field name only**, because they are up to 500 characters of free text that could name a person or a number | Audit helper allow-list | — |
 
 The screen builds each sentence from the codes, so wording can change without rewriting entries. An entry whose code the screen doesn't know reads "{actor} made a change ({code})". **Fit to S1:** the functions approved in REQ-002 to REQ-004 (`role.set`, `household.*`, `import.completed`, `invite.*`, `member.removed`) move onto the shared helper; REQ-002's `role.set` gains `actorName` and `requestRef`, and REQ-003's contact edits drop the old and new values. **Rules:** deny every client write; read for `isStaff()` (the claim **and** `staff/{uid}`, L-004) with role treasurer, board or admin office; rules tests include a removed treasurer whose token is still valid.
 
@@ -188,7 +334,11 @@ The screen builds each sentence from the codes, so wording can change without re
 - **Consistency:** "Activity log" (not "audit trail" on screen). Lot written "Blk 5 Lot 1", money "₱1,800.00", dates "Dec 3, 2026", time "9:14 AM", as everywhere else. Staff shown as "Name (Role)".
 - **Mobile-first:** entries are already one sentence each, so the list works at 375 px with no table. Filters collapse into a "Filter" button that opens a panel.
 - **States:** loading (skeleton rows); empty log ("No activity yet. Changes to money and records will appear here."); empty filter (above); error (above); partial (older pages load on demand).
-- **Live filtering:** the lot filter is a search box, debounced, that offers matching lots; it doesn't reload the page on every key.
+- **Live filtering:** the lot filter is a search box, debounced, that offers matching lots; it doesn't reload the page on every key. **(r5, G-10)** Suggestions come from `lots` (lot key and household id only), which the board may read (REQ-003 r5). A typed lot is normalised with REQ-003's rules and looked up; if it isn't there: "{lot} isn't in the directory." The lot filter matches on `householdId`, so a renumbered lot (G-13) shows its entries under both labels when the current label is picked; the old label is no longer in `lots`.
+- **(r5, G-11) Dates:** From and To are whole days in Manila time, both inclusive; either may be left empty; neither may be after today (the date picker's maximum, and a typed later date shows "Pick a date up to today."); From after To shows the message under To and the filter isn't applied.
+- **(r5, G-14) Filters** are held in the page's memory for the visit, so moving to another page and back keeps them; a reload clears them. They never go in the page address (SA-001 §8.2), so a lot or household id never appears in a URL from this page.
+- **(r5, G-16) No live updates:** the list is read when opened, when a filter changes, on "Show older entries" and on "Try again". It does not listen for new entries, so nothing moves under the reader.
+- **(r5, G-15) Staff dashboard:** the mock-up's "Recent activity" card is **not** built in R1. It returns with story 25 (R2), reading this log.
 - **Safe actions:** none: the page is read-only.
 - **Roles:** treasurer, board, admin office (decision 2). The menu item is hidden for others, and rules refuse the read (a hidden menu is not protection).
 
@@ -200,15 +350,42 @@ The screen builds each sentence from the codes, so wording can change without re
 | Page sub-heading | Every change to money and records, with who made it and when. Entries can't be edited or deleted. |
 | Filters | Type · Lot · Person · From · To · Clear filters |
 | Unknown entry | {actor} made a change ({code}) |
-| Type options | All · Payments · Billing · Households · Invitations · Roles · Settings · Privacy |
-| Filter summary | {lot} · {n} entries |
+| Type options | All · Payments · Billing · Households · Invitations · Roles · Settings · Privacy · **(r5)** Announcements |
+| Filter summary | {lot} · {n} entries **(r5, G-6)** (1: "{lot} · 1 entry"; no lot picked: "{n} entries" / "1 entry"; 0: the empty-filter text instead) |
+| Empty filter, lot without dates **(r5, G-6)** | No activity for {lot} yet. |
+| Empty filter, no lot **(r5, G-6)** | No activity matches these filters. |
+| Lot not found **(r5, G-10)** | {lot} isn't in the directory. |
+| Dates **(r5, G-11)** | The From date is after the To date. · Pick a date up to today. |
 | Entry time | {Mon D, YYYY} · {h:mm AM} |
 | Load more | Show older entries (in flight: Loading…) |
 | Empty log | No activity yet. Changes to money and records will appear here. |
 | Empty filter | No activity for {lot} in this period. |
 | Board note | View only. Board members can't change records. |
 | Error | We couldn't load the activity log. Check your connection and try again. · Try again |
-| Entry sentences | See "What is logged in R1" above |
+| Entry sentences | See "What is logged in R1" above and **(r5)** "Sentence and type for every R1 code", which wins where they differ |
+
+## r5 gap answers (TC-06)
+
+Answers to QA's gaps in [TC-06](../test-cases/TC-06-activity-log-v1.md). None needed a new owner decision. Log: [GAP-ANSWERS-TC-05-11](../test-cases/GAP-ANSWERS-TC-05-11.md).
+
+| Gap | Answer | Where |
+|---|---|---|
+| G-1 Board's menu | Board R1 menu: Dashboard, Collections, Activity log (follows decision 2 and REQ-008's read-only card); REQ-002 r4 | Option A; scenario G-1 |
+| G-2 Missing sentences | Every R1 code has a sentence and a type | "Sentence and type for every R1 code"; outline G-2 |
+| G-3 "printed 20 invite slips" | One `invite.created` per household with its channel; the bulk example is withdrawn | What is logged; scenario G-3 |
+| G-4 Payee values | REQ-007 wins: payee name (HOA data, Sol Arch answer 1) stored and shown with old and new values | What is logged; scenario G-4/G-5 |
+| G-5 Instructions in `before`/`after` | Field name only; free text never enters the log | Data changes; scenario G-4/G-5 |
+| G-6 Singular and empty copy | "1 entry"; three empty texts by filter | Copy; outline G-6 |
+| G-7 Type groups | Fixed per code in the table (member and redemption codes: Invitations; import: Households; opening, start-at-zero, corrections, go-live: Billing) | Sentence table |
+| G-8 Person options | `auditActors/{uid}`, kept by the helper, includes former staff and the developer. *Sol Arch to confirm* | Data changes; scenario G-8 |
+| G-9 Missing index combinations | Three indexes added; no combination refused | Data changes; scenario G-9 |
+| G-10 Board lot suggestions | From `lots` (no names), now readable by the board (REQ-003 r5); a typed lot is looked up and refused if missing | UX; copy; scenario G-10 |
+| G-11 Date rules | Manila whole days, inclusive; one end allowed; no date after today; From after To message | UX; copy; scenario G-11 |
+| G-12 Old-shape S1 entries | **None will exist:** the shared audit helper is built in S1 with the first function that writes an entry (`setRole`), not with this screen in S2 (Sol Arch's 0.5-day share of REQ-006 moves into S1). Staging data written before that is reset before S2 testing. The screen renders only the r3 shape, plus the unknown-code fallback. *For the release plan* | This table |
+| G-13 Relotted household | Filter is by household id, so both labels' entries show under the current label; each entry keeps its own label; summary uses the current label | UX; scenario G-2/G-13 |
+| G-14 Filters and the address | In memory for the visit, cleared on reload, never in the address | UX; scenario G-14 |
+| G-15 Dashboard "Recent activity" | Not built in R1; returns with story 25 | UX |
+| G-16 Live updates | None; read on open, filter change, paging and retry | UX; scenario G-16 |
 
 ## Out of scope
 

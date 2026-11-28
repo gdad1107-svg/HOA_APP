@@ -10,7 +10,7 @@
 | Architecture | SA-001 §4.1 (`notifs` → `notifications`), §3 and §4.4 item 8 (no fan-out for announcements), ADR-002 (email is separate); Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-002 (roles), REQ-004 (members) |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (bounded live listener for the count, deterministic ids, route codes not URLs, no contact details in parameters, removal clean-up by a retried trigger within a minute, removed staff, catalogue additions for the QR self-alert and bill corrections) · r4, 2026-11-28: owner approval recorded; recommendations accepted |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (bounded live listener for the count, deterministic ids, route codes not URLs, no contact details in parameters, removal clean-up by a retried trigger within a minute, removed staff, catalogue additions for the QR self-alert and bill corrections) · r4, 2026-11-28: owner approval recorded; recommendations accepted · **r5, 2026-11-28: answers TC-11 gaps G-1 to G-7** (see [r5 gap answers](#r5-gap-answers-tc-11)) and the S3 BA's requests: catalogue stays the copy of record for approved and rejected (REQ-012 r7 now matches it); rows added for "made before you joined" approvals and voids, member and board voids; who gets "Receipt ready" and rejections; screen-reader count above 9; limit note only when more exist; unknown event codes; one bell across views; 12-month boundary. No new owner decision. New scenarios tagged `@r5-new` · r6, 2026-11-28: catalogue row for the staff alert of a new announcement (approved REQ-016 decision 7), wording from REQ-016 |
 
 ## Owner decisions
 
@@ -76,6 +76,15 @@ Each REQ writes its own notifications, from the server. This list is the catalog
 | QR code replaced | Each other treasurer and each board member | The payment QR code was replaced by {name} on {date}. If you didn't expect this, contact the board. | Settings | REQ-007 |
 | QR code replaced (self-alert) | The treasurer who replaced it | You replaced the payment QR code on {date}. If this wasn't you, contact the board now. | Settings | REQ-007 |
 | Bill corrected | Each linked person of the household | Your {period} bill was corrected: {amount}. | Dues & Payments | REQ-046 |
+| **(r5)** Payment approved, made before you joined | Each linked person who joined after the payment was submitted (and didn't submit it) | A payment of {amount} made before you joined was approved. Your balance is updated. | Dues & Payments | REQ-012 |
+| **(r5)** Payment voided | Each linked person who was linked when the payment was submitted, or submitted it | Payment voided: {amount}, {OR no.}. Reason: {reason}. | Dues & Payments | REQ-014 |
+| **(r5)** Payment voided, made before you joined | Each other linked person | A payment of {amount} made before you joined was voided. Your balance is updated. | Dues & Payments | REQ-014 |
+| **(r5)** Payment voided (board) | Each board member, **only if REQ-014 decision 8 is approved** | Payment voided by {name}: {amount}, {OR no.}, {lot}. | Activity log, type Payments | REQ-014 |
+| **(r5)** Billing stopped | Each treasurer | {period} billing stopped at {x} of {n}. Open Collections to finish it. | Collections | REQ-008 |
+| **(r5)** QR code set up (first upload) | As "QR code replaced", and its self-alert | The payment QR code was set up by {name} on {date}. If you didn't expect this, contact the board. · You set up the payment QR code on {date}. If this wasn't you, contact the board now. | Settings (treasurers); Activity log, type Settings (board) | REQ-007 |
+| **(r6)** Announcement posted (staff alert, REQ-016 decision 7) | Each other admin office staff member and treasurer; not the poster | {name} posted an announcement: {title}. If you didn't expect this, contact the board. | Announcements | REQ-016 (audit trigger on `announcement.posted`, id `annpost_{announcementId}_{uid}`) |
+
+**(r5) Who gets which payment notice (S3 BA, TC-12 G-4, TC-13 G-1):** "Payment approved" (with the reference ending and receipt number) and "Receipt ready" go only to members who may see that payment's details: linked when it was submitted, or its submitter. Members linked later get the "made before you joined" approval only, no "Receipt ready", and **no rejection notice**. "Payment approved" and "Payment rejected" keep the texts above, which REQ-012 r7 now uses. **(r5, G-2)** Payment voided rows added from REQ-014. **(r6)** The announcement **title** is a second free-text parameter besides the rejection reason: staff-only, written by staff, deleted at 12 months (for the DPO's information). **(r5, TC-07 G-19)** The QR alerts open Settings for treasurers and the Activity log for board members, who can't open Settings.
 
 No notification copy says "paid", "received" or "sent to your email" unless that is what happened. **Parameters never include contact details.** The one free text in the collection is REQ-012's rejection **reason**, which is the recipient's own matter and is deleted at 12 months or on removal (for the DPO's information).
 
@@ -189,6 +198,71 @@ Feature: Notifications
     And the page behind does not scroll
 ```
 
+### New in r5: answers to TC-11 gaps
+
+```gherkin
+Feature: Notifications (r5 answers to TC-11 gaps)
+
+  @r5-new
+  Scenario: Approval and rejection texts (G-1)
+    Given Juan was linked to Blk 4 Lot 12 when its ₱1,800.00 payment, ref ending 9554, was submitted
+    When the treasurer approves it as OR-00093
+    Then Juan's bell shows "Payment approved: ₱1,800.00 (ref …9554). Receipt OR-00093 is being prepared."
+    And Ben, linked to the lot after it was submitted, sees "A payment of ₱1,800.00 made before you joined was approved. Your balance is updated."
+    And Ben gets no "Receipt ready" notification for it
+
+  @r5-new
+  Scenario: A rejection reaches only members linked at submission (G-1)
+    When the treasurer rejects a payment with "Amount does not match the screenshot"
+    Then members linked when it was submitted see "Payment of ₱1,800.00 (ref …9554) wasn't approved: Amount does not match the screenshot"
+    And members linked later get no notification
+
+  @r5-new
+  Scenario: A void is notified (G-2)
+    When the treasurer voids OR-00093 with "Duplicate of OR-00090"
+    Then members linked when it was submitted see "Payment voided: ₱1,800.00, OR-00093. Reason: Duplicate of OR-00090."
+    And members linked later see "A payment of ₱1,800.00 made before you joined was voided. Your balance is updated."
+    And, if REQ-014 decision 8 is approved, every board member sees "Payment voided by Carmela Cruz: ₱1,800.00, OR-00093, Blk 4 Lot 12." which opens the Activity log
+
+  @r5-new
+  Scenario: The screen-reader label above 9 (G-3)
+    Given Juan has 14 unread notifications
+    Then the bell shows "9+" and its label reads "Notifications, more than 9 unread"
+
+  @r5-new
+  Scenario: The limit note shows only when there are more (G-4)
+    Given Juan has exactly 30 notifications
+    When he opens the bell
+    Then all 30 show and "Showing your 30 most recent notifications." does not
+    Given he has 31
+    Then the 30 newest show, with the note
+
+  @r5-new
+  Scenario: An event the screen doesn't know (G-5)
+    Given Juan has a notification with an event code this version of the portal doesn't know
+    Then it reads "There's an update about your account." with its date and time
+    When he presses it
+    Then it is marked read and he stays on the page, unless its route code is one the portal knows
+    And the developer's error monitoring records the unknown code, with no parameters
+
+  @r5-new
+  Scenario: One bell for a treasurer who is also a homeowner (G-6)
+    Given Carmela holds the treasurer role and is linked to Blk 6 Lot 2
+    Then her bell lists her household and treasurer notifications together, in either view
+    When, in the Treasurer view, she presses "Your December 2026 statement is ready…"
+    Then the view switches to "My household" and Dues & Payments opens
+    When, in the household view, she presses "Blk 5 Lot 1 submitted a payment…"
+    Then the view switches to "Treasurer" and Approvals opens
+
+  @r5-new
+  Scenario: The 12-month boundary (G-7)
+    Given a notification was created at 9:00 AM on Dec 3, 2025, Manila time
+    When the daily job runs on Dec 3, 2026
+    Then it is kept
+    When the daily job runs on Dec 4, 2026
+    Then it is deleted
+```
+
 ## Data changes
 
 | What | Where | Rule | Written by | Read by |
@@ -229,6 +303,24 @@ The text is built on screen from the event code and parameters, so wording can b
 | Error | We couldn't load your notifications. Try again. · Try again |
 | Offline | You're offline. New notifications will show when you reconnect. |
 | Event texts | See "Notifications in R1" above |
+| Bell label above 9 **(r5, G-3)** | Notifications, more than 9 unread |
+| Unknown event **(r5, G-5)** | There's an update about your account. |
+
+## r5 gap answers (TC-11)
+
+Answers to QA's gaps in [TC-11](../test-cases/TC-11-in-app-notifications-v1.md). None needed a new owner decision. Log: [GAP-ANSWERS-TC-05-11](../test-cases/GAP-ANSWERS-TC-05-11.md).
+
+| Gap | Answer | Where |
+|---|---|---|
+| G-1 Approved and rejected texts disagree | This catalogue wins (it is the copy of record); the S3 BA aligned REQ-012 r7 to it. The reference ending reaches only members linked at submission; later members get the "made before you joined" approval and no rejection notice | Catalogue; scenarios G-1 |
+| G-2 Payment voided rows missing | Added: members, members linked later, and board (if REQ-014 decision 8) | Catalogue; scenario G-2 |
+| G-3 Label above 9 | "Notifications, more than 9 unread": the listener reads at most 10, so the real number above 9 isn't known | Copy; scenario G-3 |
+| G-4 Limit note at exactly 30 | Only when more than 30 exist: the panel listener asks for 31 and shows 30 | Data (below); scenario G-4 |
+| G-5 Unknown event code | Generic text, marked read, stays unless the route is known; reported | Copy; scenario G-5 |
+| G-6 Treasurer who is also a homeowner | One bell, not filtered by the view; pressing an item switches to the view it belongs to (household id set: "My household"; otherwise the staff view) | Scenario G-6 |
+| G-7 12-month boundary | Deleted when created before the same Manila date 12 months earlier; the same date is kept, deleted on the next day's run | Scenario G-7 |
+
+**(r5, G-4) Data:** the panel's listener is `recipientUid == me`, newest first, **limit 31**; 30 are shown and the note appears only if the 31st exists (one read more). **(r5, G-7)** The daily job deletes where `createdAt < start of (today in Manila − 12 months)`.
 
 ## Out of scope
 

@@ -10,7 +10,7 @@
 | Architecture | SA-001 Flow 1 (`submitPayment`, `paymentRefs`, Storage `proofs/{householdId}/{paymentId}.jpg`), §4.3 point 5 ("submitted for checking", not "paid"), R-16 (sale privacy), CODING-STANDARDS rules 5 and 12; Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-007 (QR and payee), REQ-009 (statement and payment list), REQ-011 (notifications), REQ-006 (activity log) |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft. r2, 2026-11-28: reconciled with REQ-031 (conflict C2): every payment carries a `kind` (always `dues` in R1) so REQ-031 can add amenity-fee payments without changing this flow; REQ-031 owns that extension · r3, 2026-11-28: Sol Arch review recorded · r4, 2026-11-28: Sol Arch's changes applied (`payments` / `paymentPrivate` split, Storage `uploaderUid` metadata, `paymentRefs` without status and deleted on rejection, client-made payment id with retry returning success, no dated duplicate message across households, server validation, `qrUploadId`, notification ids, HEIC fallback, orphan clean-up, inactive lot refused) · r5, 2026-11-28: owner approval recorded; recommendations accepted · r6, 2026-11-28: screenshots readable by the uploader and treasurer-role holders only, not all staff, to match approved REQ-012 #6 (raised by the S3 BA) · r7, 2026-11-28: `paymentPrivate` gains `receivedFromName`, the owner on file copied at submission, for the receipt's "Received from" (owner: "Sol Arch: at submission", REQ-013 decision 6) |
+| Revision | r1, 2026-11-28: first draft. r2, 2026-11-28: reconciled with REQ-031 (conflict C2): every payment carries a `kind` (always `dues` in R1) so REQ-031 can add amenity-fee payments without changing this flow; REQ-031 owns that extension · r3, 2026-11-28: Sol Arch review recorded · r4, 2026-11-28: Sol Arch's changes applied (`payments` / `paymentPrivate` split, Storage `uploaderUid` metadata, `paymentRefs` without status and deleted on rejection, client-made payment id with retry returning success, no dated duplicate message across households, server validation, `qrUploadId`, notification ids, HEIC fallback, orphan clean-up, inactive lot refused) · r5, 2026-11-28: owner approval recorded; recommendations accepted · r6, 2026-11-28: screenshots readable by the uploader and treasurer-role holders only, not all staff, to match approved REQ-012 #6 (raised by the S3 BA) · r7, 2026-11-28: `paymentPrivate` gains `receivedFromName`, the owner on file copied at submission, for the receipt's "Received from" (owner: "Sol Arch: at submission", REQ-013 decision 6) · **r8, 2026-11-28: answers TC-10 gaps G-1 to G-14** (see [r8 gap answers](#r8-gap-answers-tc-10)), and the S3 BA's requests (GAP-ANSWERS-TC-12-17): rejection reason moves from `paymentPrivate` to `payments/{id}`; `updatedAt` added; "a removed owner keeps own screenshots" dropped and the submitter's reads need a current membership (TC-04-L5). **New owner decisions 7 (pre-join data in the SDK, from TC-09 G-16) and 8 (no submitter detail screen), ** New scenarios tagged `@r8-new` · r9, 2026-11-28: owner approved decisions 7 (DPO still to confirm) and 8 as recommended ("Approve all") |
 
 ## Owner decisions
 
@@ -24,6 +24,8 @@ Approved by the owner on 2026-11-28 ("Approve all as shown"): every recommendati
 | 4 | Let a homeowner withdraw their own pending payment (for example a wrong amount) | **Not in R1.** The treasurer rejects it with the reason "Submitted by mistake", and the reference number is freed (decision 2). Revisit if it happens often |
 | 5 | Largest amount accepted in one payment | **₱100,000.00**, to catch typing errors (about 55 months of dues). Stored as `config/payment.maxPaymentCentavos`; a treasurer setting for it can come later if needed |
 | 6 | Amenity fees through this flow (r2, conflict C2 with REQ-031) | **Designed for, not built here.** Every payment record carries a `kind`; in R1 it is always `dues` and `submitPayment` refuses anything else. **REQ-031 (R3) owns the amenity-fee extension**: the "Pay fee" entry point, kind `amenityFee` with a booking id and fixed amount, and the matching changes to approval (REQ-012) and collections (REQ-023). The reference-number check, screenshot, notifications and `paymentRefs` here are shared by both kinds unchanged, so one reference number can't be used for dues and a fee |
+| 7 | **(r8, TC-09 G-16)** Option (b) hides a previous owner's payment details **on screen**, but the household-visible summary still holds `refLast4`, `submittedBy` (a uid) and `reason` for every payment, so a new owner could read them through the SDK. Accept, or move them? | **Approved: accept** (owner, "Approve all", 2026-11-28, relayed by the coordinator). *Note: DPO to confirm.* The last 4 digits of a reference can't move or claim money (`paymentRefs` checks the full number, and only for the same household is anything dated); a uid names nobody to a homeowner (they can't read `users`); reasons are standard phrases or a short text the treasurer is warned about ("Don't include other people's names or account numbers"). Moving them to `paymentPrivate` would hide the reference ending and the reason from the spouse, which REQ-010 and REQ-012 show on purpose, or need one copy per member (a project). |
+| 8 | **(r8, TC-10 G-3)** The REQ said the submitter sees the full reference number and their screenshot, but no homeowner screen shows them. Add one, or drop the promise? | **Approved: drop it for R1** (owner, "Approve all", 2026-11-28, relayed by the coordinator). The person who paid already has the screenshot and the number in their own e-wallet; the treasurer's screen has both. Rows show "ref …{last 4}". Alternative: a "Details" link on the submitter's own rows with the full number and "View screenshot", about 0.5 day plus a mockup screen, not chosen. |
 
 ## Problem
 
@@ -80,7 +82,7 @@ Feature: Submitting a payment
     And his balance still reads ₱1,800.00, with "₱1,800.00 awaiting approval" (REQ-009)
     And each treasurer gets the notification "Blk 5 Lot 1 submitted a payment of ₱1,800.00."
     And the payment, its reference reservation and the treasurers' notifications are saved together, or none of them is
-    And the treasurer's Approvals count goes up by 1
+    And the payment is listed the next time a treasurer opens Approvals (whether the Approvals badge updates live is REQ-012's; each treasurer's bell updates live, REQ-011)
     And the owner on file for Blk 5 Lot 1 at this moment is saved with the payment as the name its receipt will show (REQ-013)
 
   Scenario: Pressing twice creates one payment
@@ -231,7 +233,7 @@ Feature: Payments after a sale (decision 3, option b)
   Scenario: Screenshots are seen only by the uploader and the treasurer
     Given Ben and his spouse are both linked to Blk 2 Lot 7
     And Ben submitted a payment with a screenshot
-    Then Ben and anyone holding the treasurer role can open the screenshot
+    Then Storage allows Ben's read while he is linked, and the read of anyone holding the treasurer role, and the treasurer's Approvals shows it (no R1 homeowner screen shows it, r8 and decision 8)
     And his spouse sees the payment's date, amount, "ref …{last 4}" and status, but not the screenshot
     And Storage refuses the spouse's request for the screenshot
 
@@ -242,14 +244,109 @@ Feature: Payments after a sale (decision 3, option b)
     And Storage refuses his request for it
 ```
 
+### New in r8: answers to TC-10 gaps
+
+```gherkin
+Feature: Submitting a payment (r8 answers to TC-10 gaps)
+
+  Background:
+    Given Carlo is linked to Blk 5 Lot 1, which owes ₱1,800.00
+    And the HOA's QR code is set up (REQ-007)
+    And today is Dec 3, 2026 in Manila
+
+  @r8-new
+  Scenario: A voided payment's reference stays used (G-1)
+    Given reference "4012883219554" belongs to a Blk 5 Lot 1 payment submitted on Nov 25, 2026 and later voided
+    When Carlo submits it again
+    Then he sees "This reference number was already submitted on Nov 25, 2026. Check the number on your screenshot."
+    And from another lot the undated "already used" message shows
+
+  @r8-new
+  Scenario: A reservation whose payment is missing (G-2)
+    Given "4012883219554" is reserved but the payment it points to doesn't exist
+    When anyone submits it
+    Then they see "This reference number was already used. Check the number on your screenshot, or contact the treasurer."
+    And nothing is saved and the reservation is not changed
+    And the developer's error monitoring records the payment id and reference ending only
+
+  @r8-new
+  Scenario: Everything owed is already awaiting approval (G-4)
+    Given Blk 5 Lot 1 owes ₱1,800.00 and ₱1,800.00 is awaiting approval
+    When Carlo opens Dues & Payments
+    Then "Amount" is empty
+    And the form reads "₱1,800.00 is already awaiting approval. You don't need to pay it again."
+    And "You don't owe anything right now" is not shown
+
+  @r8-new
+  Scenario Outline: Limits are exact (G-6, G-8, G-9)
+    When Carlo <does>
+    Then <outcome>
+
+    Examples:
+      | does                                                        | outcome                                                  |
+      | attaches an image of exactly 15,728,640 bytes (15 MB)       | it is accepted and compressed                            |
+      | attaches an image of 15,728,641 bytes                       | he sees "That image is too large. Take a screenshot instead of a photo." |
+      | picks a date paid exactly 90 days before today              | it is accepted                                           |
+      | picks a date paid 91 days before today                      | he sees "For payments older than 90 days, contact the treasurer." |
+      | enters "40-12 88" (6 characters once spaces and dashes go)  | it is accepted                                           |
+      | enters "40 12 8" (5 characters once spaces go)              | he sees the reference format message                     |
+
+  @r8-new
+  Scenario Outline: How a typed amount is read (G-7)
+    When Carlo types "<typed>" in "Amount"
+    Then <outcome>
+
+    Examples:
+      | typed     | outcome                         |
+      | 1,800.00  | it is read as ₱1,800.00         |
+      | ₱1,800    | it is read as ₱1,800.00         |
+      |  1800     | it is read as ₱1,800.00         |
+      | 1,80,0    | he sees the amount message      |
+
+  @r8-new
+  Scenario: Typing survives the phone unloading the tab (G-10)
+    Given Carlo typed the amount, reference and date and attached a screenshot
+    And his phone unloaded the portal while he was in his e-wallet app
+    When he returns and the page reloads
+    Then the amount, reference and date are filled in again
+    And under "Proof of payment" he sees "We kept what you typed. Attach the screenshot again."
+    And after a successful submit, or when he closes the tab, nothing typed is kept
+
+  @r8-new
+  Scenario: Removed from the lot after opening the form (G-11)
+    Given the admin removed Carlo from Blk 5 Lot 1 after he opened the form
+    When he presses "Submit for approval"
+    Then he sees "You're no longer linked to this lot, so this payment wasn't submitted. Contact the admin office."
+    And nothing is saved
+
+  @r8-new
+  Scenario: The QR code setup disappeared after the form opened (G-12)
+    Given the payment QR configuration is missing when Carlo presses "Submit for approval"
+    Then he sees "Online payment isn't set up right now. Nothing was saved. Pay at the admin office, or try again later."
+    And nothing is saved
+
+  @r8-new
+  Scenario: A treasurer paying for her own lot isn't told about her own payment (G-13)
+    Given Carmela holds the treasurer role and is linked to Blk 6 Lot 2, and Liza is the other treasurer
+    When Carmela submits a payment for Blk 6 Lot 2
+    Then Liza gets "Blk 6 Lot 2 submitted a payment of ₱1,800.00."
+    And Carmela gets no such notification
+
+  @r8-new
+  Scenario: A removed person can't read their old screenshots (G-14, TC-04-L5)
+    Given Ana submitted a payment for Blk 2 Lot 7 and was then removed from it
+    Then Storage refuses her read of that screenshot
+    And Firestore refuses her read of that payment's details
+```
+
 ## Data changes
 
 | What | Where | Rule | Written by | Read by |
 |---|---|---|---|---|
-| Payment summary: `householdId`, **`kind`** (`dues`), `amountCentavos`, `refLast4`, `datePaid`, `status` (`pending`), `submittedAt` (server), `submittedBy` (uid only), `orNo` (once approved, REQ-012) | `payments/{id}`. **The id is made by the browser** before uploading, because the screenshot path needs it | Created only by `submitPayment`, create-only: a retry with the same id by the same person returns the existing payment as success. Status always `pending`; kind checked against an allow-list (`['dues']` in R1; REQ-031 adds `amenityFee`) | `submitPayment` | Every member of the household; treasurer; admin office |
-| Payment details: reference as typed and normalised, `proofPath`, `qrUploadId` (which QR the payer was shown, REQ-007), **`receivedFromName`** (a copy of `households/{id}.displayName`, the owner on file, taken by `submitPayment` at submission and printed as "Received from" on the receipt, REQ-013 decision 6), rejection reason (REQ-012) | `paymentPrivate/{id}` | **Readable only by the submitter (`submittedBy == request.auth.uid`) and staff.** Board doesn't read it in R1. No client writes | `submitPayment`, `decidePayment` | The submitter; treasurer; admin office |
+| Payment summary: `householdId`, **`kind`** (`dues`), `amountCentavos`, `refLast4`, `datePaid`, `status` (`pending`), `submittedAt` (server), `submittedBy` (uid only), `orNo` (once approved, REQ-012), **(r8)** `reason` (rejection or void reason, written by `decidePayment` / the void function, REQ-012 and REQ-014: household-visible, as every member is already notified of it), **(r8)** `updatedAt` (server time, set by every function that writes the payment, so REQ-012 can refuse a stale decision) | `payments/{id}`. **The id is made by the browser** before uploading, because the screenshot path needs it | Created only by `submitPayment`, create-only: a retry with the same id by the same person returns the existing payment as success. Status always `pending`; kind checked against an allow-list (`['dues']` in R1; REQ-031 adds `amenityFee`) | `submitPayment` | Every member of the household; treasurer; admin office |
+| Payment details: reference as typed and normalised, `proofPath`, `qrUploadId` (which QR the payer was shown, REQ-007), **`receivedFromName`** (a copy of `households/{id}.displayName`, the owner on file, taken by `submitPayment` at submission and printed as "Received from" on the receipt, REQ-013 decision 6). ~~rejection reason (REQ-012)~~ **(r8)** the rejection reason moves to `payments/{id}` (see the summary row) | `paymentPrivate/{id}` | **Readable only by the submitter (`submittedBy == request.auth.uid`) and staff.** **(r8, TC-04-L5, S3 BA TC-13 G-8)** The submitter's read also requires a **current** membership of the payment's household (`exists(members/{householdId}_{uid})`), so a removed person loses it. Board doesn't read it in R1. No client writes | `submitPayment`, `decidePayment` | The submitter; treasurer; admin office |
 | Reference reservation | `paymentRefs/{normalisedRef}` `{paymentId, householdId}`, **no status** | Read in the submit transaction; if it exists, the payment it points to decides the message (dated only when it is the same household). Deleted by `decidePayment(reject)` (REQ-012) in the same transaction, only if it still points at that payment. **A void (REQ-014) does not free it.** One shared index for dues and amenity fees | `submitPayment`, `decidePayment` | Functions only |
-| Screenshot | Storage `proofs/{householdId}/{paymentId}.jpg` | Storage rules: **create only** (no overwrite, no delete) when the caller is a member of the household, `contentType == 'image/jpeg'`, size ≤ 5 MB after compression on the phone (1,000 px), and `metadata.uploaderUid == request.auth.uid`. Read if `resource.metadata.uploaderUid == request.auth.uid`, or for the treasurer role (`firestore.get` on `staff/{uid}`, role `treasurer`). Admin office, board and guards are refused | The homeowner | The uploader and treasurer-role holders (decision 3; REQ-012 #6) |
+| Screenshot | Storage `proofs/{householdId}/{paymentId}.jpg` | Storage rules: **create only** (no overwrite, no delete) when the caller is a member of the household, `contentType == 'image/jpeg'`, size ≤ 5 MB after compression on the phone (1,000 px), and `metadata.uploaderUid == request.auth.uid`. Read if `resource.metadata.uploaderUid == request.auth.uid` **and (r8) the caller is still a member of `{householdId}`** (`firestore.exists` on `members/{householdId}_{uid}`, TC-04-L5), or for the treasurer role (`firestore.get` on `staff/{uid}`, role `treasurer`). Admin office, board and guards are refused | The homeowner | The uploader and treasurer-role holders (decision 3; REQ-012 #6) |
 | Orphaned screenshots | Storage `proofs/` | Deleted on the submit refusal path (best effort), and by a daily job for any object older than 24 hours with no `payments/{id}` | `submitPayment`, daily job | — |
 | Pending total on the household | `households/{id}.pendingCentavos` | — | `submitPayment`, `decidePayment` | Statement note (REQ-009) |
 | Notifications | `notifications` (REQ-011), id `paysub_{paymentId}_{uid}` | One per treasurer, written by `submitPayment` **in the same transaction** as the payment, so exactly once | `submitPayment` | Treasurers |
@@ -257,6 +354,21 @@ Feature: Payments after a sale (decision 3, option b)
 | Payment limit | `config/payment.maxPaymentCentavos` (REQ-007) | ₱100,000.00 (decision 5) | Developer script | `submitPayment`, form |
 
 **Server validation (mirrors the screen):** amount an integer number of centavos, > 0 and ≤ the limit; `datePaid` no later than today and no more than 90 days back, Asia/Manila; reference 6–40 characters, **length checked before any pattern**, then `[A-Z0-9]` after normalising; the caller is still a member and the household is active, re-checked in the transaction.
+
+**r8 rules (TC-10 gaps):**
+
+- **G-1 Void:** a reservation whose payment is void gives the same dated "approved" message for the same household (REQ-014 decision 3), undated for another.
+- **G-2 Missing payment:** never repaired automatically: refused with the undated message, reported to error monitoring (ids and reference ending only). Payments are never deleted (CS-15), so this only follows a manual edit, which the developer investigates.
+- **G-4 Pre-fill:** amount = balance − awaiting approval, if above ₱0.00; if that is ₱0.00 but the balance isn't, empty with the "already awaiting" line; if the balance is ₱0.00 or credit, the monthly dues with "You don't owe anything right now…" (as approved).
+- **G-6 Size:** "15 MB" is 15,728,640 bytes (15 × 1024 × 1024), inclusive, checked on the phone before compression; the uploaded file stays ≤ 5 MB (5,242,880 bytes) in the Storage rule.
+- **G-7 Amount:** REQ-007's shared `parsePesos()` (commas as thousands separators, "₱" and spaces removed), the same on the server.
+- **G-8 Date:** accepted from today − 90 days to today, both inclusive, Manila dates.
+- **G-9 Reference:** the field takes at most 60 typed characters; the 6–40 limit counts the **normalised** reference (spaces and dashes removed, upper case), on the screen and the server alike.
+- **G-10 Kept typing:** amount, reference and date are kept in `sessionStorage` (this tab only), as REQ-012 keeps a reason; cleared on success, on leaving Dues & Payments, and when the tab closes. A file can't be kept, so the screenshot is asked for again.
+- **G-11 Removed member:** `submitPayment`'s membership re-check refuses with its own message.
+- **G-12 No QR:** `submitPayment` refuses when `config/payment.qrUploadId` is missing.
+- **G-13 Own payment:** the treasurer notifications skip the submitter (`notify()` excludes `submittedBy`). If she is the only treasurer, REQ-012 decision 7 applies.
+- **G-14 Removed person's screenshots:** no route and, from r8, no access (TC-04-L5).
 
 **Normalising a reference:** upper case, spaces and dashes removed. **Changed from SA-001 Flow 1:** the payment is split into `payments` and `paymentPrivate` (decision 3 (b)); `paymentRefs` has no status and is deleted when a payment is rejected (decision 2). **Logs** carry the payment id and `refLast4` only, never the full reference or proof path (CS-14). **Pending:** if reference numbers repeat across providers (Open questions), the key becomes `{provider}_{ref}` and the form gains a provider field.
 
@@ -271,7 +383,7 @@ Feature: Payments after a sale (decision 3, option b)
 - **Images:** the screenshot is re-encoded to JPEG on the phone. If the browser can't decode it (HEIC on some browsers), the person is asked for a screenshot; a raw image is never uploaded. QA tests a real iPhone (Safari and Chrome) and Android.
 - **Stable layout:** the over-payment hint reserves its line so the button doesn't jump.
 - **Roles:** household members submit; staff can't use this form (office payments are a separate, not-yet-written story).
-- **Privacy:** reference numbers show as "…9554" in the homeowner's payment list; the full number is shown only to the submitter and staff; the screenshot is shown only to the uploader and treasurer-role holders, never to other household members or other staff (decision 3; REQ-012 #6). A duplicate-reference message never reveals another lot's payment date. A removed owner keeps access to their own screenshots (DPO to confirm).
+- **Privacy:** reference numbers show as "…9554" in the homeowner's payment list; the full number is shown only to the submitter and staff; the screenshot is shown only to the uploader and treasurer-role holders, never to other household members or other staff (decision 3; REQ-012 #6). A duplicate-reference message never reveals another lot's payment date. ~~A removed owner keeps access to their own screenshots (DPO to confirm).~~ **(r8)** A removed person loses access to their own screenshots and payment details, as to everything else of the lot (approved TC-04-L5; S3 BA, TC-13 G-8). **(r8, TC-10 G-3)** No R1 homeowner screen shows the full reference or the screenshot: rows show "ref …{last 4}" for everyone, and the full number and screenshot appear on the treasurer's screens; the submitter's rule access exists for decision 8.
 
 ## Copy of record
 
@@ -308,6 +420,31 @@ Feature: Payments after a sale (decision 3, option b)
 | Error | We couldn't submit your payment. Nothing was saved. Try again. |
 | No QR | Online payment isn't set up yet. Pay at the admin office for now. |
 | Treasurer notification | {lot} submitted a payment of {amount}. |
+| All awaiting approval **(r8, G-4)** | {amount} is already awaiting approval. You don't need to pay it again. |
+| Typing restored **(r8, G-10)** | We kept what you typed. Attach the screenshot again. |
+| No longer linked **(r8, G-11)** | You're no longer linked to this lot, so this payment wasn't submitted. Contact the admin office. |
+| QR missing at submit **(r8, G-12)** | Online payment isn't set up right now. Nothing was saved. Pay at the admin office, or try again later. |
+
+## r8 gap answers (TC-10)
+
+Answers to QA's gaps in [TC-10](../test-cases/TC-10-submit-qr-payment-v1.md). One went to the owner (G-3, decision 8). Log: [GAP-ANSWERS-TC-05-11](../test-cases/GAP-ANSWERS-TC-05-11.md).
+
+| Gap | Answer | Where |
+|---|---|---|
+| G-1 Void reference message | Same dated "approved" message for the same lot; undated for another | r8 rules; scenario G-1 |
+| G-2 Reservation without a payment | Refused (undated), not repaired, reported | r8 rules; scenario G-2 |
+| G-3 Where the submitter sees the full number and screenshot | **Owner decision 8, approved**: no R1 screen; promise dropped | Owner decisions; Privacy note |
+| G-4 Pre-fill when all is awaiting | Empty, with "already awaiting approval"; no "don't owe" line | r8 rules; copy; scenario G-4 |
+| G-5 Approvals badge live? | REQ-012's to say; this REQ now asserts only that Approvals lists it and the bell is live | Scenario "Submit a payment" (changed) |
+| G-6 15 MB | 15,728,640 bytes, inclusive | r8 rules; outline G-6 |
+| G-7 Comma, ₱, spaces | Accepted through the shared parser | r8 rules; outline G-7 |
+| G-8 Exactly 90 days | Accepted; 91 refused | r8 rules; outline |
+| G-9 Reference length | Counted after normalising; 60 typed characters at most | r8 rules; outline |
+| G-10 Tab unloaded | Amount, reference, date restored from `sessionStorage`; screenshot asked again | r8 rules; copy; scenario G-10 |
+| G-11 Removed after opening | Own message | Copy; scenario G-11 |
+| G-12 QR config missing at submit | Refused with its own message | Copy; scenario G-12 |
+| G-13 Treasurer submits for her own lot | Not notified of her own payment | r8 rules; scenario G-13 |
+| G-14 Removed owner's screenshots | No route, and no access from r8 (TC-04-L5, S3 BA) | Data changes; scenario G-14 |
 
 ## Out of scope
 
@@ -322,7 +459,7 @@ Feature: Payments after a sale (decision 3, option b)
 
 | Question | Who decides |
 |---|---|
-| Confirm decision 3 option (b), including a removed owner keeping access to their own screenshots (P1) | DPO |
+| Confirm decision 3 option (b) (P1), and decision 7 (r8) | DPO |
 | How long are payment screenshots kept? (SA-001 Q10) | DPO with the treasurer |
 | **Before build:** do e-wallet and bank reference numbers ever repeat across providers? If yes, the key becomes `{provider}_{ref}` and the form gains a provider field | Treasurer (from the collection account's statements) |
 | For S3: receipts (REQ-013) carry the payer's name and need the same "before you joined" treatment; rejection deletes `paymentRefs`, a void doesn't (REQ-012, REQ-014) | S3 BA and Sol Arch |

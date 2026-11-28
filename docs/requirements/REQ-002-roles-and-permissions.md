@@ -10,7 +10,7 @@
 | Architecture | SA-001 §8.1 and ADR-004, Draft on branch `docs/sa-001-architecture`. Sol Arch recommends revising both (see its review) |
 | Depends on | REQ-001 |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch's corrections applied; removal promise made an owner decision; R1 admin menu depends on D4 | · r3, 2026-11-28: owner approval recorded; recommendations accepted
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch's corrections applied; removal promise made an owner decision; R1 admin menu depends on D4 · r3, 2026-11-28: owner approval recorded; recommendations accepted · r4, 2026-11-28: R1 menus gain Activity log (REQ-006) and Collections (REQ-008), answering TC-06 G-1 and TC-08 G-1; board gains Announcements (read-only) for the S3 BA (TC-16 G-8) |
 
 ## Owner decisions
 
@@ -38,7 +38,7 @@ A **staff role** is held by a few people (SA-001: a custom claim set by a Cloud 
 | Board member (`board`) | Elected directors | Dashboard, Accounting, Collections & Notices, Reports, Announcements: **read-only** | Any change |
 | Guard (`guard`) | Security agency staff | Scan Pass, Visitors Inside, Today's Log (R4 only) | See households, balances or past ID photos. Whether a guard sees the homeowner's number on a pass is decided in the gate REQ: the mock-up tells guards to call the homeowner |
 
-Only menus for released features appear. **In R1:** Homeowner: Dashboard, Dues & Payments, Announcements. Treasurer: Dashboard, Approvals (payments), Homeowners, Announcements, Settings. Admin office: the same without Approvals unless D4 lets them approve payments. Board: Dashboard (Reports and Accounting arrive in R2).
+Only menus for released features appear. **In R1:** Homeowner: Dashboard, Dues & Payments, Announcements. Treasurer: Dashboard, Approvals (payments), Homeowners, Announcements, Settings. Admin office: the same without Approvals unless D4 lets them approve payments. Board: Dashboard (Reports and Accounting arrive in R2). **(r4, from approved REQ-006 and REQ-008; TC-06 G-1, TC-08 G-1)** Board in R1: Dashboard, Collections (the Monthly billing card, read-only), Announcements (read-only, from S3, REQ-016; S3 BA, TC-16 G-8), Activity log. Treasurer and admin office: "Activity log" after Settings; treasurer: Collections after Approvals. Admin office: no Collections in R1 (REQ-008).
 
 ## Options
 
@@ -80,7 +80,7 @@ Feature: Roles and permissions
       | member of Blk 4 Lot 12 | Dues & Payments | Homeowners |
       | the admin role         | Homeowners      | Accounting |
       | the treasurer role     | Approvals       | Scan Pass  |
-      | the board role         | Dashboard       | Homeowners |
+      | the board role         | Activity log    | Homeowners |
 
   Scenario: A refused action is refused by the server, not only hidden
     Given a board member is signed in

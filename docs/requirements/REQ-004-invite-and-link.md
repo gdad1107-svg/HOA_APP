@@ -10,7 +10,7 @@
 | Architecture | SA-001 §8.1 (household linking), ADR-004 and ADR-002 (email), Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-001, REQ-003 |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch's corrections applied (codes stored hashed, per-account guess limit, queued not sent); expiry, bounces, D3 and sale privacy listed as owner decisions | · r3, 2026-11-28: owner approval recorded; recommendations accepted
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch's corrections applied (codes stored hashed, per-account guess limit, queued not sent); expiry, bounces, D3 and sale privacy listed as owner decisions · r3, 2026-11-28: owner approval recorded; recommendations accepted · r4, 2026-11-28: `redeemInvite` and `removeMember` also keep `memberOf/{uid}` (requested by the S3 BA, TC-16 G-13 and TC-13 G-7; REQ-016) |
 
 ## Owner decisions
 
@@ -190,6 +190,9 @@ Feature: Linking an account to a lot
 | Invitation email | `mail` queue (ADR-002) | Code removed after hand-off; status queued / sent / failed, never "delivered" | `createInvites` | Mail function; directory |
 | Invitation expiry settings | settings (SA to name) | Days for email and for print | Treasurer, in Settings | `createInvites` |
 | Change records | `auditLog` | Every invite, replacement, cancellation, redemption and removal; ids only | Functions | Board, treasurer |
+| **(r4)** Household membership index | `memberOf/{uid}` `{householdIds}` (REQ-016) | `redeemInvite` adds the household id **in the same transaction** as the `members` record; `removeMember` removes it in the same transaction as the delete (the document is deleted when the list is empty). Server-written only. People linked before this ships get it from REQ-016's one-off back-fill script, with a count check before the rules that use it are deployed | `redeemInvite`, `removeMember` | Rules (announcements, `config/features`, REQ-015 to REQ-017) |
+
+**(r4) After a sale:** if REQ-013 decision 8 (a) is approved, the office's process is to update the owner on file (REQ-003) before inviting the new owner, so receipts name the right person (S3 BA, TC-13 G-7).
 
 The email link carries the code after `#`, so it never reaches server logs. Clients never read `invites`, `inviteAttempts` or `mail` except staff reading invitations by household.
 

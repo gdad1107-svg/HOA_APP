@@ -10,11 +10,11 @@
 | Architecture | SA-001 §3 (`decidePayment`), §4.2 (`payments`, `receipts`, `paymentRefs`, `counters/or`), §4.3 Flow 1, §4.4 item 2, §8.1, R-2, R-12, R-16; CODING-STANDARDS rules 5, 9, 12. Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-002 (treasurer role), REQ-006 (activity log), REQ-010 (submitted payments), REQ-011 (notifications) |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (repeat-check order, one notification per member, `kind` check, `pendingCentavos` and credit, partial-payment, stale-screen, role-removed and deactivated-household scenarios, one-treasurer fallback as decision 7, screenshot access aligned); change 4 not applied, see note · r4, 2026-11-28: owner approval recorded; recommendations accepted · r5, 2026-11-28: Sol Arch's change 4 applied after the owner decided "Sol Arch: at submission": the receipt's "Received from" is copied from the payment, not the household at approval; sale-while-pending scenario added · r6, 2026-11-28: reference reservation aligned to REQ-010: deleted on rejection (not marked "released"), never on void |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (repeat-check order, one notification per member, `kind` check, `pendingCentavos` and credit, partial-payment, stale-screen, role-removed and deactivated-household scenarios, one-treasurer fallback as decision 7, screenshot access aligned); change 4 not applied, see note · r4, 2026-11-28: owner approval recorded; recommendations accepted · r5, 2026-11-28: Sol Arch's change 4 applied after the owner decided "Sol Arch: at submission": the receipt's "Received from" is copied from the payment, not the household at approval; sale-while-pending scenario added · r6, 2026-11-28: reference reservation aligned to REQ-010: deleted on rejection (not marked "released"), never on void · r7, 2026-11-28: answers TC-12 gaps G-1 to G-18 (and TC-14 G-9 for approval): no per-bill paid amounts (household paid total and `openBills` only, REQ-009 r3); reason on the payment summary; notification copy aligned to REQ-011's catalogue, with a variant for people who joined after the payment; "Submitted by mistake" reason; conflict, closed-month, load-failure, reject-failure, changed-since-opened, role-removed, submitter and non-pending copy; badge, reference display, "Balance now", next-payment and working-day rules · r8, 2026-11-28: decision 7 approved as (a) (owner: "Approve all"); own-household waiting scenario added; the review shows "Received from on the receipt" (REQ-013 decision 8 (a)) |
 
 ## Owner decisions
 
-Approved by the owner on 2026-11-28 ("Approve all as shown"): every recommendation in the right-hand column is accepted. Decision 7 was added afterwards from Sol Arch's review and is still open. Questions for the HOA board, the accountant or the Data Protection Officer under Open questions stay open.
+Approved by the owner on 2026-11-28 ("Approve all as shown"): every recommendation in the right-hand column is accepted. Decision 7 was added afterwards from Sol Arch's review and approved as recommended, (a), on 2026-11-28 ("Approve all"). Questions for the HOA board, the accountant or the Data Protection Officer under Open questions stay open.
 
 | # | Decision | Approved |
 |---|---|---|
@@ -24,7 +24,7 @@ Approved by the owner on 2026-11-28 ("Approve all as shown"): every recommendati
 | 4 | The amount on the screenshot or in the collection account differs from what the homeowner typed. Approve the real amount, or reject | **Reject in R1** with "Amount does not match the screenshot"; the homeowner submits again with the right amount. Approving a corrected amount is about +0.5 day; revisit if more than 1 in 10 rejections are for amount |
 | 5 | After a rejection, may the homeowner submit **the same reference number** again? REQ-010 reserves each reference number | **Yes.** A rejection frees the reference number (a typo in the amount should not lock the homeowner out). A void (REQ-014) does not |
 | 6 | **Privacy after a sale** (REQ-004 decision 5, SA-001 R-16): who can see a payment screenshot | **Only the person who uploaded it, and treasurer-role holders**, under REQ-010 decision 3 option (b). Other household members see the payment's status, amount and receipt, not the screenshot. Admin office staff don't approve in R1, so they get no access (Sol Arch change 8). Repeated here because this screen shows screenshots |
-| 7 | *Open, added after approval (Sol Arch change 7).* With only one treasurer, decision 3 means their own household's payments can never be approved | **Open.** Recommended **(a)**: the payment waits for a second treasurer, and the board names one before go-live (this follows from decisions 2 and 3). Alternative (b): self-approval allowed, marked in the activity log and notified in-app to every board member |
+| 7 | *Added after approval (Sol Arch change 7).* With only one treasurer, decision 3 means their own household's payments can never be approved | **(a)**, approved 2026-11-28 ("Approve all"): the payment waits for a second treasurer, and the board names one before go-live (this follows from decisions 2 and 3). Not chosen: (b) self-approval allowed, marked in the activity log and notified in-app to every board member |
 
 ## Problem
 
@@ -77,6 +77,32 @@ Feature: Payment approval
     Then the menu badge reads "3"
     And the payments are listed oldest first, each with the lot, amount, reference number and date submitted
 
+  Scenario: The badge counts every pending payment and refreshes after each decision (G-9)
+    Given 3 payments are pending, one of them from Liza's own household, Blk 9 Lot 3
+    When the treasurer Liza Santos opens the portal
+    Then the menu badge reads "3", the same number as the list
+    When she approves one of the other two
+    Then the badge reads "2" without a reload
+
+  Scenario: The reference number is shown as the homeowner typed it (G-10)
+    Given Carlo typed the reference "4012 8832 1955 4"
+    When the treasurer opens his payment
+    Then the reference reads "4012 8832 1955 4"
+    And pressing "Copy" next to it copies "4012883219554"
+
+  Scenario: The review shows the balance now and any other money waiting (G-12)
+    Given Blk 2 Lot 7's balance is ₱3,600.00
+    And besides Carlo's ₱1,800.00, another ₱1,000.00 from the lot is pending approval
+    When the treasurer opens Carlo's payment
+    Then "Balance now" reads "₱3,600.00"
+    And "Also awaiting approval from this lot" reads "₱1,000.00"
+
+  Scenario: The list can't load (G-11)
+    Given the connection is lost
+    When the treasurer opens Approvals
+    Then they see "Couldn't load the payments. Check your connection and try again." with "Try again"
+    And no "All payments are reviewed" message is shown
+
   Scenario: Approve a payment
     When the treasurer opens Carlo's payment, views the screenshot and presses "Approve"
     Then the button reads "Approving…" and is disabled until the save finishes
@@ -84,8 +110,28 @@ Feature: Payment approval
     And the next pending payment opens
     And Carlo's payment history shows ₱1,800.00 "Approved" with OR-00093
     And Carlo's balance reads ₱0.00
-    And the bell of every member linked to Blk 2 Lot 7 shows "Payment approved: ₱1,800.00, OR-00093"
+    And the bell of every member linked to Blk 2 Lot 7 shows "Payment approved: ₱1,800.00 (ref …9554). Receipt OR-00093 is being prepared."
     And the activity log records who approved it, the receipt number and when
+
+  Scenario: "Approve and next" skips payments the treasurer can't decide (G-13)
+    Given after Carlo's payment the oldest pending payments are one from Blk 9 Lot 3, Liza's own household, and then one from Blk 6 Lot 4
+    When Liza approves Carlo's payment
+    Then the Blk 6 Lot 4 payment opens
+    When she decides that one and only Blk 9 Lot 3's payment is left
+    Then the list opens, showing Blk 9 Lot 3's payment marked "Needs another treasurer"
+
+  Scenario: A member who joined after the payment gets a notice without its details (G-4)
+    Given Carlo submitted his payment on Nov 27, 2026
+    And Ben Cruz was linked to Blk 2 Lot 7 on Nov 28, 2026, before the approval
+    When the treasurer approves the payment as OR-00093
+    Then Ben's bell shows "A payment of ₱1,800.00 made before you joined was approved. Your balance is updated."
+    And Ben gets no "Receipt ready" notification for OR-00093
+    And Carlo's bell shows the usual approval text with "ref …9554"
+
+  Scenario: Nobody who joined after a payment is told it was rejected (G-4)
+    Given Ben was linked to Blk 2 Lot 7 after Carlo submitted his payment
+    When the treasurer rejects Carlo's payment
+    Then Ben's bell gets no notification for it
 
   Scenario: A partial payment is applied to the oldest bill
     Given Roberto of Blk 6 Lot 4 owes October and November 2026 at ₱1,800.00 each
@@ -122,6 +168,31 @@ Feature: Payment approval
     Then he sees "This payment was rejected by Liza Santos while you had it open. Nothing was changed."
     And no receipt number is issued
 
+  Scenario: A payment voided while it was open (G-6)
+    Given Mark opened Carlo's payment from the payment history after it was approved as OR-00093
+    And Liza voided OR-00093 while Mark's screen still showed an old "Approve" button
+    When Mark's browser asks the server to approve it
+    Then he sees "This payment was approved and then voided by Liza Santos. Nothing was changed."
+    And no receipt number is issued
+
+  Scenario: The payment changed since it was opened (G-15)
+    Given the payment record changed after the treasurer opened it, but is still pending
+    When they press "Approve"
+    Then they see "This payment changed since you opened it. Check it again, then decide." and the review reloads
+    And nothing is approved and no receipt number is issued
+
+  Scenario: Approving at the moment a month closes (G-8)
+    Given November 2026 was closed at 00:00 on Dec 1, 2026 while an approval started on Nov 30 was being saved
+    Then the approval is refused with "Couldn't approve. The month has just closed. Try again."
+    And no receipt number is issued
+    When the treasurer presses "Approve" again
+    Then it is approved and counts in December 2026
+
+  Scenario: Rejecting is not affected by a closed month (G-8)
+    Given November 2026 is closed
+    When the treasurer rejects a payment on Dec 1, 2026
+    Then it is rejected as usual
+
   Scenario: Receipt numbers have no gaps
     Given 200 payments are approved by two treasurers over a month, some at the same moment
     Then the receipt numbers run from OR-00093 to OR-00292 with none skipped or repeated
@@ -137,10 +208,24 @@ Feature: Payment approval
     Then "Reject payment" stays disabled until a reason is picked or typed
     When they pick "Amount does not match the screenshot" and press "Reject payment"
     Then Carlo's payment history shows "Rejected: Amount does not match the screenshot"
+    And his wife Elena, also linked to Blk 2 Lot 7, sees the same "Rejected: Amount does not match the screenshot" in her payment history
     And his balance still reads ₱1,800.00
-    And the bell of every member linked to Blk 2 Lot 7 shows "Payment not approved: ₱1,800.00. Reason: Amount does not match the screenshot. Please submit it again."
+    And the bell of every member linked to Blk 2 Lot 7 shows "Payment of ₱1,800.00 (ref …9554) wasn't approved: Amount does not match the screenshot"
     And Carlo's "awaiting approval" amount goes down by ₱1,800.00
     And no receipt number is used
+
+  Scenario: A payment submitted by mistake (G-14, REQ-010 decision 4)
+    Given Carlo asked the office to cancel a payment he submitted twice by mistake
+    When the treasurer rejects it with the reason "Submitted by mistake"
+    Then his payment history shows "Rejected: Submitted by mistake"
+    And its reference number can be submitted again
+
+  Scenario: The rejection can't be saved (G-11)
+    Given the treasurer picked a reason and the connection is lost
+    When they press "Reject payment"
+    Then they see "Couldn't save. Nothing was rejected. Check your connection and try again."
+    And the dialog stays open with the reason still picked or typed
+    And the payment is still pending
 
   Scenario: Other reason, typed
     When the treasurer picks "Other" and leaves the box empty
@@ -166,24 +251,51 @@ Feature: Payment approval
     And she sees "This is your own household's payment. Another treasurer must decide it."
     And if her browser sends the approval anyway, the server refuses it
 
+  Scenario: A treasurer can't decide a payment they submitted (TC-14 G-9)
+    Given Mark submitted a payment for Blk 4 Lot 1 while he was a member, and was later removed from the lot
+    When he opens that payment as treasurer
+    Then "Approve" and "Reject" are not shown
+    And he sees "You submitted this payment. Another treasurer must decide it."
+
+  Scenario: The treasurer's own household's payment waits for another treasurer (decision 7 (a))
+    Given Liza Santos is the only person with the treasurer role and a member of Blk 9 Lot 3
+    When a payment from Blk 9 Lot 3 is submitted
+    Then it stays pending until a second treasurer decides it
+    And no self-approval is possible
+
   Scenario: The treasurer's own household's payment waits too long (decision 7)
     Given a payment from Blk 9 Lot 3, Liza's own household, has been pending for more than 2 working days
     When any treasurer opens Approvals
     Then that payment is marked "Needs another treasurer" in the list
 
+  Scenario: Working days are Monday to Friday, Manila time (G-16)
+    Given a payment from Liza's own household was submitted at 4:00 PM on Friday, Dec 4, 2026, Manila time
+    Then it is not marked "Needs another treasurer" on Tuesday, Dec 8, 2026
+    And it is marked from 12:00 AM on Wednesday, Dec 9, 2026
+
   Scenario: The treasurer role is removed while a payment is open
     Given Mark's treasurer role was removed while he had Carlo's payment open
     When he presses "Approve"
     Then it is refused, nothing changes and no receipt number is issued
+    And he sees "You no longer have the treasurer role, so nothing was changed." (G-17)
+    And within a minute the Approvals page changes to "You don't have access to this page" (REQ-002)
+
+  Scenario: Opening a payment that is no longer pending (G-18)
+    Given OR-00093 was approved by Liza Santos on Nov 28, 2026
+    When a treasurer opens its review address from a bookmark or a notification
+    Then they see the payment read-only with "Approved · OR-00093 · by Liza Santos on Nov 28, 2026"
+    And "Approve" and "Reject" are not shown
+    And "Back to payments to approve" returns to the list
 
   Scenario: A payment from a deactivated household
     Given Blk 2 Lot 7 was deactivated after Carlo submitted his payment
     When the treasurer approves it
     Then it is approved as usual and a receipt number is issued, because the money arrived
 
-  Scenario: Only dues payments in R1
+  Scenario: Only dues payments in R1 (G-7)
     Given a payment record whose kind is not dues
-    When the treasurer's browser asks the server to approve it
+    Then it is not listed under Approvals
+    When the treasurer's browser asks the server to approve or to reject it
     Then it is refused and nothing changes
 
   Scenario: Admin office staff can't approve payments
@@ -217,18 +329,31 @@ Feature: Payment approval
 
 | What | Where | Rule | Written by | Read by |
 |---|---|---|---|---|
-| Payment decision: status (`approved` / `rejected`), `orNo`, `decidedBy`, `decidedByName` (copied at the decision, for the conflict message), `decidedAt`, `reason` | `payments/{id}` | Changed only from `pending`; refused if the payment changed since the screen loaded (`seenUpdatedAt`); refused if the caller does not hold the treasurer role (claim **and** `staff/{uid}`, read in the transaction), is a member of the payment's household, or is its submitter; refused if `kind` isn't `dues` (R1, REQ-010 decision 6). A payment from a deactivated household (REQ-003) is still decided as usual | `decidePayment` | Treasurer; the household (status, amount, receipt, reason) |
+| Payment decision: status (`approved` / `rejected`), `orNo`, `decidedBy`, `decidedByName` (copied at the decision, for the conflict message), `decidedAt`, `reason`, `updatedAt` | `payments/{id}` (the household-readable summary) | Changed only from `pending`; refused if the payment changed since the screen loaded (`seenUpdatedAt`); refused if the caller does not hold the treasurer role (claim **and** `staff/{uid}`, read in the transaction), is a member of the payment's household, or is its submitter; refused, for approve **and** reject, if `kind` isn't `dues` (R1, REQ-010 decision 6; the queue lists only `kind == 'dues'`, so such a record is a data error for the developer, G-7). A payment from a deactivated household (REQ-003) is still decided as usual. **The rejection reason lives here, not in `paymentPrivate`** (G-1): every linked member already receives it in the notification, and the spouse's history must show "Rejected: {reason}". The screen hides it on "Made before you joined" rows (REQ-010 decision 3 (b)). `updatedAt` is set to the server time by every function that writes the payment (`submitPayment`, `decidePayment`, `voidReceipt`, the receipt-file status mirror) | `decidePayment` | Treasurer; the household (status, amount, receipt, reason) |
 | Receipt record: number, payment, household, amount, payment date, issue date, received-from name, lines applied (snapshot), balance after (snapshot), approved by | `receipts/{orNo}` | Created in the same transaction as the approval; never edited except by a void (REQ-014). The snapshot is what REQ-013 prints. Received-from name: copied from the payment's `paymentPrivate.receivedFromName`, which `submitPayment` took from the owner on file **at submission** (REQ-013 decision 6, REQ-010), never from the household at approval | `decidePayment` | REQ-013 (staff and functions only) |
 | Receipt counter and series | `counters/or` (`prefix`, `next`, `width`, optional `rangeEnd`, REQ-013 decision 3) | Next number taken inside the approval transaction; never decremented; refused past `rangeEnd` | `decidePayment`; series set once by a developer script | Same |
 | Reference number reservation | `paymentRefs/{normalisedRef}` `{paymentId, householdId}`, no status (REQ-010) | **Freed on rejection** (decision 5, matching REQ-010 decision 2): the record is **deleted** in the same transaction, only if it still points at this payment. Kept unchanged on approval and **never deleted on void** (REQ-014) | `decidePayment` | `submitPayment` (REQ-010) |
-| Bills | each open bill's `paidCentavos` (REQ-009) | The household's bills with an amount owing are read oldest first in the transaction; `allocate(amount, openBills)` from `shared/domain/ledger.js` sets what each changed bill has paid | `decidePayment` | REQ-009, REQ-015 |
-| Household totals | `households/{id}` `paidCentavos`, `balanceCentavos`, `pendingCentavos`, `openBills` (REQ-015) | Updated in the approval transaction using the shared oldest-bill-first rule. `pendingCentavos` goes down by the amount on approve **and** on reject. **Credit** is a negative `balanceCentavos`, shown as "₱0.00" plus "₱x credit" (REQ-013 decision 4). Overdue figures are worked out when read (C4), not stored | `decidePayment` | REQ-009, REQ-015 |
-| Monthly totals | `monthlyTotals/{period}` (approval date, Asia/Manila) | Dues collected. Refused with "Try again" if the period is closed (no build cost: the document is read anyway) | `decidePayment` | R2 reports |
-| Notification | `notifications` (REQ-011) | **One per linked member** of the payment's household (REQ-011 decision 2), written in the same transaction | `decidePayment` | Homeowner bell |
+| Bills | **Read only, never written** (r7, G-2; REQ-009 r3, Sol Arch's S2 design) | No per-bill paid amount is stored. The transaction reads all the household's bills oldest first (bounded, about 60 for a five-year-old lot, REQ-009) and runs the shared oldest-bill-first rule in `shared/domain/ledger.js` twice, with the household's paid total before and after this payment; the difference is the receipt's `lines[]` (what this payment covered, then "Advance payment (credit)" for anything beyond the open bills) | — | `decidePayment` |
+| Household totals | `households/{id}` `paidCentavos`, `balanceCentavos`, `pendingCentavos`, `openBills` (REQ-015) | **Approve** (dues): `paidCentavos` up by the amount; `balanceCentavos` and the `openBills` summary recalculated from the bills and the new paid total, in the same transaction. **Reject:** `pendingCentavos` down by the amount, nothing else. `pendingCentavos` goes down by the amount on approve **and** on reject. **Credit** is a negative `balanceCentavos`. Each screen shows it in its own copy of record (G-5): the statement summary "₱1,200.00 credit" (REQ-009), the dashboard tile "₱0.00" with "₱1,200.00 credit" (REQ-015), the receipt "₱x credit" (REQ-013). Overdue figures are worked out when read (C4), not stored | `decidePayment` | REQ-009, REQ-015 |
+| Monthly totals | `monthlyTotals/{period}` (approval date, Asia/Manila) | Dues collected. An **approval** is refused with "Couldn't approve. The month has just closed. Try again." if the period is closed (no build cost: the document is read anyway); the retry lands in the new month. A **rejection** writes no monthly total and skips the check (G-8) | `decidePayment` | R2 reports |
+| Notification | `notifications` (REQ-011) | **One per linked member** of the payment's household (REQ-011 decision 2), written in the same transaction, in REQ-011's catalogue wording. **Members linked after the payment was submitted** (`members.linkedAt` later than `submittedAt`, REQ-010 decision 3 (b)) get the "made before you joined" approval text with no reference and no receipt number, and no rejection notice at all (G-4) | `decidePayment` | Homeowner bell |
 | Payment screenshot | Storage (REQ-010 owns the rule) | Readable only by the person who uploaded it and treasurer-role holders (decision 6) | `submitPayment` | Treasurer review screen |
 | Activity log | `auditLog` (REQ-006) | `payment.approved` / `payment.rejected`, ids and receipt number only, no names; the rejection reason stays on the payment, never in the log | `decidePayment` | Board, treasurer |
 
-The function checks in this order, so a retry after a dropped connection works: (1) the caller holds the treasurer role and is neither a member of the household nor the submitter, otherwise refuse; (2) the payment already carries this caller's same decision: return the existing result (for an approval, the original `orNo`) and write nothing; (3) the status isn't `pending`: return a conflict with the status and `decidedByName`; (4) `updatedAt` differs from `seenUpdatedAt`: refuse as "changed since you opened it"; (5) decide. Money in centavos throughout.
+The function checks in this order, so a retry after a dropped connection works: (1) the caller holds the treasurer role and is neither a member of the household nor the submitter, otherwise refuse; (2) the payment already carries this caller's same decision: return the existing result (for an approval, the original `orNo`) and write nothing; (3) the status isn't `pending`: return a conflict with the status and `decidedByName` (or, for `voided`, `voidedByName`); (4) `updatedAt` differs from `seenUpdatedAt`: refuse as "changed since you opened it"; (5) decide. Money in centavos throughout.
+
+**What can change a pending payment between load and decision (G-15):** in R1, only a decision itself (by another treasurer, caught by check 3). Check 4 is a guard for later writers (for example REQ-031's amenity fees or a future withdraw action). QA tests it by seeding a changed `updatedAt` in the emulator.
+
+## Clarifications from the test plan (r7, TC-12)
+
+- **Menu badge (G-9):** the number of pending dues payments, **including** the treasurer's own household's (they also need action: chasing another treasurer), so it always equals the length of the list. It is a count query run when the staff menu loads, on each page change and after each decision; it is not a live listener.
+- **Reference number (G-10):** shown as the homeowner typed it, because that is how it appears on their screenshot beside it; a "Copy" button copies the normalised form (no spaces or dashes), which pastes cleanly into the collection account's search.
+- **"Balance now" (G-12):** the lot's stored balance at the moment the review opens (`households.balanceCentavos`), labelled "Balance now"; when other payments from the same lot are pending, "Also awaiting approval from this lot: {amount}" (`pendingCentavos` minus this payment) shows under it. The treasurer then sees whether this payment would pay off more than is owed.
+- **"Approve and next" (G-13):** opens the oldest pending payment the treasurer **can** decide (skipping their own household's and those they submitted); when none is left, the list opens.
+- **Working days (G-16):** Monday to Friday, Asia/Manila. A payment is marked "Needs another treasurer" from 12:00 AM on the third working day after the day it was submitted. Public holidays are **not** excluded in R1 (no maintained holiday list); after a holiday the marker can appear a day early, which only prompts sooner. Sol Arch's 3-working-day alert uses the same helper.
+- **Role removed (G-17):** the server refusal shows "You no longer have the treasurer role, so nothing was changed." on the review; REQ-002's role change then replaces the page with the no-access page within a minute.
+- **A payment that is no longer pending (G-18):** the review route shows the payment read-only with its outcome line (approved, rejected or void, by whom and when, with the reason) and "Back to payments to approve". An approved payment shows REQ-014's "Void" here. An id that doesn't exist, or a payment of another kind, shows "This payment can't be found." with the same back link.
+- **"Submitted by mistake" (G-14):** added as a fourth reason in the reject dialog, so REQ-010 decision 4's withdrawal route needs no typing.
 
 ## UX/UI notes
 
@@ -248,18 +373,20 @@ The function checks in this order, so a retry after a dropped connection works: 
 |---|---|
 | Menu | Approvals (badge: number pending) |
 | Page heading | Payments to approve · Check each reference number in the collection account before you approve. |
-| Card | {lot} · {amount} · Ref {reference number} · Submitted {date} · Review |
-| Review details | Lot · Submitted by · Amount · Reference number · Date paid · Balance before this payment |
+| Card | {lot} · {amount} · Ref {reference number as typed} · Submitted {date} · Review |
+| Review details | Lot · Submitted by · Amount · Reference number (as typed) · Copy · Date paid · Received from on the receipt: {name} (REQ-013 decision 8) · Balance now · Also awaiting approval from this lot: {amount} (only when more than ₱0.00) |
 | Buttons | Approve · Reject · (in flight) Approving… · Rejecting… |
 | Approve toast | Approved. Receipt {OR no.} issued to {lot}. |
-| Reject dialog | Reject this payment? · Reason the homeowner will see · Reference number not found in the collection account · Amount does not match the screenshot · Screenshot is unreadable · Other · The homeowner sees this. Don't include other people's names or account numbers. · Cancel · Reject payment |
+| Reject dialog | Reject this payment? · Reason the homeowner will see · Reference number not found in the collection account · Amount does not match the screenshot · Screenshot is unreadable · Submitted by mistake · Other · The homeowner sees this. Don't include other people's names or account numbers. · Cancel · Reject payment |
 | Reject toast | Payment rejected. {lot} has been notified in the portal. |
 | Homeowner history | Rejected: {reason} |
-| Notifications | Payment approved: {amount}, {OR no.} · Payment not approved: {amount}. Reason: {reason}. Please submit it again. |
-| Conflict | This payment was already approved by {name}. Nothing was changed. · This payment was rejected by {name} while you had it open. Nothing was changed. · You already approved this payment as {OR no.}. Nothing was changed. |
-| Own household | This is your own household's payment. Another treasurer must decide it. · (queue marker) Needs another treasurer |
+| Notifications (REQ-011's catalogue is the copy of record) | Payment approved: {amount} (ref …{last 4}). Receipt {OR no.} is being prepared. · Payment of {amount} (ref …{last 4}) wasn't approved: {reason} · (members linked after the payment was submitted, approval only) A payment of {amount} made before you joined was approved. Your balance is updated. |
+| Conflict | This payment was already approved by {name}. Nothing was changed. · This payment was rejected by {name} while you had it open. Nothing was changed. · You already approved this payment as {OR no.}. Nothing was changed. · This payment was approved and then voided by {name}. Nothing was changed. · This payment changed since you opened it. Check it again, then decide. |
+| Own household / submitter | This is your own household's payment. Another treasurer must decide it. · You submitted this payment. Another treasurer must decide it. · (queue marker) Needs another treasurer |
+| Role removed | You no longer have the treasurer role, so nothing was changed. |
+| Not pending (read-only review) | Approved · {OR no.} · by {name} on {date} · Rejected by {name} on {date}: {reason} · Void · {OR no.} · by {name} on {date}: {reason} · Back to payments to approve · This payment can't be found. |
 | Empty | All payments are reviewed. New ones appear here as homeowners submit them. |
-| Errors | Couldn't load the screenshot. Try again. · Couldn't save. Nothing was approved. Check your connection and try again. |
+| Errors | Couldn't load the payments. Check your connection and try again. · Try again · Couldn't load the screenshot. Try again. · Couldn't save. Nothing was approved. Check your connection and try again. · Couldn't save. Nothing was rejected. Check your connection and try again. · (closed month) Couldn't approve. The month has just closed. Try again. |
 
 "Has been notified in the portal" is true because the notification is written in the same transaction. It does not claim the homeowner read it.
 
@@ -276,8 +403,7 @@ The function checks in this order, so a retry after a dropped connection works: 
 
 | Question | Who decides |
 |---|---|
-| Decision 7 (one-treasurer fallback), added after approval | Owner |
-| Who is the second treasurer-role holder (decision 2)? Needed before go-live under decision 7 (a) | HOA board |
+| Who is the second treasurer-role holder (decision 2)? **Needed before go-live** under decision 7 (a), approved | HOA board |
 | Who is the HOA's Data Protection Officer, to confirm decision 6? | HOA board |
 | How long are payment screenshots kept after approval? (SA-001 Q10) | HOA board, with the Data Protection Officer |
 | The receipt series' prefix and first number, for the developer script (REQ-013 decision 3): the last number of any paper booklet | Treasurer, in writing |
@@ -340,7 +466,7 @@ The function checks in this order, so a retry after a dropped connection works: 
 | | Documents |
 |---|---|
 | Reads | `payments/{id}`, `staff/{uid}`, `members/{hh}_{uid}`, `households/{hh}`, `counters/or`, the open bills (query), `monthlyTotals/{period}`, `paymentRefs/{ref}`, the household's `members` (who to notify), `config/settings` |
-| Writes | Payment; `receipts/{orNo}`; `counters/or`; household (`paidCentavos`, `balanceCentavos`, `pendingCentavos` minus the amount, credit); changed bills; `monthlyTotals/{period}.duesCentavos`; `paymentRefs` (on reject); one notification per linked member; `auditLog` |
+| Writes | Payment; `receipts/{orNo}`; `counters/or`; household (`paidCentavos`, `balanceCentavos`, `pendingCentavos` minus the amount, credit); changed bills; `monthlyTotals/{period}.duesCentavos`; `paymentRefs` (on reject); one notification per linked member; `auditLog`. *BA, r7: "changed bills" is superseded: bills are read, never written (REQ-009 r3; Data changes)* |
 
 That is about 15–25 operations, far below Firestore's limit of 500 writes per transaction. The period is the approval date in Asia/Manila (REQ-023 decision 2). **Also refuse, with "Try again", if `monthlyTotals/{period}.closed` is true.** That document is read anyway, so the check is free, and it closes the race between an approval at 23:59 on the last day and a month closed at 00:00 (see the REQ-014 review). The counter is one document, which is fine at human pace (SA-001 Flow 1, point 1). It also holds the series settings (REQ-013 review, change 1).
 
@@ -360,6 +486,8 @@ That is about 15–25 operations, far below Firestore's limit of 500 writes per 
 8. **Who sees screenshots: the drafts disagree.** Decision 6 here says the uploader and the treasurer. REQ-010's data table says the uploader and staff. SA-001 §4.2 says the household, admin and treasurer. I recommend **the uploader and treasurer-role holders only**, because the admin office doesn't approve in R1 and so needs no access. REQ-010 owns the Storage rule. All three documents must say the same thing.
 9. **Add a scenario for a role removed while a payment is open.** "Given Mark's treasurer role was removed while Carlo's payment was open, When he presses Approve, Then it is refused and nothing changes" (REQ-002 decision 1, L-004).
 10. **Gap for the BA:** is a pending payment approved after its household was deactivated (REQ-003)? I recommend yes, because the money arrived. Say so in a scenario or under Out of scope.
+
+**BA, r7:** answer 4's per-bill `paidCentavos` is superseded by Sol Arch's S2 answer in REQ-009 r3 (all bills plus one stored paid total, no per-bill paid amounts). Data changes now say so (TC-12 G-2).
 
 **BA, r3 and r5: how the changes were applied.** All ten changes are applied in the scenarios, Data changes, UX notes and copy. Change 4 follows the owner's decision "Sol Arch: at submission" (REQ-013 decision 6). Change 7 is decision 7, still open. Change 8 is now matched in REQ-010 (r6). Answer 2's `released` status is superseded by Sol Arch's S2 review of REQ-010: the reservation is deleted on rejection, never on void (r6).
 
