@@ -4,7 +4,7 @@
 |---|---|
 | Author | Sol Arch |
 | Date | 2026-11-28 |
-| Status | **Final — approved by the owner, 2026-11-28:** "APPROVED — FINAL: sizing reuse review, merge it". This approves the sizes and the proposed release plan total in this review. The REQ files, SA-001 §12 and RELEASE-PLAN.md are not edited by this review; carrying the new sizes into them is a separate change |
+| Status | **Final — approved by the owner, 2026-11-28:** "APPROVED — FINAL: sizing reuse review, merge it". This approves the sizes and the proposed release plan total in this review. Applied on 2026-11-28 on the owner's "Yes, apply them": §6 to RELEASE-PLAN.md and release-plan.html, §7 to SA-001 §12 (r4 note), §8 to REQ-001 to REQ-017 (a "Size with mock-up reuse" section in each). REQ-018 to REQ-046 are drafts and take theirs at their next revision |
 | Owner request | "ensure that when we plan for the effort of building the requirements, reuse what's already on the repo ex, the index html given that UI are mostly built already there" (2026-11-28) |
 | Rule applied | Sol Arch agent, "Sizing: reuse what is already in the repo"; `LEARNINGS.md` L-006 (both on `main` from `docs/sa-reuse-estimates`, `04f813f`) |
 | Baseline | `main` at `31daa84` |

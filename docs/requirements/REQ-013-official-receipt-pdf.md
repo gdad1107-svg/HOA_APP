@@ -10,7 +10,7 @@
 | Architecture | SA-001 §3 (receipt PDF function), §4.2 (`receipts`, Storage `receipts/{orNo}/issued.pdf` and `void.pdf`), §4.3 Flow 1 points 2 and 4, §8.2, R-1, R-16, Q4, Q12; CODING-STANDARDS rules 9, 12, 14. Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-012 (receipt record and snapshot), REQ-009 (statement, credit display), REQ-007 (HOA name, payee) |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (series in `counters/or` set by a developer script, optional `rangeEnd`, issued and void files kept separately, status read from the payment, sale rule by submission time, D5 "not a BIR receipt" branch, optional TIN and address); change 3 not applied, see note · r4, 2026-11-28: owner approval recorded; recommendations accepted, decision 3 as Sol Arch proposed · r5, 2026-11-28: decision 6 changed by the owner ("Sol Arch: at submission"): "Received from" is the owner on file when the payment is submitted; Sol Arch's change 3 applied, sale-while-pending scenario added |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (series in `counters/or` set by a developer script, optional `rangeEnd`, issued and void files kept separately, status read from the payment, sale rule by submission time, D5 "not a BIR receipt" branch, optional TIN and address); change 3 not applied, see note · r4, 2026-11-28: owner approval recorded; recommendations accepted, decision 3 as Sol Arch proposed · r5, 2026-11-28: decision 6 changed by the owner ("Sol Arch: at submission"): "Received from" is the owner on file when the payment is submitted; Sol Arch's change 3 applied, sale-while-pending scenario added · 2026-11-28: size re-done with mock-up reuse (REVIEW-sizing-reuse.md, owner approved) |
 
 ## Owner decisions
 
@@ -332,3 +332,10 @@ No personal data in the file name, the Storage path or the download address (SA-
 | Scale and cost | As above |
 | Dependencies | `pdf-lib`, `@pdf-lib/fontkit` and a font, all pinned and licence noted |
 | Observability | Failed-render alert, sweep job |
+
+#### Size with mock-up reuse (2026-11-28, replaces the size above)
+
+**2–3 person-days with Claude Code** (was 2.5–3.5). Re-sized under the owner's rule to reuse what is already in the repo (L-006), in [REVIEW-sizing-reuse.md](../architecture/REVIEW-sizing-reuse.md), approved by the owner on 2026-11-28 ("APPROVED — FINAL: sizing reuse review, merge it").
+
+- **Parts** (port UI · extend UI · new UI · back end · tests): 0.25 · 0.25 · 0 · 1–1.75 · 0.5–0.75
+- **Reuses:** Port: `receiptPDF()` 1049 layout and `inWords()` 1042 to the function, `orBtn()` 1033, payment history 633. Extend: receipt errors, several months, new owner (578–581). `allocation()` 1034 is rebuilt (L-002)

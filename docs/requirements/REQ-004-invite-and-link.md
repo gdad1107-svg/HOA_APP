@@ -350,3 +350,10 @@ Step 1 (codes, print slips, code entry, confirm, redeem, remove, rate limit, dir
 #### Sources (fetched 2026-11-28)
 
 [Auth limits (100 accounts/hour per IP)](https://firebase.google.com/docs/auth/limits) · [Transaction data contention (pessimistic locking on server libraries)](https://firebase.google.com/docs/firestore/transaction-data-contention) · [Transactions](https://firebase.google.com/docs/firestore/manage-data/transactions)
+
+#### Size with mock-up reuse (2026-11-28, replaces the size above)
+
+**5.75–7.75 person-days with Claude Code** (was 6–8 (step 1 4–5 + step 2 2–3)). Re-sized under the owner's rule to reuse what is already in the repo (L-006), in [REVIEW-sizing-reuse.md](../architecture/REVIEW-sizing-reuse.md), approved by the owner on 2026-11-28 ("APPROVED — FINAL: sizing reuse review, merge it").
+
+- **Parts** (port UI · extend UI · new UI · back end · tests): 0 · 0.25 · 1–1.25 · 3.5–4.75 · 1–1.5
+- **Reuses:** Extend: an invite status column in `aHo()` 760, invitations in `hoDetail` 1383. New: code entry, confirm lot, code errors, printed slips, invite many (drawn 557–565). BE includes the shared mail function (about 1.5)

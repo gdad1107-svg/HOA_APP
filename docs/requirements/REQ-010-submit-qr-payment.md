@@ -10,7 +10,7 @@
 | Architecture | SA-001 Flow 1 (`submitPayment`, `paymentRefs`, Storage `proofs/{householdId}/{paymentId}.jpg`), §4.3 point 5 ("submitted for checking", not "paid"), R-16 (sale privacy), CODING-STANDARDS rules 5 and 12; Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-007 (QR and payee), REQ-009 (statement and payment list), REQ-011 (notifications), REQ-006 (activity log) |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft. r2, 2026-11-28: reconciled with REQ-031 (conflict C2): every payment carries a `kind` (always `dues` in R1) so REQ-031 can add amenity-fee payments without changing this flow; REQ-031 owns that extension · r3, 2026-11-28: Sol Arch review recorded · r4, 2026-11-28: Sol Arch's changes applied (`payments` / `paymentPrivate` split, Storage `uploaderUid` metadata, `paymentRefs` without status and deleted on rejection, client-made payment id with retry returning success, no dated duplicate message across households, server validation, `qrUploadId`, notification ids, HEIC fallback, orphan clean-up, inactive lot refused) · r5, 2026-11-28: owner approval recorded; recommendations accepted · r6, 2026-11-28: screenshots readable by the uploader and treasurer-role holders only, not all staff, to match approved REQ-012 #6 (raised by the S3 BA) · r7, 2026-11-28: `paymentPrivate` gains `receivedFromName`, the owner on file copied at submission, for the receipt's "Received from" (owner: "Sol Arch: at submission", REQ-013 decision 6) |
+| Revision | r1, 2026-11-28: first draft. r2, 2026-11-28: reconciled with REQ-031 (conflict C2): every payment carries a `kind` (always `dues` in R1) so REQ-031 can add amenity-fee payments without changing this flow; REQ-031 owns that extension · r3, 2026-11-28: Sol Arch review recorded · r4, 2026-11-28: Sol Arch's changes applied (`payments` / `paymentPrivate` split, Storage `uploaderUid` metadata, `paymentRefs` without status and deleted on rejection, client-made payment id with retry returning success, no dated duplicate message across households, server validation, `qrUploadId`, notification ids, HEIC fallback, orphan clean-up, inactive lot refused) · r5, 2026-11-28: owner approval recorded; recommendations accepted · r6, 2026-11-28: screenshots readable by the uploader and treasurer-role holders only, not all staff, to match approved REQ-012 #6 (raised by the S3 BA) · r7, 2026-11-28: `paymentPrivate` gains `receivedFromName`, the owner on file copied at submission, for the receipt's "Received from" (owner: "Sol Arch: at submission", REQ-013 decision 6) · 2026-11-28: size re-done with mock-up reuse (REVIEW-sizing-reuse.md, owner approved) |
 
 ## Owner decisions
 
@@ -412,3 +412,10 @@ Questions for Sol Arch (from the BA, r1):
 #### Size
 
 **M+, 4–5 person-days with Claude Code (BA: 3 + 1 for option b).** That covers the form with compression, HEIC handling and retry; the callable with the reservation, the id idempotency and the household-scoped messages; the split document and Storage metadata rules with rules tests; the orphan job; the concurrency tests; and Playwright.
+
+#### Size with mock-up reuse (2026-11-28, replaces the size above)
+
+**3.75–4.75 person-days with Claude Code** (was 4–5). Re-sized under the owner's rule to reuse what is already in the repo (L-006), in [REVIEW-sizing-reuse.md](../architecture/REVIEW-sizing-reuse.md), approved by the owner on 2026-11-28 ("APPROVED — FINAL: sizing reuse review, merge it").
+
+- **Parts** (port UI · extend UI · new UI · back end · tests): 0.25 · 0.75–1 · 0 · 2–2.5 · 0.75–1
+- **Reuses:** Port: "Pay with QR" form in `oDues()` 622–630, `qrBlock()` 605. Extend: compression, HEIC, retry, duplicate reference, saving and offline states (614–617). BE: callable, reservation, idempotency, rules, orphan job

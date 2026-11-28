@@ -10,7 +10,7 @@
 | Architecture | SA-001 §4.4 item 1 (oldest-bill-first allocation in `shared/domain/ledger.js`, totals kept by functions), §4.2 (`bills`, `payments`, `households` totals), R-11 (drift), R-16 (sale privacy); Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-008 (bills and opening balances). Payments appear once REQ-010 and REQ-012 ship. Corrections appear once REQ-046 ships |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (all bills plus one stored paid total, no per-bill paid amounts; ledger rules for dues-only payments, adjustments, opening credit and Manila overdue; midnight scenario; mismatch report carries both figures; embedded ₱ font, lazy PDF; "Made before you joined" rows; live balance) · r4, 2026-11-28: owner approval recorded; recommendations accepted |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (all bills plus one stored paid total, no per-bill paid amounts; ledger rules for dues-only payments, adjustments, opening credit and Manila overdue; midnight scenario; mismatch report carries both figures; embedded ₱ font, lazy PDF; "Made before you joined" rows; live balance) · r4, 2026-11-28: owner approval recorded; recommendations accepted · 2026-11-28: size re-done with mock-up reuse (REVIEW-sizing-reuse.md, owner approved) |
 
 ## Owner decisions
 
@@ -334,3 +334,10 @@ Questions for Sol Arch (from the BA, r1):
 #### Size
 
 **M, 3 person-days with Claude Code (BA: 2.5–3).** The extra is the embedded font and the lazy-loaded PDF module.
+
+#### Size with mock-up reuse (2026-11-28, replaces the size above)
+
+**2–2.5 person-days with Claude Code** (was 3). Re-sized under the owner's rule to reuse what is already in the repo (L-006), in [REVIEW-sizing-reuse.md](../architecture/REVIEW-sizing-reuse.md), approved by the owner on 2026-11-28 ("APPROVED — FINAL: sizing reuse review, merge it").
+
+- **Parts** (port UI · extend UI · new UI · back end · tests): 0.5 · 0.25–0.5 · 0 · 0.75–1 · 0.5
+- **Reuses:** Port: the statement table in `oDues()` 616–621, `dlButtons()` 994, `statementPDF()` 1014 layout with `pdfStart()` 1004, `statementCSV()` 1070. Extend: empty, loading, credit, part-paid and staff view (608–611). BE: the aging helper, embedded font, lazy PDF module

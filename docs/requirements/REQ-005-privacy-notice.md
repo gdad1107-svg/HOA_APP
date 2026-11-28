@@ -10,7 +10,7 @@
 | Architecture | SA-001 §8.2 (privacy, RA 10173) and §4.2 (`users`), Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-001 (sign-in). Must ship before any real homeowner signs in (Sol Arch, REQ-001 review) |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (versions compared by `seq`, only `config/privacy` and `privacyNotices` public, structured text never `innerHTML`, stale-version scenario, treasurer reads `privacyAck`, publish script in one batch with prod confirmation) · r4, 2026-11-28: owner approval recorded; recommendations accepted |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (versions compared by `seq`, only `config/privacy` and `privacyNotices` public, structured text never `innerHTML`, stale-version scenario, treasurer reads `privacyAck`, publish script in one batch with prod confirmation) · r4, 2026-11-28: owner approval recorded; recommendations accepted · 2026-11-28: size re-done with mock-up reuse (REVIEW-sizing-reuse.md, owner approved) |
 
 ## Owner decisions
 
@@ -275,3 +275,10 @@ Questions for Sol Arch (from the BA, r1):
 #### Size
 
 **S, 1–1.5 person-days with Claude Code. I confirm the BA's estimate.** It covers the gate route, the page, the rules and rules tests (current or stale version, other fields, other user), the publish script and Playwright journeys.
+
+#### Size with mock-up reuse (2026-11-28, replaces the size above)
+
+**1–1.5 person-days with Claude Code** (was 1–1.5). Re-sized under the owner's rule to reuse what is already in the repo (L-006), in [REVIEW-sizing-reuse.md](../architecture/REVIEW-sizing-reuse.md), approved by the owner on 2026-11-28 ("APPROVED — FINAL: sizing reuse review, merge it").
+
+- **Parts** (port UI · extend UI · new UI · back end · tests): 0 · 0 · 0.25–0.5 · 0.5 · 0.25–0.5
+- **Reuses:** Nothing in `index.html`. Drawn at `req-005-011-mockup.html` 583–586. The page uses the shell

@@ -10,7 +10,7 @@
 | Architecture | SA-001 §4.2 (`announcements.important`, `announcements/{id}/reads/{uid}`), §4.4 item 8; CODING-STANDARDS rule 11. Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-016 (announcements), REQ-001 (sign-in), REQ-004 (linked households, for the count) |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (`reads` rules, `householdReads` functions-only, counting trigger keyed on `memberOf`, linked total by count queries, unlinked-household note, "Got it" queued not failed); editing after "Got it" points to REQ-016 decision 6 (open) · r4, 2026-11-28: owner approval recorded; recommendations accepted |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (`reads` rules, `householdReads` functions-only, counting trigger keyed on `memberOf`, linked total by count queries, unlinked-household note, "Got it" queued not failed); editing after "Got it" points to REQ-016 decision 6 (open) · r4, 2026-11-28: owner approval recorded; recommendations accepted · 2026-11-28: size re-done with mock-up reuse (REVIEW-sizing-reuse.md, owner approved) |
 
 ## Owner decisions
 
@@ -268,3 +268,10 @@ Feature: Important announcement pop-up
 | Scale and cost | One small write per person, one trigger run per acknowledgement |
 | Dependencies | None |
 | Observability | Trigger error alert |
+
+#### Size with mock-up reuse (2026-11-28, replaces the size above)
+
+**0.5–1 person-days with Claude Code** (was 1–1.5). Re-sized under the owner's rule to reuse what is already in the repo (L-006), in [REVIEW-sizing-reuse.md](../architecture/REVIEW-sizing-reuse.md), approved by the owner on 2026-11-28 ("APPROVED — FINAL: sizing reuse review, merge it").
+
+- **Parts** (port UI · extend UI · new UI · back end · tests): 0.25 · 0–0.25 · 0 · 0–0.25 · 0.25
+- **Reuses:** Port: `signInPopup()` 572–580, `ackNews` 1365, the "Seen by n of m" line 862. Extend: several at once, Option B (602–605)
