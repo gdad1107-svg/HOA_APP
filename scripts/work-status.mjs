@@ -159,8 +159,11 @@ function field(text, name) {
 }
 // Approved only when the status *starts* with Final / Approved / Accepted ("Final — approved
 // by …", "Approved by the owner, …", an ADR's "Accepted"), optionally after a revision tag
-// ("r4 approved …", "v1.1 approved …"). "Draft. Becomes final when …" and "r4 draft" are not.
-const isApproved = (s) => /^(?:(?:r\d+|v\d+(?:\.\d+)*)\s+)?(final|approved|accepted)\b/i.test(strip(s ?? ''));
+// or a list of them ("r4 approved …", "v1, v1.1 and v1.2 approved …"). "Draft. Becomes final
+// when …", "r4 draft" and "Draft v1, for owner approval" are not.
+const REV = String.raw`(?:r\d+|v\d+(?:\.\d+)*)`;
+const LEADING_REVS = new RegExp(String.raw`^${REV}(?:\s*(?:,|and|&)\s*${REV})*\s+`, 'i');
+const isApproved = (s) => /^(final|approved|accepted)\b/i.test(strip(s ?? '').replace(LEADING_REVS, ''));
 const firstToken = (s) => (s ? s.split(/[.:—–(]/)[0].trim() : null);
 function tableRows(text, heading) {
   const i = text.search(new RegExp(`^##\\s+${heading}`, 'mi'));
