@@ -200,9 +200,11 @@ const reqDocs = all.filter((d) => d.kind === 'REQ');
 const defDocs = all.filter((d) => d.kind === 'DEF');
 const saDocs = all.filter((d) => d.kind === 'SA' || d.kind === 'ADR');
 const tcDocs = all.filter((d) => d.kind === 'TC').map((d) => {
-  // The item a plan tests comes from its "Source" row only. Other header rows
-  // ("Depends on / precedent") name REQs it does not test.
-  const source = field(d.text, 'Source(?: REQ or DEF)?');
+  // The item a plan tests is the FIRST REQ/DEF id (or range) in its "Source" row. Later ids
+  // in that row are provenance ("r6 is REQ-001 r4's follow-up"), and other header rows
+  // ("Depends on / precedent") name REQs it does not test either.
+  const sourceRow = field(d.text, 'Source(?: REQ or DEF)?');
+  const source = sourceRow && /\b(?:REQ|DEF)-\d{3}(?:\s*(?:to|–|—|-)\s*(?:(?:REQ|DEF)-)?\d{3}\b)?/i.exec(sourceRow)?.[0];
   const head = d.text.split('\n').slice(0, 25).join('\n');
   const status = field(d.text, 'Status');
   const tbdIn = (text) => (text.match(/\*\*Layer\*\*\s*TBD/gi) || []).length;
