@@ -5,18 +5,18 @@
 | Raised by | Owner: "draft req-001 to 004 and have SA review it. I'll approve it tomorrow" (2026-11-28) |
 | Epic | [EPIC-001 Access and households](../epics/EPIC-001-access-and-households.md) |
 | Backlog story | [04 Invite a homeowner and link them to a lot](../backlog/BACKLOG.md#04-invite-a-homeowner-and-link-them-to-a-lot) |
-| Status | **r4 draft — Sol Arch reviewed r4 (supports with changes C-1 to C-6, applied); awaiting owner approval.** History: r3 was **approved** by the owner, 2026-11-28 ("approve it"), with every recommendation accepted. Sol Arch reviewed r1: supports Option A in two steps, with changes (applied in r2). Until r4 is approved, r3 is the approved version |
-| Mockup | Screens 4A–4H of the [access and households mockup](https://claude.ai/artifact/KaNMpY53cLTtrk8HARZgUr) (comment there). r4 needs changes to 3A, 4A, 4E, 4F and 4G and new screens; see [Mockup (r4) changes needed](#r4-change-log). The published copy needs republishing after those edits. Repo copy: [req-001-004-access-mockup.html](../mockups/req-001-004-access-mockup.html) |
+| Status | **r5 approved** by the owner, 2026-11-28 ("Approve r4 and merge"; the gap-answer revision was drafted as r4 and renumbered r5 because main already had a REQ-004 r4, the `memberOf` follow-up), with owner decisions 6 to 9 as recommended. Sol Arch reviewed r5: supports with changes C-1 to C-6 (applied). History: r3 was **approved** by the owner, 2026-11-28 ("approve it"), with every recommendation accepted. Sol Arch reviewed r1: supports Option A in two steps, with changes (applied in r2) |
+| Mockup | Screens 4A–4H of the [access and households mockup](https://claude.ai/artifact/KaNMpY53cLTtrk8HARZgUr) (comment there). r5 needs changes to 3A, 4A, 4E, 4F and 4G and new screens; see [Mockup (r5) changes needed](#r5-change-log). The published copy needs republishing after those edits. Repo copy: [req-001-004-access-mockup.html](../mockups/req-001-004-access-mockup.html) |
 | Architecture | SA-001 §8.1 (household linking), ADR-004 and ADR-002 (email), Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-001, REQ-003 |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch's corrections applied (codes stored hashed, per-account guess limit, queued not sent); expiry, bounces, D3 and sale privacy listed as owner decisions · r3, 2026-11-28: owner approval recorded; recommendations accepted · **r4, 2026-11-28: QA's requirement gaps from TC-04 v1 answered (G-1 to G-33); owner decisions 6 to 9 added; Sol Arch's r4 changes C-1 to C-6 applied, and decision 9's recommendation revised after its cost note; see [r4 change log](#r4-change-log)** |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch's corrections applied (codes stored hashed, per-account guess limit, queued not sent); expiry, bounces, D3 and sale privacy listed as owner decisions · r3, 2026-11-28: owner approval recorded; recommendations accepted · **r5, 2026-11-28: QA's requirement gaps from TC-04 v1 answered (G-1 to G-33); owner decisions 6 to 9 added; Sol Arch's r5 changes C-1 to C-6 applied, and decision 9's recommendation revised after its cost note; see [r5 change log](#r5-change-log); owner approval recorded** |
 
-**Reading r4:** new scenarios carry the tag `@r4-new` and changed ones `@r4-changed`. New or changed rows and lines elsewhere end with **(r4)**. Untagged text is unchanged from approved r3.
+**Reading r5:** new scenarios carry the tag `@r5-new` and changed ones `@r5-changed`. New or changed rows and lines elsewhere end with **(r5)**. Untagged text is unchanged from approved r3.
 
 ## Owner decisions
 
-Rows 1 to 5 were approved by the owner on 2026-11-28 ("approve it"): every recommendation in the right-hand column is accepted. Row 5 was approved as a timing only ("decide before the payments REQ"); the choice itself is **still open and undecided**, and r4 does not settle it. Rows 6 to 9 are new in r4 and await the owner; the right-hand column is the BA's recommendation. Questions for the HOA board or the admin office under Open questions stay open.
+Rows 1 to 5 were approved by the owner on 2026-11-28 ("approve it"): every recommendation in the right-hand column is accepted. Row 5 was approved as a timing only ("decide before the payments REQ"); the choice itself is **still open and undecided**, and r5 does not settle it. Rows 6 to 9 are new in r5 and await the owner; the right-hand column is the BA's recommendation. Questions for the HOA board or the admin office under Open questions stay open.
 
 | # | Decision | Approved / recommended |
 |---|---|---|
@@ -25,10 +25,10 @@ Rows 1 to 5 were approved by the owner on 2026-11-28 ("approve it"): every recom
 | 3 | Emails that bounce after they were handed to the provider (for example a typo like "exmaple.com"). Showing these needs the provider's bounce reports | **Include in step 2** (about 0.5–1 extra day once the provider is chosen). Typos in 623 addresses are likely |
 | 4 | D3 for R1: a person already linked to one lot enters a code for another | **Refuse in R1** with a message to ask the office; revisit with D3 |
 | 5 | **Privacy after a sale** (RA 10173): once linked, a new owner would see the lot's history, including the previous owner's receipts and payment screenshots. Doesn't block this REQ | Decide **before the payments REQ**. Sol Arch's options: members see records from their link date only, or screenshots are visible only to the uploader and staff |
-| 6 | **(r4, G-7)** Invitation expiry settings: who may change them, and whether R1 has a screen. r3 says "Treasurer, in Settings". REQ-002 gives admin office staff the non-financial Settings, and expiry is not financial, so the two approved REQs disagree. The mock-up's Settings screen has no expiry fields. | **Recommended: admin office staff and the treasurer, on a small "Invitations" card in Settings** (two number fields and Save; cheap, Sol Arch to confirm). The office runs the invitation drive, so it is the first to learn that slips need longer. Whole days from 1 to 90. 0 is refused, because an invitation that ends "today" can lapse before it is handed over. 90 covers a hand-out with quarterly statements. A change applies only to invitations made after it. Every change goes to the activity log. Alternative, if the owner wants no screen: the developer changes the values on a written request, as for staff roles (REQ-002 Option B) |
-| 7 | **(r4, G-29, G-28)** A "Change of owner" action for sales. Without it the office must remove each person one by one, then edit the owner name and contact details (REQ-003), then invite. A missed step leaves the seller's family seeing the lot's finances, or shows the new owner the seller's name on the confirm screen, so she presses "No, this isn't my lot". | **Recommended: yes.** One confirmed action on the household detail page. It removes everyone linked, stops every unused invitation, and replaces the owner name, contact email and contact mobile with the new owner's (email and mobile optional, left blank if not given, so the seller's contacts don't stay on the lot). The office then invites the new owner as usual. "Remove" stays for one person (a family member who moved out, or a sale within the family). Cost: moderate-small, BA's read 0.5–1 day; Sol Arch to size. Alternative: a written checklist in the office procedure, no software. Decision 5 (what the new owner sees of the lot's history) is not affected |
-| 8 | **(r4, G-21, G-17)** A second person in step 1. r3's "Invite another person" needs an email, and email only arrives in step 2. Until the provider is chosen, no co-owner or family member could join. | **Recommended: let "Invite another person" print a slip as well as send an email.** The admin picks the relation, then either enters an email and presses "Send invitation" (step 2) or presses "Print slip". Small extra cost inside step 1 |
-| 9 | **(r4, G-27)** People still linked to a household when it is deactivated (REQ-003). REQ-003 left this to REQ-004; its Sol Arch review suggested read-only access. | **(r4, revised after Sol Arch review)** Three options. **(a) Read-only until the office removes them:** they see the lot with "This household record is inactive. Contact the admin office." and can't submit anything. Sol Arch's cost note: this needs an extra check in every homeowner write rule and callable, and it becomes a permanent row in REQ-002's rules matrix that every later REQ must add and test. **(b) Deactivating removes everyone**, reusing Change of owner's removal; no new rule, but a mistaken deactivation locks a family out, and Reactivate doesn't bring them back. **(c) Deactivation is refused while anyone is linked:** "{lot} still has {n} people linked. Remove them first, or use Change of owner." No new rule, and nobody loses access without the office seeing their names. **Recommended: (c).** Deactivation is rare (duplicates, merged lots), so a permanent rule cost (a) buys little, and (c) is safer than (b). (b) and (c) need a matching change to REQ-003's deactivate (its refusal or confirm copy). "Remove" works from the Inactive list under every option |
+| 6 | **(r5, G-7)** Invitation expiry settings: who may change them, and whether R1 has a screen. r3 says "Treasurer, in Settings". REQ-002 gives admin office staff the non-financial Settings, and expiry is not financial, so the two approved REQs disagree. The mock-up's Settings screen has no expiry fields. | **Recommended: admin office staff and the treasurer, on a small "Invitations" card in Settings** (two number fields and Save; cheap, Sol Arch to confirm). The office runs the invitation drive, so it is the first to learn that slips need longer. Whole days from 1 to 90. 0 is refused, because an invitation that ends "today" can lapse before it is handed over. 90 covers a hand-out with quarterly statements. A change applies only to invitations made after it. Every change goes to the activity log. Alternative, if the owner wants no screen: the developer changes the values on a written request, as for staff roles (REQ-002 Option B) |
+| 7 | **(r5, G-29, G-28)** A "Change of owner" action for sales. Without it the office must remove each person one by one, then edit the owner name and contact details (REQ-003), then invite. A missed step leaves the seller's family seeing the lot's finances, or shows the new owner the seller's name on the confirm screen, so she presses "No, this isn't my lot". | **Recommended: yes.** One confirmed action on the household detail page. It removes everyone linked, stops every unused invitation, and replaces the owner name, contact email and contact mobile with the new owner's (email and mobile optional, left blank if not given, so the seller's contacts don't stay on the lot). The office then invites the new owner as usual. "Remove" stays for one person (a family member who moved out, or a sale within the family). Cost: moderate-small, BA's read 0.5–1 day; Sol Arch to size. Alternative: a written checklist in the office procedure, no software. Decision 5 (what the new owner sees of the lot's history) is not affected |
+| 8 | **(r5, G-21, G-17)** A second person in step 1. r3's "Invite another person" needs an email, and email only arrives in step 2. Until the provider is chosen, no co-owner or family member could join. | **Recommended: let "Invite another person" print a slip as well as send an email.** The admin picks the relation, then either enters an email and presses "Send invitation" (step 2) or presses "Print slip". Small extra cost inside step 1 |
+| 9 | **(r5, G-27)** People still linked to a household when it is deactivated (REQ-003). REQ-003 left this to REQ-004; its Sol Arch review suggested read-only access. | **(r5, revised after Sol Arch review)** Three options. **(a) Read-only until the office removes them:** they see the lot with "This household record is inactive. Contact the admin office." and can't submit anything. Sol Arch's cost note: this needs an extra check in every homeowner write rule and callable, and it becomes a permanent row in REQ-002's rules matrix that every later REQ must add and test. **(b) Deactivating removes everyone**, reusing Change of owner's removal; no new rule, but a mistaken deactivation locks a family out, and Reactivate doesn't bring them back. **(c) Deactivation is refused while anyone is linked:** "{lot} still has {n} people linked. Remove them first, or use Change of owner." No new rule, and nobody loses access without the office seeing their names. **Recommended: (c).** Deactivation is rare (duplicates, merged lots), so a permanent rule cost (a) buys little, and (c) is safer than (b). (b) and (c) need a matching change to REQ-003's deactivate (its refusal or confirm copy). "Remove" works from the Inactive list under every option |
 
 ## Problem
 
@@ -75,7 +75,7 @@ Feature: Linking an account to a lot
     Given Blk 2 Lot 7 is in the directory with owner "Ana Reyes" and email "ana@example.com"
     And emailed invitations expire after 7 days and printed slips after 30 days
 
-  @r4-changed
+  @r5-changed
   Scenario: Send an invitation
     Given today is Nov 28, 2026
     When the admin presses "Invite" on Blk 2 Lot 7
@@ -119,7 +119,7 @@ Feature: Linking an account to a lot
     When anyone else enters "K7QX-M9TA"
     Then they see "This invitation was already used. Ask the admin office for a new one."
 
-  @r4-changed
+  @r5-changed
   Scenario: The person who used a code enters it again
     Given Ana linked her account with "K7QX-M9TA" and is still linked to Blk 2 Lot 7
     When Ana enters "K7QX-M9TA" again, before or after the date it expired
@@ -139,7 +139,7 @@ Feature: Linking an account to a lot
     When anyone enters the old code
     Then they see "This invitation was replaced by a newer one. Use the newest invitation, or ask the admin office."
 
-  @r4-changed
+  @r5-changed
   Scenario: A second person in the same household
     Given Ana is linked to Blk 2 Lot 7
     When the admin presses "Invite another person", picks "Family", enters "carlo@example.com" and presses "Send invitation"
@@ -158,7 +158,7 @@ Feature: Linking an account to a lot
     When someone enters that code
     Then they see "This invitation is no longer valid. Ask the admin office."
 
-  @r4-changed
+  @r5-changed
   Scenario: Invite many households at once
     Given 400 households are "Not invited" and 380 of them have an email
     When the admin selects them and presses "Invite selected"
@@ -171,7 +171,7 @@ Feature: Linking an account to a lot
     Then households that already have an unused invitation are skipped, not re-invited
     And they see "No invitations to send" with "380 households are skipped: they are linked or already have an unused invitation."
 
-  @r4-changed
+  @r5-changed
   Scenario: Print code slips
     When the admin selects 20 households with no email and presses "Print invite slips"
     Then they see "Print 20 slips?" and "Printing makes new codes. Each household's earlier unused invitation for the owner, emailed or printed, stops working. Invitations for other people in the household keep working."
@@ -181,7 +181,7 @@ Feature: Linking an account to a lot
     And the slips show no balance, email or phone number
     And the PDF shows "Delete this file after printing."
 
-  @r4-changed
+  @r5-changed
   Scenario: Removing a person after a sale
     Given Ana and Carlo are linked to Blk 2 Lot 7
     When the admin presses "Remove" next to Ana and confirms "Remove Ana Reyes from Blk 2 Lot 7? They will no longer see this lot. Its bills and payments stay with the lot."
@@ -193,21 +193,21 @@ Feature: Linking an account to a lot
     And the activity log records who removed her and when
     # To remove everyone after a sale in one step, see "Change of owner" (decision 7)
 
-  @r4-changed
+  @r5-changed
   Scenario: An email the provider refuses is shown, not hidden
     Given the email provider refused the invitation to "ana@example.com" when it was handed over
     Then Blk 2 Lot 7 shows "Email failed" with "Resend invitation" and "Print slip"
 
-  @r4-changed
+  @r5-changed
   Scenario: An email that bounces later is shown (if decision 3 is yes)
     Given the provider reports that the invitation to "ana@exmaple.com" bounced
     Then Blk 2 Lot 7 shows "Email failed" with "Resend invitation" and "Print slip"
 ```
 
-### New in r4: when an invitation counts as expired, and what the directory shows (G-1, G-2, G-3, G-8, G-14)
+### New in r5: when an invitation counts as expired, and what the directory shows (G-1, G-2, G-3, G-8, G-14)
 
 ```gherkin
-  @r4-new
+  @r5-new
   Scenario: A household turns "Invite expired" with no one doing anything
     Given Blk 2 Lot 7's only invitation expires at the end of Dec 5, 2026
     When an admin opens the directory at 23:59:59 on Dec 5, 2026, Philippine time
@@ -216,7 +216,7 @@ Feature: Linking an account to a lot
     Then Blk 2 Lot 7 shows "Invite expired" on its row, its phone card and its detail page
     And it is counted under "Invite expired" in the header and the filter chip
 
-  @r4-new
+  @r5-new
   Scenario: An expired invitation does not block a new one
     Given Blk 2 Lot 7 shows "Invite expired"
     When the admin includes it in "Invite selected" or "Print invite slips"
@@ -224,7 +224,7 @@ Feature: Linking an account to a lot
     And it gets a new invitation and shows "Invited · expires {new date}"
     And its old code shows "This invitation was replaced by a newer one. Use the newest invitation, or ask the admin office."
 
-  @r4-new
+  @r5-new
   Scenario Outline: Which status a household shows
     Given Blk 2 Lot 7 has <people> linked and <invitations>
     When an admin opens the directory
@@ -240,7 +240,7 @@ Feature: Linking an account to a lot
       | no one   | none unused, after the last person was removed                      | Not invited              |
       | no one   | none ever                                                           | Not invited              |
 
-  @r4-new
+  @r5-new
   Scenario: The directory header counts add up
     Given there are 623 active households and 2 inactive ones
     When an admin opens the directory
@@ -248,14 +248,14 @@ Feature: Linking an account to a lot
     And the five groups add up to 623
     And inactive households are counted only in the "Inactive (2)" chip
 
-  @r4-new
+  @r5-new
   Scenario: Expiry dates show the year and say when they end
     Given an emailed invitation and a printed slip are made on Nov 28, 2026
     Then the email reads "This invitation expires at the end of Dec 5, 2026 (Philippine time)."
     And the directory and household detail show "Invited · expires Dec 5, 2026"
     And the slip reads "Expires at the end of Dec 28, 2026 (Philippine time)"
 
-  @r4-new
+  @r5-new
   Scenario: The household detail shows each email's status
     Given the admin invited Blk 2 Lot 7 on Nov 28, 2026
     When the admin opens Blk 2 Lot 7's detail page
@@ -266,10 +266,10 @@ Feature: Linking an account to a lot
     And no screen says "delivered"
 ```
 
-### New in r4: who an invitation is for, printing and resending (G-4, G-12, G-13, G-15, G-16, G-32, G-33)
+### New in r5: who an invitation is for, printing and resending (G-4, G-12, G-13, G-15, G-16, G-32, G-33)
 
 ```gherkin
-  @r4-new
+  @r5-new
   Scenario: Printing a slip replaces the owner's emailed invitation, not another person's
     Given Blk 2 Lot 7 has an unused emailed owner invitation and an unused invitation for Carlo (Family)
     When the admin prints a slip for Blk 2 Lot 7
@@ -277,7 +277,7 @@ Feature: Linking an account to a lot
     And Carlo's code still works
     And Blk 2 Lot 7 has one unused owner invitation, the printed one
 
-  @r4-new
+  @r5-new
   Scenario: Linked households are skipped by bulk invite and bulk print
     Given Blk 4 Lot 12 is "Linked · 1 person"
     When the admin includes it in "Invite selected" or "Print invite slips"
@@ -286,7 +286,7 @@ Feature: Linking an account to a lot
     And its row offers no "Invite", "Resend invitation" or "Print slip"
     And to add someone to a linked household, the admin uses "Invite another person" on its detail page
 
-  @r4-new
+  @r5-new
   Scenario Outline: The bulk invite confirm reads correctly for any mix
     Given the admin selected <selection>
     When they press "Invite selected"
@@ -303,14 +303,14 @@ Feature: Linking an account to a lot
       | 1 household with no email                              | No invitations to send | 1 household has no email. Print its slip instead.                                                                         | Print 1 slip · Cancel                         |
       | 4 households, all skipped                              | No invitations to send | 4 households are skipped: they are linked or already have an unused invitation.                                            | Close                                         |
 
-  @r4-new
+  @r5-new
   Scenario: The counts are what is actually done
     Given the admin confirmed "Send 35 invitations"
     Then exactly 35 emails are queued
     And they see "35 invitations queued. Any that fail are marked Email failed in the list."
     And for one invitation they see "1 invitation queued. If it fails, it is marked Email failed in the list."
 
-  @r4-new
+  @r5-new
   Scenario: The print confirm says how many earlier invitations stop working
     Given the admin selected 20 households: 3 have an unused owner invitation and 2 are linked
     When they press "Print invite slips"
@@ -319,14 +319,14 @@ Feature: Linking an account to a lot
     And "2 households are skipped because they are linked."
     And for one household the title reads "Print 1 slip?"
 
-  @r4-new
+  @r5-new
   Scenario: Two staff print slips for the same household at about the same time
     Given an admin printed a slip for Blk 4 Lot 5 a few minutes ago
     When a second admin prints a slip for Blk 4 Lot 5
     Then Blk 4 Lot 5 ends with exactly one working printed code, the second one
     And the second admin sees "Slips for 1 of these households were printed in the last hour by Paolo Aquino. Those slips no longer work."
 
-  @r4-new
+  @r5-new
   Scenario: Resend after the contact email is corrected
     Given Blk 4 Lot 15's owner invitation went to "dennis@exmaple.com" and shows "Email failed"
     And the admin corrected the contact email to "dennis@example.com" (REQ-003)
@@ -334,14 +334,14 @@ Feature: Linking an account to a lot
     Then a new invitation to "dennis@example.com" is queued
     And the invitation to "dennis@exmaple.com" is replaced, so Blk 4 Lot 15 has one owner invitation
 
-  @r4-new
+  @r5-new
   Scenario: Resend while the earlier email is still waiting to go out
     Given the first invitation email to "ana@example.com" is still queued
     When the admin presses "Resend invitation"
     Then only the new email is handed to the provider
     And Ana receives one invitation email, with the code that works
 
-  @r4-new
+  @r5-new
   Scenario Outline: Buttons that make or stop invitations act once
     Given the admin office staff member is on the screen with "<button>"
     When they press "<button>" twice quickly
@@ -358,10 +358,10 @@ Feature: Linking an account to a lot
       | Change owner                            | Saving…       | change of owner is made                                      |
 ```
 
-### New in r4: withdrawing an invitation (G-5)
+### New in r5: withdrawing an invitation (G-5)
 
 ```gherkin
-  @r4-new
+  @r5-new
   Scenario: Withdraw an unused invitation
     Given Blk 2 Lot 7 has an unused printed slip that the household reports lost
     When the admin presses "Withdraw invitation" on that line of the Invitations list
@@ -373,24 +373,24 @@ Feature: Linking an account to a lot
     And Blk 2 Lot 7's status is worked out again, for example "Not invited"
     And the activity log records who withdrew it and when
 
-  @r4-new
+  @r5-new
   Scenario: A used invitation can't be withdrawn
     Given Ana linked with her invitation
     When the admin opens Blk 2 Lot 7's detail page
     Then her invitation's line reads "Used Nov 29, 2026" and has no "Withdraw invitation"
     And to stop Ana's access the admin uses "Remove"
 
-  @r4-new
+  @r5-new
   Scenario: Only admin office staff and the treasurer can withdraw
     Given a homeowner, a board member or a guard is signed in
     Then they see no "Withdraw invitation"
     And a direct call to withdraw from their account is refused, and the invitation still works
 ```
 
-### New in r4: entering a code (G-11, G-19, G-22, G-23, G-24, G-25, G-30, G-31)
+### New in r5: entering a code (G-11, G-19, G-22, G-23, G-24, G-25, G-30, G-31)
 
 ```gherkin
-  @r4-new
+  @r5-new
   Scenario: A removed person re-entering her own used code does not get back in
     Given Ana linked her account with "K7QX-M9TA"
     And the admin later removed her from Blk 2 Lot 7
@@ -400,13 +400,13 @@ Feature: Linking an account to a lot
     And she stays on "Enter your invite code"
     And the refusal does not count towards the wrong-code limit
 
-  @r4-new
+  @r5-new
   Scenario: Someone else entering a removed person's used code
     Given Ana used "K7QX-M9TA" and was later removed
     When a signed-in person with no household enters "K7QX-M9TA"
     Then they see "This invitation was already used. Ask the admin office for a new one."
 
-  @r4-new
+  @r5-new
   Scenario: A linked person enters another unused code for their own household
     Given Ana is linked to Blk 2 Lot 7, and Carlo's unused code for Blk 2 Lot 7 is "P4WD-7HNE"
     When Ana enters "P4WD-7HNE"
@@ -414,14 +414,14 @@ Feature: Linking an account to a lot
     And she sees "You're already linked to Blk 2 Lot 7. That code wasn't used, so the person it was meant for can still use it."
     And Carlo's code still works
 
-  @r4-new
+  @r5-new
   Scenario Outline: A code the page can tell is not a code
     Given a signed-in person with no household is on "Enter your invite code"
     When they enter "<typed>" and press "Continue"
     Then "<message>" shows under the code field and is announced
     And the server is not asked, and the wrong-code count does not change
     And what they typed is kept
-    And if the page check is skipped, the server refuses the code too, without looking it up or counting it (r4, Sol Arch C-6)
+    And if the page check is skipped, the server refuses the code too, without looking it up or counting it (r5, Sol Arch C-6)
 
     Examples:
       | typed       | message                                                                                 |
@@ -430,21 +430,21 @@ Feature: Linking an account to a lot
       | K7QX-M9TAA  | Invite codes have 8 letters and numbers, like K7QX-M9TA. They never use O, 0, I or 1.   |
       | K7QX-M9T0   | Invite codes have 8 letters and numbers, like K7QX-M9TA. They never use O, 0, I or 1.   |
 
-  @r4-new
+  @r5-new
   Scenario: A successful link clears earlier wrong codes
     Given Ana's account has had 4 codes refused as not matching in the last 15 minutes
     When she redeems a valid code for Blk 2 Lot 7
     Then her wrong-code count goes back to 0
     And if she later enters a valid code for another lot, she sees "Your account is already linked to Blk 2 Lot 7. Ask the admin office if you need access to another lot."
 
-  @r4-new
+  @r5-new
   Scenario: Codes entered while locked don't extend the lock
     Given Ana's first refused code was at 10:00:00 and her fifth at 10:05:00
     And she entered codes at 10:06, 10:10 and 10:14 and each time saw "Too many wrong codes. Try again in 15 minutes."
     When she enters a valid code at 10:15:00
     Then she sees the confirm screen for that code
 
-  @r4-new
+  @r5-new
   Scenario Outline: Which message wins when several apply
     Given <situation>
     When they enter the code
@@ -459,7 +459,7 @@ Feature: Linking an account to a lot
       | the code has expired, and it was replaced                                                   | "This invitation was replaced by a newer one. Use the newest invitation, or ask the admin office." |
       | the code has expired, and the person is linked to the code's household                      | the household dashboard |
 
-  @r4-new
+  @r5-new
   Scenario Outline: The connection fails while checking or linking
     Given a signed-in person with no household is on <screen>
     When they press "<button>" and <problem>
@@ -473,14 +473,14 @@ Feature: Linking an account to a lot
       | the confirm screen       | Yes, link my account | the device is offline                            | You're offline. Connect to the internet to use your invite code.     |
       | the confirm screen       | Yes, link my account | the server can't be reached or returns an error  | We couldn't link your account. Check your connection and try again.  |
 
-  @r4-new
+  @r5-new
   Scenario: Pressing "Yes, link my account" again after a lost reply
     Given Ana's link went through, but the reply never reached her phone
     When she presses "Yes, link my account" again
     Then she lands on the Blk 2 Lot 7 dashboard
     And she has one membership
 
-  @r4-new
+  @r5-new
   Scenario: "No, this isn't my lot" clears the code
     Given a signed-in person with no household is on the confirm screen for Blk 2 Lot 7
     When they press "No, this isn't my lot"
@@ -490,10 +490,10 @@ Feature: Linking an account to a lot
     And the code was not used, so it still works for the right person
 ```
 
-### New in r4: removing people and changing the owner (G-9, G-10, G-18, G-26, G-28, G-29)
+### New in r5: removing people and changing the owner (G-9, G-10, G-18, G-26, G-28, G-29)
 
 ```gherkin
-  @r4-new
+  @r5-new
   Scenario: Change of owner after a sale (owner decision 7)
     Given Ana Reyes and Carlo Reyes are linked to Blk 2 Lot 7, and a co-owner invitation is unused
     And the lot is sold to Rosa Lim
@@ -510,14 +510,14 @@ Feature: Linking an account to a lot
     And they see "Blk 2 Lot 7 now shows Rosa Lim as owner. Invite the new owner when you're ready."
     And the activity log records who made the change and when
 
-  @r4-new
+  @r5-new
   Scenario: The new owner sees her own name on the confirm screen
     Given the admin made the change of owner to "Rosa Lim" and printed her slip
     When Rosa enters her code
     Then she sees "You're joining Blk 2 Lot 7 (Rosa Lim). Is this your lot?"
     And nothing on the screen names Ana Reyes
 
-  @r4-new
+  @r5-new
   Scenario: The change of owner form keeps what was typed
     Given the admin is on the "Change of owner" form
     When they press "Change owner" with the name empty
@@ -525,7 +525,7 @@ Feature: Linking an account to a lot
     And an email or mobile in the wrong format gets the same messages as the household form (REQ-003)
     And clicking outside the form does not close it
 
-  @r4-new
+  @r5-new
   Scenario: Someone joins or leaves while the change of owner form is open (Sol Arch C-1)
     Given the admin opened "Change of owner" for Blk 2 Lot 7 when it listed Ana Reyes and Carlo Reyes
     And before they press "Change owner", Liza Reyes links to Blk 2 Lot 7 with a code
@@ -535,7 +535,7 @@ Feature: Linking an account to a lot
     And the form now lists Ana Reyes, Carlo Reyes and Liza Reyes
     And what they typed in the form is kept
 
-  @r4-new
+  @r5-new
   Scenario: After the last person is removed
     Given Ana is the only person linked to Blk 2 Lot 7
     When the admin removes her
@@ -543,14 +543,14 @@ Feature: Linking an account to a lot
     And "People with portal access" reads "No one is linked to this lot. Invite the owner or print a slip."
     And removed people are not listed there (the activity log keeps who was removed)
 
-  @r4-new
+  @r5-new
   Scenario: Removing someone who was already removed
     Given two admins have the Remove confirm open for Ana
     When the second presses "Remove" after the first
     Then the second sees "Ana Reyes was already removed from Blk 2 Lot 7. Nothing was changed."
     And the member count goes down once, and one removal is logged
 
-  @r4-new
+  @r5-new
   Scenario: Who the household detail lists
     Given Ana's own account was named "Ana R." with the email "ana.r@example.com" when she linked to Blk 2 Lot 7 on Nov 29, 2026 (copied onto her membership then, Sol Arch C-5)
     When the admin opens Blk 2 Lot 7's detail page
@@ -558,10 +558,10 @@ Feature: Linking an account to a lot
     And the Invitations list shows each person's current invitation and the used ones, but not replaced or withdrawn ones
 ```
 
-### New in r4: expiry settings (G-7, owner decision 6)
+### New in r5: expiry settings (G-7, owner decision 6)
 
 ```gherkin
-  @r4-new
+  @r5-new
   Scenario: Changing how long invitations last
     Given an emailed invitation to Blk 4 Lot 15 was made on Nov 28, 2026 and expires on Dec 5, 2026
     When an admin office staff member or the treasurer opens Settings, sets "Emailed invitations expire after (days)" to 14 and presses "Save"
@@ -571,7 +571,7 @@ Feature: Linking an account to a lot
     And Blk 4 Lot 15 still expires on Dec 5, 2026
     And the activity log records who changed it, the old and new values, and when
 
-  @r4-new
+  @r5-new
   Scenario Outline: Expiry days must be a whole number from 1 to 90
     Given the treasurer is on the Invitations settings
     When they enter "<days>" in "Printed slips expire after (days)" and leave the field
@@ -587,23 +587,23 @@ Feature: Linking an account to a lot
       | 7.5  | "Enter a whole number of days from 1 to 90." shows under the field, and Save stores nothing |
       |      | "Enter a whole number of days from 1 to 90." shows under the field, and Save stores nothing |
 
-  @r4-new
+  @r5-new
   Scenario: Board members, guards and homeowners can't change expiry
     Given a board member, a guard or a homeowner is signed in
     Then they don't see the Invitations settings
     And a direct write from their account is refused, and the stored values don't change
 
-  @r4-new
+  @r5-new
   Scenario: With no setting stored, the defaults apply
     Given no expiry setting has been saved
     When the admin invites by email and prints a slip on Nov 28, 2026
     Then they expire at the end of Dec 5, 2026 and Dec 28, 2026
 ```
 
-### New in r4: step 1 and second people (G-17, G-21, owner decision 8)
+### New in r5: step 1 and second people (G-17, G-21, owner decision 8)
 
 ```gherkin
-  @r4-new
+  @r5-new
   Scenario: Before the email provider is chosen (step 1)
     Given the portal is in step 1, printed slips only
     When an admin opens the directory or a household's detail page
@@ -611,7 +611,7 @@ Feature: Linking an account to a lot
     And every household that isn't linked offers "Print slip"
     And "Print invite slips" works on a selection
 
-  @r4-new
+  @r5-new
   Scenario: Inviting another person by slip (owner decision 8)
     Given Ana is linked to Blk 2 Lot 7
     When the admin presses "Invite another person", picks "Co-owner" and presses "Print slip"
@@ -621,7 +621,7 @@ Feature: Linking an account to a lot
     And the Invitations list shows "Printed slip · Co-owner" with "Invited · expires {date}"
     And Ana's access and the owner invitation do not change
 
-  @r4-new
+  @r5-new
   Scenario: The relation must be picked
     Given the admin is on "Invite another person"
     When they press "Send invitation" or "Print slip" without picking a relation
@@ -629,10 +629,10 @@ Feature: Linking an account to a lot
     And the only choices are "Co-owner" and "Family", with neither picked at first
 ```
 
-### New in r4: a deactivated household (G-27, owner decision 9)
+### New in r5: a deactivated household (G-27, owner decision 9)
 
 ```gherkin
-  @r4-new
+  @r5-new
   Scenario: Deactivating a household that still has people linked (decision 9, option c, recommended)
     Given Dora Santos is linked to Blk 7 Lot 1
     When the admin presses "Deactivate" on Blk 7 Lot 1 (REQ-003)
@@ -640,7 +640,7 @@ Feature: Linking an account to a lot
     And they see "Blk 7 Lot 1 still has 1 person linked. Remove them first, or use Change of owner."
     And once no one is linked, "Deactivate" works as REQ-003 describes
 
-  @r4-changed
+  @r5-changed
   Scenario: People linked to a household that is deactivated (only if decision 9 chooses option a, read-only)
     Given Dora Santos is linked to Blk 7 Lot 1
     And the admin deactivates Blk 7 Lot 1 (REQ-003)
@@ -650,7 +650,7 @@ Feature: Linking an account to a lot
     And a direct write from her account for Blk 7 Lot 1 is refused (Sol Arch C-6)
     And the admin can open Blk 7 Lot 1 from "Inactive" and press "Remove" next to her
 
-  @r4-new
+  @r5-new
   Scenario: Deactivating stops codes for good (Sol Arch C-3)
     Given Blk 7 Lot 1 has an unused printed slip and no one linked
     When the admin deactivates Blk 7 Lot 1 and later presses "Reactivate"
@@ -663,20 +663,20 @@ Feature: Linking an account to a lot
 
 | What | Where | Rule | Written by | Read by |
 |---|---|---|---|---|
-| Invitation: household, **slot (r4)**, channel (email / print), sent to, relation (chosen by the admin), created, expires, status (active / used / replaced / cancelled), **cancel reason (withdrawn / removed / owner changed / deactivated) (r4)**, used by, used at | `invites/{codeHash}` (keyed hash of the code) | Single use; expiry from settings, fixed when made; "expired" is worked out from the expiry date, not stored; **one active invitation per slot (r4)** | `createInvites` function; **`cancelInvite` (Withdraw), `removeMember`, `changeOwner`, and REQ-003's deactivate (`setHouseholdActive`), which writes cancel reason "deactivated" (r4)**. **(r4, Sol Arch C-3)** Reactivate never brings a cancelled code back | `checkInvite`, `redeemInvite`; staff read by household |
-| Membership: household, person, relation, invite, invited by, linked at, **name and email, copied from the signed-in account at link time and not updated later (r4, Sol Arch C-5)** | `members/{householdId}_{uid}` (ADR-004) | Created only by `redeemInvite`, in a transaction that refuses a used, replaced, cancelled or expired code. **Deleted by `removeMember` or `changeOwner` (r4)** | `redeemInvite` | Rules (`isMember`); household screens; **staff, for "People with portal access" (r4)** |
-| Wrong-code attempts | `inviteAttempts/{uid}` | 5 refused codes per 15 minutes per account. **(r4)** Only "doesn't match" counts. Set back to 0 by a successful redeem. Codes refused while locked don't move the window. Codes the page refuses for their format never reach it | `checkInvite`, `redeemInvite` | Same functions |
-| Link status and member count | `households/{id}.linkStatus`, `memberCount`, **`inviteExpiresAt` (r4)** | **(r4)** `linkStatus` is one of not invited / invited / email failed / linked. `inviteExpiresAt` is the latest expiry among the household's unused invitations. "Invite expired" is shown when status is invited and `inviteExpiresAt` has passed (Invitation rules below). **(r4, Sol Arch C-3)** Recomputed from the household's invitations and members, in the same transaction, by every writer; never set directly | Invite functions; `changeOwner`; REQ-003's deactivate and reactivate; mail function (failed) | Directory (REQ-003) |
-| Invitation email | `mail` queue (ADR-002) | Code removed after hand-off; status queued / sent / failed, never "delivered". **(r4)** If the invitation is no longer active when the email's turn comes, it is not handed over, its code and body are cleared, and its status is **`skipped` (r4, Sol Arch C-4)**. `skipped` is never shown or counted as Email failed | `createInvites` | Mail function; directory |
-| Invitation expiry settings | settings (SA to name) | Days for email and for print. **(r4)** Whole days 1–90. Missing means 7 and 30. A change applies to invitations made after it | **(r4)** Admin office and treasurer, in Settings → Invitations (decision 6; r3 said treasurer only) | `createInvites` |
-| **Change of owner (r4)** | `households/{id}.displayName`, **`searchTokens` (r4)**; `householdContacts/{id}` | One transaction: delete every membership, cancel every unused invitation, set the new owner name, **rewrite `searchTokens` from it (r4, Sol Arch C-2)**, replace contact email and mobile (blank if not given), recompute link status (decision 7). **(r4, Sol Arch C-1)** The call carries the people the form listed, and is refused with nothing changed if they no longer match. **(r4, Sol Arch C-2)** The seller's owner name and contacts are not kept anywhere in the portal; the activity log holds ids only, so the removed accounts stay traceable by id. The office's own sale papers are the record of the previous owner (Open questions) | `changeOwner` function | Directory; confirm screen |
-| Change records | `auditLog` | Every invite, replacement, cancellation, redemption and removal; ids only. **(r4)** Also every withdrawal, change of owner (no names or contacts, ids only) and expiry-settings change (old and new values) | Functions | Board, treasurer (activity log screen is backlog story 06; until then checked at data level) |
+| Invitation: household, **slot (r5)**, channel (email / print), sent to, relation (chosen by the admin), created, expires, status (active / used / replaced / cancelled), **cancel reason (withdrawn / removed / owner changed / deactivated) (r5)**, used by, used at | `invites/{codeHash}` (keyed hash of the code) | Single use; expiry from settings, fixed when made; "expired" is worked out from the expiry date, not stored; **one active invitation per slot (r5)** | `createInvites` function; **`cancelInvite` (Withdraw), `removeMember`, `changeOwner`, and REQ-003's deactivate (`setHouseholdActive`), which writes cancel reason "deactivated" (r5)**. **(r5, Sol Arch C-3)** Reactivate never brings a cancelled code back | `checkInvite`, `redeemInvite`; staff read by household |
+| Membership: household, person, relation, invite, invited by, linked at, **name and email, copied from the signed-in account at link time and not updated later (r5, Sol Arch C-5)** | `members/{householdId}_{uid}` (ADR-004) | Created only by `redeemInvite`, in a transaction that refuses a used, replaced, cancelled or expired code. **Deleted by `removeMember` or `changeOwner` (r5)** | `redeemInvite` | Rules (`isMember`); household screens; **staff, for "People with portal access" (r5)** |
+| Wrong-code attempts | `inviteAttempts/{uid}` | 5 refused codes per 15 minutes per account. **(r5)** Only "doesn't match" counts. Set back to 0 by a successful redeem. Codes refused while locked don't move the window. Codes the page refuses for their format never reach it | `checkInvite`, `redeemInvite` | Same functions |
+| Link status and member count | `households/{id}.linkStatus`, `memberCount`, **`inviteExpiresAt` (r5)** | **(r5)** `linkStatus` is one of not invited / invited / email failed / linked. `inviteExpiresAt` is the latest expiry among the household's unused invitations. "Invite expired" is shown when status is invited and `inviteExpiresAt` has passed (Invitation rules below). **(r5, Sol Arch C-3)** Recomputed from the household's invitations and members, in the same transaction, by every writer; never set directly | Invite functions; `changeOwner`; REQ-003's deactivate and reactivate; mail function (failed) | Directory (REQ-003) |
+| Invitation email | `mail` queue (ADR-002) | Code removed after hand-off; status queued / sent / failed, never "delivered". **(r5)** If the invitation is no longer active when the email's turn comes, it is not handed over, its code and body are cleared, and its status is **`skipped` (r5, Sol Arch C-4)**. `skipped` is never shown or counted as Email failed | `createInvites` | Mail function; directory |
+| Invitation expiry settings | settings (SA to name) | Days for email and for print. **(r5)** Whole days 1–90. Missing means 7 and 30. A change applies to invitations made after it | **(r5)** Admin office and treasurer, in Settings → Invitations (decision 6; r3 said treasurer only) | `createInvites` |
+| **Change of owner (r5)** | `households/{id}.displayName`, **`searchTokens` (r5)**; `householdContacts/{id}` | One transaction: delete every membership, cancel every unused invitation, set the new owner name, **rewrite `searchTokens` from it (r5, Sol Arch C-2)**, replace contact email and mobile (blank if not given), recompute link status (decision 7). **(r5, Sol Arch C-1)** The call carries the people the form listed, and is refused with nothing changed if they no longer match. **(r5, Sol Arch C-2)** The seller's owner name and contacts are not kept anywhere in the portal; the activity log holds ids only, so the removed accounts stay traceable by id. The office's own sale papers are the record of the previous owner (Open questions) | `changeOwner` function | Directory; confirm screen |
+| Change records | `auditLog` | Every invite, replacement, cancellation, redemption and removal; ids only. **(r5)** Also every withdrawal, change of owner (no names or contacts, ids only) and expiry-settings change (old and new values) | Functions | Board, treasurer (activity log screen is backlog story 06; until then checked at data level) |
 
 The email link carries the code after `#`, so it never reaches server logs. Clients never read `invites`, `inviteAttempts` or `mail` except staff reading invitations by household.
 
-### Invitation rules (r4)
+### Invitation rules (r5)
 
-- **Slots (G-4, G-16).** Every invitation belongs to a slot. Each household has one **owner slot**, used by "Invite", "Invite selected", "Resend invitation", "Print slip" on the row and "Print invite slips". It is the same slot whether the invitation is emailed or printed and whatever address it went to, so printing replaces an unused emailed owner invitation, and a Resend after the contact email changes replaces the invitation to the old address. Each use of "Invite another person" opens a **person slot** for that person. "Resend invitation", "Print slip" and "Withdraw invitation" on a line of the Invitations list act on that line's slot only. One active invitation per slot. (Sol Arch's r1 "household plus recipient" is replaced by this; see Sol Arch review (r4).)
+- **Slots (G-4, G-16).** Every invitation belongs to a slot. Each household has one **owner slot**, used by "Invite", "Invite selected", "Resend invitation", "Print slip" on the row and "Print invite slips". It is the same slot whether the invitation is emailed or printed and whatever address it went to, so printing replaces an unused emailed owner invitation, and a Resend after the contact email changes replaces the invitation to the old address. Each use of "Invite another person" opens a **person slot** for that person. "Resend invitation", "Print slip" and "Withdraw invitation" on a line of the Invitations list act on that line's slot only. One active invitation per slot. (Sol Arch's r1 "household plus recipient" is replaced by this; see Sol Arch review (r5).)
 - **Relation (G-17).** Owner slot: "Owner". Person slot: "Co-owner" or "Family", picked by the admin each time, no default. No tenant in R1 (D3).
 - **Unused (G-1).** An invitation is unused when it is active and not expired. Expired invitations are not unused, so they never cause a household to be skipped.
 - **Expired (G-3).** Worked out at the moment it is read, from `expiresAt`, everywhere: in `redeemInvite`, in the pill and in the counts. Nothing is written when an invitation expires. BA's recommendation; the mechanism is Sol Arch's (question 1).
@@ -690,56 +690,56 @@ The email link carries the code after `#`, so it never reaches server logs. Clie
 
 ## UX/UI notes
 
-- **Accessibility:** the code field has a visible label, accepts lower case, spaces and hyphens, and uses a large monospaced font like the mock-up's pass code (`.code`); errors are announced. **(r4)** The format and connection messages show under the code field like the other code errors (4D). The Withdraw, Change of owner and Settings forms follow the same rules: visible labels, errors under the field and announced, focus moves into each modal and back to the button that opened it.
-- **Consistency:** codes look like the mock-up's guest pass codes (8 characters, `XXXX-XXXX`, no 0/O or 1/I); "Invite", "Resend invitation", "Remove" are the only labels used. **(r4)** One label per action everywhere, including the directory row and the "Email failed" line: "Resend invitation", never "Resend". The linked row has no "Manage" button; the lot name opens the detail page on every row. Staff "withdraw" an invitation on screen ("Cancel" stays the label for closing a dialog); the data status is `cancelled`. The household's pills are the five of record; invitation lines on the detail page reuse them, plus "Used {date}". Dates always show the year: "Dec 5, 2026". Homeowner-facing expiry text says "at the end of {date} (Philippine time)".
-- **Mobile-first:** the join screens are single cards at 375 px; the email button is large enough to tap. **(r4)** The staff forms (Change of owner, Invite another person, Settings → Invitations) are single-column cards that fit 375 px.
-- **States:** "Not invited" (empty) → "Invited" → "Linked" or "Invite expired" or "Email failed", each a pill with text; loading on code check ("Checking…"); success lands on the dashboard. **(r4)** Empty "People with portal access": "No one is linked to this lot. Invite the owner or print a slip." Offline and server-error lines on the code and confirm screens. Queued / Sent / Printed lines on each emailed or printed invitation. Step 1 shows only print controls.
-- **Safe actions:** "Yes, link my account", "Invite selected" and "Remove" are disabled while in flight; "Remove" and "Print invite slips" are confirmed; the join screen shows the lot so the person can stop if it's the wrong one ("No, this isn't my lot" ends the join flow and tells them to contact the office). **(r4)** Also disabled while in flight: "Invite", "Resend invitation", "Send invitation", every print confirm, "Withdraw", "Change owner" and Save on the settings (G-33). "Withdraw invitation" and "Change of owner" are confirmed. The Change of owner and Invite another person forms don't close on a backdrop click. Every one of these also needs the server-side guard (Sol Arch question 9).
-- **Roles:** only admin office staff and the treasurer can invite or remove; a person can only redeem a code for themselves. **(r4)** The same two roles withdraw, change the owner and (decision 6) change the expiry settings. Board, guard and homeowners see none of these controls, and the server refuses them.
-- **Privacy:** the confirmation screen shows the lot and the owner name on file, nothing else; slips show no balance or contact details; slips work like keys, so the office hands them over in person or in a sealed envelope. **(r4)** Change of owner sets the new owner's name before any invitation, so the new owner never sees the seller's name, and clears the seller's contacts from the lot (G-28). The "access removed" message names only the lot the person was already linked to. The household detail shows each linked person's own account name and email to staff, so a stranger who linked with a lost slip stands out (G-18).
+- **Accessibility:** the code field has a visible label, accepts lower case, spaces and hyphens, and uses a large monospaced font like the mock-up's pass code (`.code`); errors are announced. **(r5)** The format and connection messages show under the code field like the other code errors (4D). The Withdraw, Change of owner and Settings forms follow the same rules: visible labels, errors under the field and announced, focus moves into each modal and back to the button that opened it.
+- **Consistency:** codes look like the mock-up's guest pass codes (8 characters, `XXXX-XXXX`, no 0/O or 1/I); "Invite", "Resend invitation", "Remove" are the only labels used. **(r5)** One label per action everywhere, including the directory row and the "Email failed" line: "Resend invitation", never "Resend". The linked row has no "Manage" button; the lot name opens the detail page on every row. Staff "withdraw" an invitation on screen ("Cancel" stays the label for closing a dialog); the data status is `cancelled`. The household's pills are the five of record; invitation lines on the detail page reuse them, plus "Used {date}". Dates always show the year: "Dec 5, 2026". Homeowner-facing expiry text says "at the end of {date} (Philippine time)".
+- **Mobile-first:** the join screens are single cards at 375 px; the email button is large enough to tap. **(r5)** The staff forms (Change of owner, Invite another person, Settings → Invitations) are single-column cards that fit 375 px.
+- **States:** "Not invited" (empty) → "Invited" → "Linked" or "Invite expired" or "Email failed", each a pill with text; loading on code check ("Checking…"); success lands on the dashboard. **(r5)** Empty "People with portal access": "No one is linked to this lot. Invite the owner or print a slip." Offline and server-error lines on the code and confirm screens. Queued / Sent / Printed lines on each emailed or printed invitation. Step 1 shows only print controls.
+- **Safe actions:** "Yes, link my account", "Invite selected" and "Remove" are disabled while in flight; "Remove" and "Print invite slips" are confirmed; the join screen shows the lot so the person can stop if it's the wrong one ("No, this isn't my lot" ends the join flow and tells them to contact the office). **(r5)** Also disabled while in flight: "Invite", "Resend invitation", "Send invitation", every print confirm, "Withdraw", "Change owner" and Save on the settings (G-33). "Withdraw invitation" and "Change of owner" are confirmed. The Change of owner and Invite another person forms don't close on a backdrop click. Every one of these also needs the server-side guard (Sol Arch question 9).
+- **Roles:** only admin office staff and the treasurer can invite or remove; a person can only redeem a code for themselves. **(r5)** The same two roles withdraw, change the owner and (decision 6) change the expiry settings. Board, guard and homeowners see none of these controls, and the server refuses them.
+- **Privacy:** the confirmation screen shows the lot and the owner name on file, nothing else; slips show no balance or contact details; slips work like keys, so the office hands them over in person or in a sealed envelope. **(r5)** Change of owner sets the new owner's name before any invitation, so the new owner never sees the seller's name, and clears the seller's contacts from the lot (G-28). The "access removed" message names only the lot the person was already linked to. The household detail shows each linked person's own account name and email to staff, so a stranger who linked with a lost slip stands out (G-18).
 
 ## Copy of record
 
 | Where | Text |
 |---|---|
 | Email subject | Your invitation to the {HOA name} portal |
-| Email body | Hi {owner name}, the {HOA name} admin office has invited you to the resident portal for {lot}. Press the button to join. **(r4)** This invitation expires at the end of {date} (Philippine time). · Button: Join the portal · If the button doesn't work, sign in at {portal address} and enter this code: {code} |
-| Email footer **(r4)** | You got this email because your address is on file with the admin office. If this isn't your lot, ignore it. |
-| Date format **(r4)** | {date} is always written like "Dec 5, 2026", in every place it appears |
+| Email body | Hi {owner name}, the {HOA name} admin office has invited you to the resident portal for {lot}. Press the button to join. **(r5)** This invitation expires at the end of {date} (Philippine time). · Button: Join the portal · If the button doesn't work, sign in at {portal address} and enter this code: {code} |
+| Email footer **(r5)** | You got this email because your address is on file with the admin office. If this isn't your lot, ignore it. |
+| Date format **(r5)** | {date} is always written like "Dec 5, 2026", in every place it appears |
 | Code entry heading | Enter your invite code |
 | Code entry hint | You'll find it in your invitation email or on the slip from the admin office. |
-| Code field and button **(r4)** | Invite code · Continue (in flight: Checking…) |
-| Empty code **(r4)** | Enter the code from your invitation. |
-| Malformed code **(r4)** | Invite codes have 8 letters and numbers, like K7QX-M9TA. They never use O, 0, I or 1. |
+| Code field and button **(r5)** | Invite code · Continue (in flight: Checking…) |
+| Empty code **(r5)** | Enter the code from your invitation. |
+| Malformed code **(r5)** | Invite codes have 8 letters and numbers, like K7QX-M9TA. They never use O, 0, I or 1. |
 | Confirm screen | You're joining {lot} ({owner name}). Is this your lot? · Yes, link my account · No, this isn't my lot |
-| Wrong lot | Please contact the admin office to get the right invitation. **(r4)** Shown above the empty code field on "Enter your invite code" |
+| Wrong lot | Please contact the admin office to get the right invitation. **(r5)** Shown above the empty code field on "Enter your invite code" |
 | Errors | That code doesn't match an invitation. Check it, or ask the admin office for a new one. · This invitation has expired. Ask the admin office to send a new one. · This invitation was already used. Ask the admin office for a new one. · This invitation was replaced by a newer one. Use the newest invitation, or ask the admin office. · This invitation is no longer valid. Ask the admin office. · Your account is already linked to {lot}. Ask the admin office if you need access to another lot. · Too many wrong codes. Try again in 15 minutes. |
-| Access removed **(r4)** | Your access to {lot} was removed by the admin office. Ask them if you think this is a mistake. |
-| Own household's other code **(r4)** | You're already linked to {lot}. That code wasn't used, so the person it was meant for can still use it. |
-| Offline, code or confirm **(r4)** | You're offline. Connect to the internet to use your invite code. |
-| Server error, code check **(r4)** | We couldn't check the code. Check your connection and try again. |
-| Server error, linking **(r4)** | We couldn't link your account. Check your connection and try again. |
-| Inactive household notice **(r4)** | This household record is inactive. Contact the admin office. (decision 9, option a only) |
-| Deactivate refused **(r4)** | {lot} still has {n} people linked. Remove them first, or use Change of owner. (one: {lot} still has 1 person linked. Remove them first, or use Change of owner.) (decision 9, option c; needs the matching REQ-003 change) |
-| Change of owner, list changed **(r4)** | Someone joined or left {lot} since you opened this. Check the list and try again. (Sol Arch C-1) |
-| Directory buttons | Invite · Invite selected · Resend invitation · Invite another person · Print invite slips · Print slip · Remove **(r4)** · Withdraw invitation · Change of owner |
-| Directory header **(r4)** | {total} households · {linked} linked · {invited} invited · {expired} invite expired · {failed} email failed · {not invited} not invited |
-| Household pills **(r4)** | Not invited · Invited · expires {date} · Linked · 1 person · Linked · {n} people · Invite expired · Email failed |
-| Invitation lines, household detail **(r4)** | Sent to: {email} or Printed slip, then " · Co-owner" or " · Family" for a person slot · Under it: Queued {date} · Sent {date} · Printed {date} · Status: the household pills above, or Used {date} · Actions on an unused line: Resend invitation (email, step 2) · Print slip · Withdraw invitation |
-| People with portal access **(r4)** | {account name} · {account email} · {relation} · linked {date} · Empty: No one is linked to this lot. Invite the owner or print a slip. |
-| Bulk confirm | **(r4)** Title: Send {n} invitations? (one: Send 1 invitation?) · if none can be emailed: No invitations to send · Lines: {m} households have no email. Print their slips instead. (one: 1 household has no email. Print its slip instead.) · {k} households are skipped: they are linked or already have an unused invitation. (one: 1 household is skipped: it is linked or already has an unused invitation.) · Buttons: Send {n} invitations · Print {m} slips · Cancel (nothing to do: Close). Lines with a count of 0 are not shown |
-| Bulk done | **(r4)** {n} invitations queued. Any that fail are marked Email failed in the list. (one: 1 invitation queued. If it fails, it is marked Email failed in the list.) (in flight: Queuing…) |
-| Bulk interrupted **(r4)** | Some invitations may not have been queued. Check your connection and press Invite selected again. Households already invited are skipped. |
-| Print confirm | **(r4)** Title: Print {n} slips? (one: Print 1 slip?) · Printing makes new codes. Each household's earlier unused invitation for the owner, emailed or printed, stops working. Invitations for other people in the household keep working. · {j} of these households have an unused invitation. It stops working when you print. · {k} households are skipped because they are linked. · Buttons: Print {n} slips · Cancel (in flight: Printing…). For a person slot: Printing makes a new code. This person's earlier unused invitation stops working. |
-| Print interrupted **(r4)** | The slips weren't made. Check your connection and try again. |
-| Printed by someone else **(r4)** | Slips for {k} of these households were printed in the last hour by {staff name}. Those slips no longer work. |
+| Access removed **(r5)** | Your access to {lot} was removed by the admin office. Ask them if you think this is a mistake. |
+| Own household's other code **(r5)** | You're already linked to {lot}. That code wasn't used, so the person it was meant for can still use it. |
+| Offline, code or confirm **(r5)** | You're offline. Connect to the internet to use your invite code. |
+| Server error, code check **(r5)** | We couldn't check the code. Check your connection and try again. |
+| Server error, linking **(r5)** | We couldn't link your account. Check your connection and try again. |
+| Inactive household notice **(r5)** | This household record is inactive. Contact the admin office. (decision 9, option a only) |
+| Deactivate refused **(r5)** | {lot} still has {n} people linked. Remove them first, or use Change of owner. (one: {lot} still has 1 person linked. Remove them first, or use Change of owner.) (decision 9, option c; needs the matching REQ-003 change) |
+| Change of owner, list changed **(r5)** | Someone joined or left {lot} since you opened this. Check the list and try again. (Sol Arch C-1) |
+| Directory buttons | Invite · Invite selected · Resend invitation · Invite another person · Print invite slips · Print slip · Remove **(r5)** · Withdraw invitation · Change of owner |
+| Directory header **(r5)** | {total} households · {linked} linked · {invited} invited · {expired} invite expired · {failed} email failed · {not invited} not invited |
+| Household pills **(r5)** | Not invited · Invited · expires {date} · Linked · 1 person · Linked · {n} people · Invite expired · Email failed |
+| Invitation lines, household detail **(r5)** | Sent to: {email} or Printed slip, then " · Co-owner" or " · Family" for a person slot · Under it: Queued {date} · Sent {date} · Printed {date} · Status: the household pills above, or Used {date} · Actions on an unused line: Resend invitation (email, step 2) · Print slip · Withdraw invitation |
+| People with portal access **(r5)** | {account name} · {account email} · {relation} · linked {date} · Empty: No one is linked to this lot. Invite the owner or print a slip. |
+| Bulk confirm | **(r5)** Title: Send {n} invitations? (one: Send 1 invitation?) · if none can be emailed: No invitations to send · Lines: {m} households have no email. Print their slips instead. (one: 1 household has no email. Print its slip instead.) · {k} households are skipped: they are linked or already have an unused invitation. (one: 1 household is skipped: it is linked or already has an unused invitation.) · Buttons: Send {n} invitations · Print {m} slips · Cancel (nothing to do: Close). Lines with a count of 0 are not shown |
+| Bulk done | **(r5)** {n} invitations queued. Any that fail are marked Email failed in the list. (one: 1 invitation queued. If it fails, it is marked Email failed in the list.) (in flight: Queuing…) |
+| Bulk interrupted **(r5)** | Some invitations may not have been queued. Check your connection and press Invite selected again. Households already invited are skipped. |
+| Print confirm | **(r5)** Title: Print {n} slips? (one: Print 1 slip?) · Printing makes new codes. Each household's earlier unused invitation for the owner, emailed or printed, stops working. Invitations for other people in the household keep working. · {j} of these households have an unused invitation. It stops working when you print. · {k} households are skipped because they are linked. · Buttons: Print {n} slips · Cancel (in flight: Printing…). For a person slot: Printing makes a new code. This person's earlier unused invitation stops working. |
+| Print interrupted **(r5)** | The slips weren't made. Check your connection and try again. |
+| Printed by someone else **(r5)** | Slips for {k} of these households were printed in the last hour by {staff name}. Those slips no longer work. |
 | Remove confirm | Remove {name} from {lot}? They will no longer see this lot. Its bills and payments stay with the lot. |
-| Already removed **(r4)** | {name} was already removed from {lot}. Nothing was changed. |
-| Withdraw confirm **(r4)** | Withdraw this invitation? Its code stops working at once. You can invite again later. · Keep invitation · Withdraw (in flight: Withdrawing…) · Done: Invitation withdrawn. |
-| Invite another person **(r4)** | Invite another person to {lot} · How is this person related to the household? Co-owner · Family · Email (step 2) · Send invitation (in flight: Queuing…) · Print slip · Cancel · Error: Choose how this person is related to the household |
-| Change of owner **(r4)** | Change of owner for {lot} · Everyone linked to this lot loses access at once: {names}. Every unused invitation stops working. Its bills and payments stay with the lot. · New owner's name · New owner's email (optional) · New owner's mobile (optional) · Cancel · Change owner (in flight: Saving…) · Error: Enter the new owner's name · Done: {lot} now shows {new name} as owner. Invite the new owner when you're ready. (decision 7) |
-| Settings → Invitations **(r4)** | Invitations · Emailed invitations expire after (days) · Printed slips expire after (days) · Changes apply to invitations made from now on. Invitations already made keep their date. · Save (in flight: Saving…) · Done: Saved. New invitations use these dates. · Error: Enter a whole number of days from 1 to 90. (decision 6) |
-| Slip | {HOA name} resident portal · {lot} · Your invite code: {code} · **(r4)** Expires at the end of {date} (Philippine time) · 1. Go to {portal address} 2. Sign in or create an account 3. Enter the code |
+| Already removed **(r5)** | {name} was already removed from {lot}. Nothing was changed. |
+| Withdraw confirm **(r5)** | Withdraw this invitation? Its code stops working at once. You can invite again later. · Keep invitation · Withdraw (in flight: Withdrawing…) · Done: Invitation withdrawn. |
+| Invite another person **(r5)** | Invite another person to {lot} · How is this person related to the household? Co-owner · Family · Email (step 2) · Send invitation (in flight: Queuing…) · Print slip · Cancel · Error: Choose how this person is related to the household |
+| Change of owner **(r5)** | Change of owner for {lot} · Everyone linked to this lot loses access at once: {names}. Every unused invitation stops working. Its bills and payments stay with the lot. · New owner's name · New owner's email (optional) · New owner's mobile (optional) · Cancel · Change owner (in flight: Saving…) · Error: Enter the new owner's name · Done: {lot} now shows {new name} as owner. Invite the new owner when you're ready. (decision 7) |
+| Settings → Invitations **(r5)** | Invitations · Emailed invitations expire after (days) · Printed slips expire after (days) · Changes apply to invitations made from now on. Invitations already made keep their date. · Save (in flight: Saving…) · Done: Saved. New invitations use these dates. · Error: Enter a whole number of days from 1 to 90. (decision 6) |
+| Slip | {HOA name} resident portal · {lot} · Your invite code: {code} · **(r5)** Expires at the end of {date} (Philippine time) · 1. Go to {portal address} 2. Sign in or create an account 3. Enter the code |
 | PDF footer | Delete this file after printing. |
 
 ## Out of scope
@@ -750,10 +750,10 @@ The email link carries the code after `#`, so it never reaches server logs. Clie
 - Reminder emails for invitations not yet accepted.
 - Bounce reports, if the owner says no to decision 3.
 - What a new owner can see of the lot's history (decision 5, settled before the payments REQ).
-- **(r4, G-9)** A list of removed people on the household detail page. Who was removed, by whom and when is in the activity log (backlog story 06).
-- **(r4, G-6)** The activity log screen itself (backlog story 06). Until it ships, the log lines in this REQ are checked at data level.
-- **(r4, G-11)** Telling a removed person why on the "Enter your invite code" page before they enter a code. They see the "access removed" message only if they re-enter their old code.
-- **(r4, G-29)** Detecting a sale automatically. The office starts Change of owner when it learns of a sale (Open questions).
+- **(r5, G-9)** A list of removed people on the household detail page. Who was removed, by whom and when is in the activity log (backlog story 06).
+- **(r5, G-6)** The activity log screen itself (backlog story 06). Until it ships, the log lines in this REQ are checked at data level.
+- **(r5, G-11)** Telling a removed person why on the "Enter your invite code" page before they enter a code. They see the "access removed" message only if they re-enter their old code.
+- **(r5, G-29)** Detecting a sale automatically. The office starts Change of owner when it learns of a sale (Open questions).
 
 ## Open questions
 
@@ -763,14 +763,14 @@ The email link carries the code after `#`, so it never reaches server logs. Clie
 | Email provider and sending domain (SA-001 Q7). Until chosen, only step 1 (printed slips) can ship. | Owner |
 | Is there a limit on people per household? | HOA board |
 | How will the office learn about sales, so the old owner is removed? (Nothing removes them automatically.) | Admin office |
-| **(r4)** Owner decisions 6 to 9 | Owner |
-| **(r4, G-29)** Will the office use Change of owner (or, if decision 7 is no, the removal checklist) on every sale, the day it learns of it? Who in the office owns that step? | Admin office |
-| **(r4, G-5)** When a household reports a lost slip, will the office withdraw it the same day and print a new one? | Admin office |
-| **(r4, G-32)** During the invitation drive, will the office split printing by block between staff, so two people don't print the same households? | Admin office |
-| **(r4, Sol Arch C-2)** After Change of owner the portal keeps no copy of the seller's owner name or contacts. Is the office's own sale file enough when someone later asks who owned the lot? BA's recommendation: yes (data minimisation) | Admin office, with the HOA's Data Protection Officer |
-| **(r4, G-28)** The confirm screen shows the owner name on file to anyone holding a code (approved in r3). Does this fit the HOA's privacy notice? BA's recommendation: keep it, because it is what stops honest mistakes, and Change of owner keeps it current | Owner, with the HOA's Data Protection Officer |
+| **(r5)** Owner decisions 6 to 9 | Owner |
+| **(r5, G-29)** Will the office use Change of owner (or, if decision 7 is no, the removal checklist) on every sale, the day it learns of it? Who in the office owns that step? | Admin office |
+| **(r5, G-5)** When a household reports a lost slip, will the office withdraw it the same day and print a new one? | Admin office |
+| **(r5, G-32)** During the invitation drive, will the office split printing by block between staff, so two people don't print the same households? | Admin office |
+| **(r5, Sol Arch C-2)** After Change of owner the portal keeps no copy of the seller's owner name or contacts. Is the office's own sale file enough when someone later asks who owned the lot? BA's recommendation: yes (data minimisation) | Admin office, with the HOA's Data Protection Officer |
+| **(r5, G-28)** The confirm screen shows the owner name on file to anyone holding a code (approved in r3). Does this fit the HOA's privacy notice? BA's recommendation: keep it, because it is what stops honest mistakes, and Change of owner keeps it current | Owner, with the HOA's Data Protection Officer |
 
-## r4 change log
+## r5 change log
 
 Every gap from QA's "Requirement gaps for the BA" in TC-04 v1, G-1 to G-33. None is skipped.
 
@@ -778,8 +778,8 @@ Every gap from QA's "Requirement gaps for the BA" in TC-04 v1, G-1 to G-33. None
 |---|---|---|
 | G-1 Expired as "unused" | No. Unused means active and not expired, so expired households are re-invited, not skipped. Their old code then shows "replaced" | Invitation rules "Unused"; scenario "An expired invitation does not block a new one" |
 | G-2 Pill precedence | Linked wins; then Email failed, Invited, Invite expired, Not invited. Other people's invitations on a linked household show only on the detail page | Invitation rules "Which status…"; scenario outline "Which status a household shows" |
-| G-3 How "Invite expired" appears; header counts | Worked out when read, from `expiresAt` (household keeps `inviteExpiresAt`), no job. Recommended to Sol Arch, who decides the mechanism. Header: five groups of active households that add up; inactive only in its chip. Sol Arch chose read time; every writer recomputes the status, never sets it directly (Sol Arch C-3) | Data "Link status" row; Invitation rules "Expired", "Header counts"; scenarios "A household turns…", "The directory header counts…"; Copy "Directory header"; Sol Arch (r4) Q1, Q2 |
-| G-4 Does printing kill the email and a second person's invitation | Slot = the household's owner slot, or a person slot per "Invite another person". Printing replaces the owner's invitation, emailed or printed; other people's keep working. Print copy says exactly that | Invitation rules "Slots"; changed "Print code slips"; scenario "Printing a slip replaces…"; Copy "Print confirm"; Sol Arch (r4) Q3 |
+| G-3 How "Invite expired" appears; header counts | Worked out when read, from `expiresAt` (household keeps `inviteExpiresAt`), no job. Recommended to Sol Arch, who decides the mechanism. Header: five groups of active households that add up; inactive only in its chip. Sol Arch chose read time; every writer recomputes the status, never sets it directly (Sol Arch C-3) | Data "Link status" row; Invitation rules "Expired", "Header counts"; scenarios "A household turns…", "The directory header counts…"; Copy "Directory header"; Sol Arch (r5) Q1, Q2 |
+| G-4 Does printing kill the email and a second person's invitation | Slot = the household's owner slot, or a person slot per "Invite another person". Printing replaces the owner's invitation, emailed or printed; other people's keep working. Print copy says exactly that | Invitation rules "Slots"; changed "Print code slips"; scenario "Printing a slip replaces…"; Copy "Print confirm"; Sol Arch (r5) Q3 |
 | G-5 `cancelInvite` | **Specified, not removed.** Lost slips are real (slips work like keys), and printing a replacement is the only other way to kill one. "Withdraw invitation" on an unused line of the detail page, admin and treasurer, confirmed. A cancelled code, for any reason, says "This invitation is no longer valid. Ask the admin office." | Scenarios "Withdraw…" (three); Invitation rules "Withdraw"; Data; Copy "Withdraw confirm"; Open questions (lost-slip procedure) |
 | G-6 Activity log screen | Unchanged requirement; the log screen is backlog story 06. Checked at data level until then | Data "Change records"; Out of scope |
 | G-7 Expiry settings | New invitations only; whole days 1–90, 0 refused; missing means 7/30. Who edits and whether R1 has a screen: **owner decision 6** (recommended: admin office and treasurer, small Settings card). No settings card in the mock-up yet | Owner decision 6; scenarios "Changing how long…", "Expiry days must be…", "Board members, guards…", "With no setting stored…"; Data; Copy "Settings → Invitations"; Mockup changes |
@@ -790,7 +790,7 @@ Every gap from QA's "Requirement gaps for the BA" in TC-04 v1, G-1 to G-33. None
 | G-12 Linked households in bulk | Skipped by "Invite selected" and "Print invite slips", counted as skipped; no row actions; use "Invite another person" | Scenario "Linked households are skipped…"; Invitation rules "Skipped in bulk" |
 | G-13 Bulk copy at m = 0, n = 1, n = 0; skipped counts | {n} counts only households acted on; singulars; zero-count lines hidden; "No invitations to send" with a print route | Changed "Invite many…"; scenario outline "The bulk invite confirm…"; scenarios "The counts are what is actually done", "The print confirm says how many…"; Copy "Bulk confirm", "Bulk done", "Print confirm" |
 | G-14 Email status display | Directory pill stays "Invited · expires {date}" while queued or sent; detail line reads Queued / Sent / Printed {date}; failed reads "Email failed"; never "delivered". Done message names "Email failed" | Scenario "The household detail shows each email's status"; Copy "Invitation lines", "Bulk done" |
-| G-15 Resend while queued | The earlier queued email is not handed over; only the newest goes. Its mail status is `skipped`, never shown as Email failed (Sol Arch C-4) | Scenario "Resend while the earlier email is still waiting…"; Data "Invitation email"; Sol Arch (r4) Q4 |
+| G-15 Resend while queued | The earlier queued email is not handed over; only the newest goes. Its mail status is `skipped`, never shown as Email failed (Sol Arch C-4) | Scenario "Resend while the earlier email is still waiting…"; Data "Invitation email"; Sol Arch (r5) Q4 |
 | G-16 Contact email edited | The owner slot doesn't depend on the address, so Resend replaces the invitation to the old address | Invitation rules "Slots"; scenario "Resend after the contact email is corrected" |
 | G-17 Relations | Owner for the owner slot; "Co-owner" or "Family" for another person, required, no default; no tenant | Changed "Send an invitation"; Invitation rules "Relation"; scenario "The relation must be picked"; Copy "Invite another person" |
 | G-18 Name in "People with portal access"; replaced and cancelled lines | The person's own account name and email (the lost-slip safeguard), copied onto the membership at link time (Sol Arch C-5). Replaced and withdrawn invitations are not listed; current and used ones are | Scenario "Who the household detail lists"; UX "Privacy"; Copy "People with portal access", "Invitation lines" |
@@ -801,22 +801,22 @@ Every gap from QA's "Requirement gaps for the BA" in TC-04 v1, G-1 to G-33. None
 | G-23 Reset on link; locked refusals | A successful redeem sets the count back to 0. Codes entered while locked don't extend the window | Scenarios "A successful link clears…", "Codes entered while locked…"; Data "Wrong-code attempts" |
 | G-24 Message precedence | One ordered list of eleven checks | Invitation rules "Code check order"; scenario outline "Which message wins…" |
 | G-25 Network or server error | Offline line, "We couldn't check the code…" and "We couldn't link your account…"; code kept; a retry after a lost reply lands on the dashboard. Staff bulk and print interruptions have their own lines | Scenario outline "The connection fails…"; scenario "Pressing 'Yes, link my account' again…"; Copy rows |
-| G-26 Removed member's open screen | Changes to "Enter your invite code" within a minute while online (matches REQ-002); on next load in any case | Changed "Removing a person after a sale"; Invitation rules "Removal"; Sol Arch (r4) Q8 |
+| G-26 Removed member's open screen | Changes to "Enter your invite code" within a minute while online (matches REQ-002); on next load in any case | Changed "Removing a person after a sale"; Invitation rules "Removal"; Sol Arch (r5) Q8 |
 | G-27 Members of a deactivated household | **Owner decision 9.** After Sol Arch's cost note the recommendation is now option c: refuse deactivation while anyone is linked. Read-only (a) and remove-everyone (b) are the alternatives. Remove works from the Inactive list, there are no invite controls while inactive, and Reactivate doesn't bring codes back | Owner decision 9; scenarios "Deactivating a household that still has people linked", "People linked to a household that is deactivated" (option a), "Deactivating stops codes for good"; Copy "Deactivate refused", "Inactive household notice"; Data "Invitation", "Link status" |
 | G-28 New owner sees the previous owner's name | Fixed in the procedure and the software together: Change of owner sets the new name before any invitation. Whether showing the owner name at all fits the privacy notice is in Open questions (owner with DPO) | Owner decision 7; scenario "The new owner sees her own name…"; UX "Privacy"; Open questions |
 | G-29 Old owner's family stays linked | **Owner decision 7** (recommended: a "Change of owner" action that removes everyone). Whether the office does it on every sale is the **admin office's** call. Refused if someone joined or left while the form was open (Sol Arch C-1); search words rewritten, seller's name and contacts not kept (Sol Arch C-2; office and DPO to confirm) | Owner decision 7; scenarios "Change of owner…", "The change of owner form…", "Someone joins or leaves while…"; Data "Change of owner"; Copy "Change of owner, list changed"; Open questions |
 | G-30 After "No, this isn't my lot" | Code cleared from the page and the session; back on "Enter your invite code" with the wrong-lot line; the code stays usable for the right person | Scenario "'No, this isn't my lot' clears the code"; Copy "Wrong lot" |
 | G-31 Used code re-entered after expiry | Dashboard, because the person is linked to that household (check order step 4) | Changed "The person who used a code enters it again"; outline "Which message wins…" last row |
-| G-32 Two staff printing the same households | One working code is guaranteed (r3). The second printer is told whose slips stopped working; the office splits printing by block (**admin office**) | Scenarios "Two staff print slips…", "The print confirm says how many…"; Copy "Printed by someone else"; Open questions; Sol Arch (r4) Q5 |
-| G-33 In-flight states | Every button that makes or stops an invitation is disabled with its in-flight word, and acts once | Scenario outline "Buttons that make or stop invitations act once"; UX "Safe actions"; Sol Arch (r4) Q9 |
+| G-32 Two staff printing the same households | One working code is guaranteed (r3). The second printer is told whose slips stopped working; the office splits printing by block (**admin office**) | Scenarios "Two staff print slips…", "The print confirm says how many…"; Copy "Printed by someone else"; Open questions; Sol Arch (r5) Q5 |
+| G-33 In-flight states | Every button that makes or stops an invitation is disabled with its in-flight word, and acts once | Scenario outline "Buttons that make or stop invitations act once"; UX "Safe actions"; Sol Arch (r5) Q9 |
 
-**Mockup (r4) changes needed** (the mockup file is not edited in this revision): **3A**: header to "623 households · 412 linked · 148 invited · 9 invite expired · 3 email failed · 51 not invited"; row buttons "Resend" → "Resend invitation"; drop "Manage" on linked rows and make the lot name a link; pill dates with the year ("Dec 5, 2026"). **4A**: body line to "expires at the end of Dec 5, 2026 (Philippine time)". **4B/4D**: add the empty, malformed, offline, server-error, "access removed" and "own household's other code" messages. **4E**: People lines with the account email; Remove confirm "They will"; Invitations lines with Queued / Sent / Printed and the year; "Resend invitation" and "Withdraw invitation" on unused lines; "Change of owner" button; empty "People with portal access" state. **4F**: skipped line and the n = 0 / n = 1 variants; done line "Any that fail are marked Email failed in the list." **4G**: print confirm with the owner-slot wording and the "{j} … stops working" line; slip "Expires at the end of Dec 28, 2026 (Philippine time)". **New screens:** Withdraw confirm; Invite another person (relation, email, Send invitation, Print slip); Change of owner form, including its "Someone joined or left…" state (r4, Sol Arch C-1); Settings → Invitations card; the deactivate refusal on REQ-003's screen (decision 9 option c), or the inactive-household notice if the owner picks option a; the step-1 directory with print controls only.
+**Mockup (r5) changes needed** (the mockup file is not edited in this revision): **3A**: header to "623 households · 412 linked · 148 invited · 9 invite expired · 3 email failed · 51 not invited"; row buttons "Resend" → "Resend invitation"; drop "Manage" on linked rows and make the lot name a link; pill dates with the year ("Dec 5, 2026"). **4A**: body line to "expires at the end of Dec 5, 2026 (Philippine time)". **4B/4D**: add the empty, malformed, offline, server-error, "access removed" and "own household's other code" messages. **4E**: People lines with the account email; Remove confirm "They will"; Invitations lines with Queued / Sent / Printed and the year; "Resend invitation" and "Withdraw invitation" on unused lines; "Change of owner" button; empty "People with portal access" state. **4F**: skipped line and the n = 0 / n = 1 variants; done line "Any that fail are marked Email failed in the list." **4G**: print confirm with the owner-slot wording and the "{j} … stops working" line; slip "Expires at the end of Dec 28, 2026 (Philippine time)". **New screens:** Withdraw confirm; Invite another person (relation, email, Send invitation, Print slip); Change of owner form, including its "Someone joined or left…" state (r5, Sol Arch C-1); Settings → Invitations card; the deactivate refusal on REQ-003's screen (decision 9 option c), or the inactive-household notice if the owner picks option a; the step-1 directory with print controls only.
 
-## Sol Arch review (r4)
+## Sol Arch review (r5)
 
-*Sol Arch, 2026-11-28, draft.* Reviewed the r4 diff against approved r3, SA-001 (`docs/sa-001-architecture`, §8.1, ADR-004, ADR-002), REQ-002 and REQ-003. **Verdict: supports with changes.** Every r4 rule can be built on Firestore, Cloud Functions and Auth with no new service. Six text changes are needed before approval (listed after the answers). Answers follow the questions.
+*Sol Arch, 2026-11-28, draft.* Reviewed the r5 diff against approved r3, SA-001 (`docs/sa-001-architecture`, §8.1, ADR-004, ADR-002), REQ-002 and REQ-003. **Verdict: supports with changes.** Every r5 rule can be built on Firestore, Cloud Functions and Auth with no new service. Six text changes are needed before approval (listed after the answers). Answers follow the questions.
 
-Review only the scenarios tagged `@r4-new` or `@r4-changed` and the lines marked (r4). The BA's questions for this review, each touching architecture:
+Review only the scenarios tagged `@r5-new` or `@r5-changed` and the lines marked (r5). The BA's questions for this review, each touching architecture:
 
 1. **G-3, expired status.** The BA recommends working "Invite expired" out when read: `households.linkStatus` stays `invited` and a new `inviteExpiresAt` holds the latest expiry of the household's unused invitations; the directory, chip and count compare it with now (end of day, Asia/Manila). The alternative is a daily job at 00:00 Manila that rewrites `linkStatus`. Which do you choose? Can the "Invite expired (n)" chip and header counts be indexed queries and count aggregations without reading every row?
 2. **G-3, G-2, header counts.** Five groups of active households that add up to the total, using the status order in Invitation rules. Can `linkStatus` + `inviteExpiresAt` support that order (for example "Email failed" wins over "Invited" when a co-owner's email failed), or do we need more household fields?
@@ -861,7 +861,7 @@ Review only the scenarios tagged `@r4-new` or `@r4-changed` and the lines marked
 - **C-5 (Q14):** Data "Membership" row: add name and email, copied from the account at link time.
 - **C-6 (Q11, Q13):** add "the server refuses it too" to the format-check outline. Add "a direct write from her account is refused" to the deactivated-household scenario.
 
-> **BA note (r4):** C-1 to C-6 are applied to the Gherkin, copy of record and Data changes above, marked "Sol Arch C-n". The cost note in answer 13 changed the BA's recommendation on owner decision 9 to option c (refuse deactivation while anyone is linked). The owner still decides.
+> **BA note (r5):** C-1 to C-6 are applied to the Gherkin, copy of record and Data changes above, marked "Sol Arch C-n". The cost note in answer 13 changed the BA's recommendation on owner decision 9 to option c (refuse deactivation while anyone is linked). The owner still decides.
 
 ## Sol Arch review
 
