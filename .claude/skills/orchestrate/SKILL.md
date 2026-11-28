@@ -29,8 +29,9 @@ they win over this table.
 | 4 | QA test plan | `docs/test-cases/TC-*` names the REQ in its **Source** row | QA |
 | 4b | Test plan approved and merged | The TC's Status starts **Approved** and it is on `main` (merge only after the owner's OK) | Owner |
 | 5 | QE triage | No `**Layer** TBD` left in the approved, merged plan; coverage map updated | QE |
-| 6 | Dev build | `feature/*` branch with code linked to the REQ; needs an **approved** SA design, unit tests ≥ 80% new code, SonarQube gate | Dev |
+| 6 | Dev build | `feature/*` branch with code linked to the REQ; needs an **approved** SA design, unit tests ≥ 80% new code | Dev |
 | 7 | Merged | Code for the REQ is on `main`; QE smoke + plan passed | Dev / QE |
+| 8 | Ready for Demo | The whole batch passes QE's regression **and** the SonarQube gate (run once per batch, not per merge) | QE / Dev |
 
 QA and Dev may run in parallel once stage 3 is done. **Dev building before stage 3, or
 against a Draft SA/ADR, is a rule break.** Flag it.

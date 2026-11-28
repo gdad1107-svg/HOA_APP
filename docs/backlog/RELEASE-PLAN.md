@@ -15,8 +15,8 @@ Sprints are numbered straight through all releases. Each sprint is one requireme
 2. **Owner approved**
 3. **Sol Arch reviewed**
 4. **QA test plan** written
-5. **Built** by Dev, passing the SonarQube gate
-6. **Tested** by QE
+5. **Built** by Dev, with unit tests at ≥ 80% coverage
+6. **Tested** by QE; the batch's SonarQube scan passes before Demo
 7. **Released**
 
 ## Releases and sprints
