@@ -17,7 +17,8 @@
 // It never writes to git, never fetches, never pushes. `gh` is optional: without it
 // (or without auth) PR columns are left blank and the report says so.
 
-import { execFileSync } from 'node:child_process';
+import { execFileSync, execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -37,9 +38,34 @@ const run = (cmd, argv, cwd) =>
 const tryRun = (cmd, argv, cwd) => {
   try { return run(cmd, argv, cwd); } catch { return null; }
 };
+// Async variant for calls that can run side by side (one per worktree, gh). Resolves to
+// null on failure, like tryRun.
+const execFileP = promisify(execFile);
+const tryRunAsync = (cmd, argv, cwd) =>
+  execFileP(cmd, argv, { cwd, maxBuffer: 64 * 1024 * 1024 }).then((r) => r.stdout.trim(), () => null);
 const ROOT = run('git', ['rev-parse', '--show-toplevel'], here);
 const git = (...a) => run('git', a, ROOT);
 const tryGit = (...a) => tryRun('git', a, ROOT);
+
+// Read many blobs with ONE `git cat-file --batch` instead of a `git show` per file.
+// Returns Map<hash, text>.
+function readBlobs(hashes) {
+  const want = [...new Set(hashes.filter(Boolean))];
+  const out = new Map();
+  if (!want.length) return out;
+  const buf = execFileSync('git', ['cat-file', '--batch'], { cwd: ROOT, input: want.join('\n') + '\n', maxBuffer: 256 * 1024 * 1024 });
+  let pos = 0;
+  while (pos < buf.length) {
+    const nl = buf.indexOf(0x0a, pos);
+    if (nl < 0) break;
+    const [hash, type, size] = buf.subarray(pos, nl).toString('utf8').split(' ');
+    if (type === 'missing' || size === undefined) { pos = nl + 1; continue; }
+    const start = nl + 1, end = start + Number(size);
+    out.set(hash, buf.subarray(start, end).toString('utf8'));
+    pos = end + 1; // content is followed by a newline
+  }
+  return out;
+}
 
 const LOCAL_MAIN = tryGit('rev-parse', '--verify', '--quiet', 'refs/heads/main') ? 'main' : 'master';
 // Compare against origin/<main> when it is ahead of the local branch (a PR merged on
@@ -55,12 +81,18 @@ const ageDays = (iso) => Math.floor((NOW - new Date(iso).getTime()) / DAY);
 
 // ---------- branches, worktrees, PRs ----------
 
-const branches = git('for-each-ref', 'refs/heads', '--format=%(refname:short)\t%(committerdate:iso-strict)\t%(subject)')
+// %(ahead-behind:<ref>) (git 2.41+) gives every branch's counts in this one call; older
+// git leaves it empty and we fall back to a rev-list per branch.
+const branches = git('for-each-ref', 'refs/heads', `--format=%(refname:short)\t%(committerdate:iso-strict)\t%(ahead-behind:${MAIN})\t%(subject)`)
   .split('\n').filter(Boolean).map((line) => line.split('\t'))
   .filter(([name]) => name !== LOCAL_MAIN)
-  .map(([name, date, subject]) => {
-    const lr = git('rev-list', '--left-right', '--count', `${MAIN}...${name}`).split(/\s+/).map(Number);
-    const behind = lr[0], ahead = lr[1];
+  .map(([name, date, ab, ...rest]) => {
+    const subject = rest.join('\t');
+    let [ahead, behind] = (ab ?? '').split(' ').map(Number);
+    if (!Number.isFinite(ahead) || !Number.isFinite(behind)) {
+      const lr = git('rev-list', '--left-right', '--count', `${MAIN}...${name}`).split(/\s+/).map(Number);
+      behind = lr[0]; ahead = lr[1];
+    }
     return { name, lastCommit: date, ageDays: ageDays(date), subject, ahead, behind, worktree: null, dirty: [], pr: null, files: [], commitText: '', ids: new Set() };
   });
 const byBranch = Object.fromEntries(branches.map((b) => [b.name, b]));
@@ -74,13 +106,20 @@ for (const block of wtRaw.split(/\n\n+/)) {
   if (path && br === LOCAL_MAIN) mainWorktree = path;
   if (!path || !br || !byBranch[br]) continue;
   byBranch[br].worktree = path;
-  const st = tryRun('git', ['status', '--porcelain'], path);
-  byBranch[br].dirty = st ? st.split('\n').filter(Boolean).map((l) => l.slice(3)) : [];
 }
+
+// Every worktree's `git status`, the main checkout's and the PR list, all at once.
+const toLines = (st) => (st ? st.split('\n').filter(Boolean).map((l) => l.slice(3)) : []);
+const withWorktree = branches.filter((b) => b.worktree);
+const [statuses, mainStatus, prJson] = await Promise.all([
+  Promise.all(withWorktree.map((b) => tryRunAsync('git', ['status', '--porcelain'], b.worktree))),
+  mainWorktree ? tryRunAsync('git', ['status', '--porcelain'], mainWorktree) : null,
+  tryRunAsync('gh', ['pr', 'list', '--state', 'all', '--limit', '100', '--json', 'number,title,headRefName,state,isDraft,url,reviewDecision,updatedAt'], ROOT),
+]);
+withWorktree.forEach((b, i) => { b.dirty = toLines(statuses[i]); });
 
 // PRs (optional)
 let prNote = null;
-const prJson = tryRun('gh', ['pr', 'list', '--state', 'all', '--limit', '100', '--json', 'number,title,headRefName,state,isDraft,url,reviewDecision,updatedAt'], ROOT);
 if (prJson) {
   // newest PR per branch wins; an open one always beats a closed or merged one
   const rank = (p) => (p.state === 'OPEN' ? 1 : 0);
@@ -177,6 +216,9 @@ function tableRows(text, heading) {
   return rows.slice(1); // drop header
 }
 
+// Every document version on main and on unmerged branches, read in one batch.
+const BLOBS = readBlobs(Object.values(docs).flatMap((d) => [d.main, ...d.versions.map((v) => v.hash)]));
+
 // pick the version to report: the newest branch that changed it, else main
 function readDoc(d) {
   // Only count a branch whose own commits touch the file; a branch cut before main
@@ -184,7 +226,7 @@ function readDoc(d) {
   const changed = d.versions.filter((v) => v.branch !== MAIN && v.hash !== d.main && byBranch[v.branch].files.includes(v.path));
   changed.sort((x, y) => new Date(byBranch[y.branch].lastCommit) - new Date(byBranch[x.branch].lastCommit));
   const pick = changed[0] ?? d.versions.find((v) => v.branch === MAIN) ?? d.versions[0];
-  const text = git('show', `${pick.branch}:${pick.path}`);
+  const text = BLOBS.get(pick.hash) ?? git('show', `${pick.branch}:${pick.path}`);
   return {
     ...d,
     onMain: !!d.main,
@@ -209,7 +251,7 @@ const tcDocs = all.filter((d) => d.kind === 'TC').map((d) => {
   const status = field(d.text, 'Status');
   const tbdIn = (text) => (text.match(/\*\*Layer\*\*\s*TBD/gi) || []).length;
   // Gates (approved, triaged) are judged on main's copy; work on a branch is only "in progress"
-  const mainText = d.onMain ? git('show', `${MAIN}:${d.path}`) : null;
+  const mainText = d.onMain ? BLOBS.get(d.main) ?? git('show', `${MAIN}:${d.path}`) : null;
   return {
     ...d, sources: idsIn(source ?? head), status, approved: isApproved(status), tbd: tbdIn(d.text),
     approvedOnMain: mainText ? isApproved(field(mainText, 'Status')) : false,
@@ -224,7 +266,10 @@ const coverage = tryGit('show', `${MAIN}:docs/test-cases/COVERAGE-MAP.md`) ?? ''
 
 const linkedBranches = (id) => branches.filter((b) => b.ids.has(id) && b.ahead > 0);
 const isCode = (f) => !/^docs\//.test(f) && !/\.md$/i.test(f);
-const mergedCodeOnMain = (id) => !!tryGit('log', MAIN, '-i', `--grep=${id}`, '--format=%H', '--', '.', ':!docs', ':!*.md');
+// One log of main's commits that touch code (not docs), instead of a `git log --grep` per
+// requirement. Ids are matched exactly as idsIn reads them, ranges included.
+const CODE_COMMIT_IDS = idsIn(tryGit('log', MAIN, '--format=%s%n%b', '--', '.', ':!docs', ':!*.md') ?? '');
+const mergedCodeOnMain = (id) => CODE_COMMIT_IDS.has(id);
 
 const requirements = reqDocs.map((d) => {
   const status = field(d.text, 'Status') ?? 'Unknown';
@@ -349,7 +394,7 @@ const branchReport = branches.filter((b) => b.name !== MAIN).map((b) => {
 });
 
 // uncommitted edits in the main checkout (nobody should be editing there)
-const mainDirty = mainWorktree ? (tryRun('git', ['status', '--porcelain'], mainWorktree) ?? '').split('\n').filter(Boolean) : [];
+const mainDirty = (mainStatus ?? '').split('\n').filter(Boolean); // fetched with the worktrees above
 
 const report = {
   generatedAt: new Date(NOW).toISOString(), root: ROOT, main: MAIN, prNote,
