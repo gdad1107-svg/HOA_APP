@@ -10,7 +10,7 @@
 | Architecture | SA-001 §4.2 (`households` totals), §4.4 item 1, §7 (reads per screen), R-11, R-16; CODING-STANDARDS rule 11. Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-009 (statement and balance rules; the statement must show the **stored** balance, not one recalculated in the browser, for the two to agree), REQ-010 (pending payments), REQ-011 (bell), REQ-013 (receipt button), REQ-016 (announcements). Landing page already named by REQ-001 and REQ-004 |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (overdue and due date from a server-kept `openBills` summary and a shared aging helper, stored balance in REQ-009, credit as a negative balance, phone-clock note, sale rule by submission time, `config/features`) · r4, 2026-11-28: owner approval recorded; recommendations accepted · 2026-11-28: size re-done with mock-up reuse (REVIEW-sizing-reuse.md, owner approved) |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (overdue and due date from a server-kept `openBills` summary and a shared aging helper, stored balance in REQ-009, credit as a negative balance, phone-clock note, sale rule by submission time, `config/features`) · r4, 2026-11-28: owner approval recorded; recommendations accepted · r5, 2026-11-28: answers TC-15 gaps G-1 to G-9 (and TC-12 G-2, TC-14 G-12): `openBills` recalculated from bills and the household's paid total, no per-bill paid amounts; first-name fallback; which due date shows; fully paid, credit and awaiting-approval combinations; "Pay with QR" always shown; overdue alert counts overdue bills only; payment-row statuses and reasons; per-card error copy; `config/features` not read by people with no household · 2026-11-28: size re-done with mock-up reuse (REVIEW-sizing-reuse.md, owner approved) |
 
 ## Owner decisions
 
@@ -67,14 +67,42 @@ Feature: Homeowner dashboard
     When he opens the dashboard
     Then he sees "2 months overdue · ₱3,600.00" with a "Pay now" button above the tiles
 
+  Scenario: The overdue alert counts overdue bills only; the tile shows the next due date (G-2, G-6)
+    Given today is Dec 5, 2026 in Manila
+    And Roberto owes October and November 2026, each ₱1,800.00 and past due, and December 2026, ₱1,800.00 due Dec 31, 2026
+    When he opens the dashboard
+    Then he sees "2 months overdue · ₱3,600.00"
+    And the balance tile reads "₱5,400.00" and "Due Dec 31, 2026"
+
+  Scenario: Everything owed is overdue (G-2)
+    Given today is Dec 5, 2026 in Manila
+    And Roberto owes only October and November 2026, both past due
+    Then the balance tile reads "₱3,600.00" and "Was due Oct 31, 2026"
+
   Scenario: A fully paid account
     Given Maria's balance is ₱0.00
     Then the balance tile reads "₱0.00" and "You are fully paid"
     And there is no overdue warning
+    And "Pay with QR" is shown, because paying ahead is allowed (G-5)
+
+  Scenario: Fully paid with a payment waiting (G-3)
+    Given Maria's balance is ₱0.00 and she has ₱1,800.00 awaiting approval
+    Then the balance tile reads "₱0.00", "You are fully paid" and "₱1,800.00 awaiting approval"
 
   Scenario: A credit
     Given Juan has ₱200.00 credit
     Then the balance tile reads "₱0.00" and "₱200.00 credit"
+    And "Pay with QR" is shown (G-5)
+
+  Scenario: Credit from before the portal and nothing billed yet (G-4)
+    Given Blk 6 Lot 4 has ₱1,200.00 credit from before the portal and no bills
+    Then the balance tile reads "₱0.00" and "₱1,200.00 credit"
+    And it does not read "No dues billed yet"
+
+  Scenario: No name on the account (G-1)
+    Given Juan's account has no name, because his Google profile had none
+    When he opens the dashboard
+    Then the heading reads "Welcome back" with no name
 
   Scenario: A payment waiting for approval
     Given Carlo owes ₱1,800.00 and submitted ₱1,800.00 that is pending approval
@@ -90,10 +118,16 @@ Feature: Homeowner dashboard
     Then the dashboard shows the 3 newest, each with date, amount, status, and "Receipt PDF" when approved
     And "See all payments" opens Dues & Payments
 
+  Scenario: Rejected and void payments show their reason (G-7, TC-14 G-12)
+    Given Carlo's 3 newest payments are one rejected for "Screenshot is unreadable", one voided for "Duplicate of OR-00090" and one approved as OR-00093
+    Then recent payments read "Rejected: Screenshot is unreadable", "Void: Duplicate of OR-00090" and "Approved · OR-00093"
+    And the same rows on Dues & Payments read the same
+
   Scenario: Nothing billed yet
     Given a newly linked household with no bills and no payments
     Then the balance tile reads "₱0.00" and "No dues billed yet"
     And recent payments read "No payments yet."
+    And "Pay with QR" is shown (G-5)
 
   Scenario: Only tiles for released features
     Given amenity booking, requests and vehicles are not released
@@ -113,6 +147,17 @@ Feature: Homeowner dashboard
     Then the balance tile reads "Couldn't load your balance. Check your connection and try again." with "Try again"
     And no figure is shown in its place
 
+  Scenario: The payments or announcements card can't load (G-8)
+    Given the balance loaded but the payments and announcements didn't
+    Then the payments card reads "Couldn't load your payments. Try again." with "Try again"
+    And the announcements card reads "Couldn't load announcements. Try again." with "Try again"
+    And the balance tile still shows the balance
+
+  Scenario: A person with no household doesn't reach the dashboard (G-9)
+    Given Dina has signed in but isn't linked to a household
+    Then she sees the not-linked screen (REQ-004)
+    And her browser does not read the released-features settings, which the server refuses her
+
   Scenario: A bill falls due overnight
     Given Juan owes ₱1,800.00 for November 2026, due Nov 30, 2026, and has paid nothing
     When he opens the dashboard on Dec 1, 2026, Manila time
@@ -129,12 +174,13 @@ Feature: Homeowner dashboard
 
 | What | Where | Rule | Written by | Read by |
 |---|---|---|---|---|
-| Balance | `households/{id}.balanceCentavos` | The stored balance; the statement (REQ-009) shows the same stored figure. Negative means **credit**, shown as "₱0.00" plus "₱x credit" (REQ-012) | `decidePayment`, `voidReceipt`, billing run | Dashboard, statement |
-| Open bills summary | `households/{id}.openBills`: `[{period, dueDate, outstandingCentavos}]` (new) | Server-kept, sized for the worst case (60 entries, a few KB). "{n} months overdue · {amount}" and the next due date are **worked out when read** against today in Manila (C4), by one shared helper, `shared/domain/aging.js`, also used by REQ-009, REQ-018 and REQ-034. No stored `overdueCount`, which would go stale at midnight | Billing run (REQ-008), `decidePayment`, `voidReceipt`; the opening-balance import fills it (R-8) | Dashboard |
+| Balance | `households/{id}.balanceCentavos` | The stored balance; the statement (REQ-009) shows the same stored figure. Negative means **credit**; on this tile it is shown as "₱0.00" plus "₱x credit" (the statement's summary reads "₱x credit", REQ-009). Credit wins over "No dues billed yet" (G-4) | `decidePayment`, `voidReceipt`, billing run | Dashboard, statement |
+| Open bills summary | `households/{id}.openBills`: `[{period, dueDate, outstandingCentavos}]` (new) | Server-kept on the household document only, sized for the worst case (60 entries, a few KB). **Not a per-bill paid amount** (REQ-009 r3 stores none): each writer recalculates the whole summary from all the household's bills and `households.paidCentavos` with `shared/domain/ledger.js`, in its own transaction (TC-12 G-2). "{n} months overdue · {amount}" and the next due date are **worked out when read** against today in Manila (C4), by one shared helper, `shared/domain/aging.js`, also used by REQ-009, REQ-018 and REQ-034. No stored `overdueCount`, which would go stale at midnight. **Alert amount** = the outstanding amounts of overdue bills only (G-6). **Tile date** = the earliest due date among open bills not yet due; when every open bill is overdue, "Was due {earliest unpaid due date}" (G-2) | Billing run (REQ-008), `decidePayment`, `voidReceipt`, REQ-046 corrections; the opening-balance import fills it (R-8) | Dashboard |
+| First name | `users/{uid}.name` (REQ-001) | The first word of the name typed at account creation, or of the Google profile name. If there is none, the heading reads "Welcome back" (G-1) | REQ-001 | Dashboard, REQ-017 pop-up |
 | Awaiting approval | `households/{id}.pendingCentavos` | Server-kept: `submitPayment` adds, `decidePayment` subtracts on approve and on reject, a void doesn't change it; the nightly reconciliation recounts it. Never summed in the browser | REQ-010, REQ-012 | Dashboard |
 | Recent payments | the 3 newest `payments` for the household | Shared payment-row component and sale rule (decision 4) | — | Dashboard |
 | Announcements | the 3 newest live `announcements` (REQ-016) | One shared fetch with the banner and the pop-up (REQ-016, REQ-017) | — | Dashboard |
-| Released features | `config/features` (new), e.g. `{bookings: false, requests: false, vehicles: false, guestPasses: false}` | Readable by members and staff; no client writes; the developer sets it per project. Hides tiles only; unreleased features are denied by rules anyway | Developer | Dashboard, once per session |
+| Released features | `config/features` (new), e.g. `{bookings: false, requests: false, vehicles: false, guestPasses: false}` | Readable by members of a household (via `memberOf/{uid}`, REQ-016) and staff; no client writes; the developer sets it per project. Hides tiles only; unreleased features are denied by rules anyway. **A signed-in person with no household doesn't read it**: the not-linked screen (REQ-004) shows no feature tiles (G-9) | Developer | Dashboard, once per session |
 
 Reads per open: about 9–13; **under 10 holds only if** the announcement data is fetched once and shared, and the bell (REQ-011) runs an unread count on page open and loads its list only when opened (for the S2 review of REQ-011).
 
@@ -151,12 +197,12 @@ Reads per open: about 9–13; **under 10 holds only if** the announcement data i
 
 | Where | Text |
 |---|---|
-| Heading | Welcome back, {first name} · {lot} · {HOA name} |
-| Overdue alert | {n} month(s) overdue · {amount} · Please settle your balance to avoid further notices. · Pay now |
-| Balance tile | Balance due · {amount} · Due {date} / You are fully paid / {amount} credit / No dues billed yet · {amount} awaiting approval · Pay with QR |
-| Recent payments | Recent payments · {date} · {amount} · {status} · Receipt PDF · See all payments · No payments yet. |
+| Heading | Welcome back, {first name} · (no name on the account) Welcome back · {lot} · {HOA name} |
+| Overdue alert | {n} month(s) overdue · {amount of overdue bills} · Please settle your balance to avoid further notices. · Pay now |
+| Balance tile | Balance due · {amount} · Due {date} / Was due {date} / You are fully paid / {amount} credit / No dues billed yet · {amount} awaiting approval (shown with any of these) · Pay with QR (always shown, unless the QR isn't set up or the lot is inactive, REQ-010) |
+| Recent payments (shared payment row, same as Dues & Payments) | Recent payments · {date} · {amount} · Pending approval / Approved · {OR no.} / Rejected: {reason} / Void: {reason} · (made before you joined) {status} · Made before you joined, with no reason or receipt number · Receipt PDF · See all payments · No payments yet. |
 | Announcements | Announcements · See all · No announcements yet. |
-| Error | Couldn't load your balance. Check your connection and try again. · Try again |
+| Errors | Couldn't load your balance. Check your connection and try again. · Couldn't load your payments. Try again. · Couldn't load announcements. Try again. · Try again |
 
 ## Out of scope
 

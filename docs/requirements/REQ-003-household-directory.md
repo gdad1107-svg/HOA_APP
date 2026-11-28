@@ -10,7 +10,7 @@
 | Architecture | SA-001 §4.2 (`households`, `lots`) and R-8 (onboarding), Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-002 |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch's corrections applied; CSV only in R1; contacts moved to a staff-only record; concurrency and stale-edit cases added · r3, 2026-11-28: owner approval recorded; recommendations accepted · r4, 2026-11-28: answers to the 21 TC-03 (QA) gaps applied, owner-approved ("Approve, apply r4"); decision 2 pick recorded; decision 3 added (Block/Lot editable) · 2026-11-28: size re-done with mock-up reuse (REVIEW-sizing-reuse.md, owner approved) |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch's corrections applied; CSV only in R1; contacts moved to a staff-only record; concurrency and stale-edit cases added · r3, 2026-11-28: owner approval recorded; recommendations accepted · r4, 2026-11-28: answers to the 21 TC-03 (QA) gaps applied, owner-approved ("Approve, apply r4"); decision 2 pick recorded; decision 3 added (Block/Lot editable) · r5, 2026-11-28: S1 follow-ups from approved REQ-008 and REQ-006 (answers TC-08 gaps G-2, G-17 and TC-06 G-10): new households get `billedThrough: ""` and `activeSince`; reactivation sets `activeSince`; the board may read `lots`. Add to TC-03 · 2026-11-28: size re-done with mock-up reuse (REVIEW-sizing-reuse.md, owner approved) |
 
 ## Owner decisions
 
@@ -226,6 +226,9 @@ Feature: Household directory
 | Active | `households/{id}.active` | Deactivate, never delete (SA-001 §11.2) | Functions | Directory, billing |
 | Import run: status, counts, rejected rows | `importRuns/{id}` | States previewed → running → completed, plus cancelled and interrupted (no progress for 15 minutes). Counts: ready, rejected, already in the directory, progress. Read only by the staff member who ran it. Rejected rows deleted on Cancel, otherwise after 30 days (DPO to confirm). A previewed run can't be committed after 60 minutes. At most 2,000 rows and 1 MB | Import functions | Import screen |
 | Change record | `auditLog` | Every add, edit, deactivate, import; ids only. Includes household.reactivated and household.relotted. Refused no-op changes write nothing | Functions | Board, treasurer |
+| **(r5)** Billed-through marker | `households/{id}.billedThrough` | **`createHousehold` and `commitHouseholdImport` set `billedThrough: ""`** on every new household, because Firestore range filters skip documents without the field (REQ-008's late-additions query). After that only REQ-008's billing functions change it. Existing staging households are back-filled by a developer script before S2 testing; a data check proves none is missing (REQ-008, TC-08 G-17) | Functions | Billing (REQ-008) |
+| **(r5)** Active since | `households/{id}.activeSince` (server time) | Set by `createHousehold`, `commitHouseholdImport` and on **reactivation** by `setHouseholdActive`. A billing run bills only households active since before it started (REQ-008, TC-08 G-2) | Functions | Billing (REQ-008) |
+| **(r5)** Lot list for filters | `lots/{lotKey}` `{householdId, createdAt}` | **Readable by the treasurer, the admin office and the board** (no client writes), so the Activity log's lot filter can offer lots to the board (REQ-006, TC-06 G-10). It holds no names or contacts, so the board's directory question (REQ-002 open question) is unaffected | Functions | Treasurer, admin office, board |
 
 Clients never write households directly. Edits carry the time the admin loaded the record, so a stale save is refused. The list is read 50 at a time with indexed queries, not by loading all 623 (cost: Sol Arch review).
 

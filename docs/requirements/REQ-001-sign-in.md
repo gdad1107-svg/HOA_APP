@@ -9,7 +9,7 @@
 | Mockup | Screens 1A–1M of the [access and households mockup](https://claude.ai/artifact/KaNMpY53cLTtrk8HARZgUr) (comment there). r4 changes 1G and adds 1H–1M; the published copy needs republishing. Repo copy: [req-001-004-access-mockup.html](../mockups/req-001-004-access-mockup.html) |
 | Architecture | SA-001 §4.2, §8.1, §8.4 and ADR-004, all Draft on branch `docs/sa-001-architecture` (links work once that branch is merged) |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch's corrections applied to the criteria, copy and data; owner decisions listed · r3, 2026-11-28: owner approval recorded; recommendations accepted · **r4, 2026-11-28: QA's requirement gaps from TC-01 v1.1 answered (G-1 to G-8, G-11 to G-21); see [r4 change log](#r4-change-log); Sol Arch's r4 changes applied; owner approval recorded** · 2026-11-28: size re-done with mock-up reuse (REVIEW-sizing-reuse.md, owner approved) |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch's corrections applied to the criteria, copy and data; owner decisions listed · r3, 2026-11-28: owner approval recorded; recommendations accepted · **r4, 2026-11-28: QA's requirement gaps from TC-01 v1.1 answered (G-1 to G-8, G-11 to G-21); see [r4 change log](#r4-change-log); Sol Arch's r4 changes applied; owner approval recorded** · r5, 2026-11-28: S1 follow-up from approved REQ-005 (answers TC-05 gaps G-1, G-10, G-16): `users` gains a `privacyAck`-only update clause and a treasurer read; page order and banner on the notice page stated. See [Follow-up from REQ-005](#follow-up-from-req-005-r5) · 2026-11-28: size re-done with mock-up reuse (REVIEW-sizing-reuse.md, owner approved) |
 
 **Reading r4:** new scenarios carry the tag `@r4-new` and changed ones `@r4-changed`. New or changed rows and lines elsewhere end with **(r4)**. Untagged text is unchanged from approved r3.
 
@@ -521,11 +521,11 @@ Feature: Signing in
 | What | Where | Written by | Read by |
 |---|---|---|---|
 | Account (email, password hash, Google link, email verified) | Firebase Authentication | Firebase | Firebase |
-| Person record: name, email **(r4: phone dropped)** | `users/{uid}` (SA-001 §4.2) | the person, at account creation; **(r4)** created again by the app if it is missing at a later sign-in | the person; admin office (REQ-003, REQ-004) |
+| Person record: name, email **(r4: phone dropped)** | `users/{uid}` (SA-001 §4.2) | the person, at account creation; **(r4)** created again by the app if it is missing at a later sign-in | the person; admin office (REQ-003, REQ-004); **(r5)** treasurer (REQ-005) |
 | Sign-in attempts and abuse blocking | Firebase Authentication | Firebase | Firebase |
 
 **Person record rules (r4):**
-- **Name:** required, 1 to 80 characters after leading and trailing spaces are removed. Any letters, including ñ, accents, apostrophes, hyphens and full stops. On the email path it comes from "Your name". On the Google path it comes from the Google profile name, cut to 80 characters and then trimmed; a Google name of only spaces counts as no name, and then the name comes from "What's your name?". It is written once and not overwritten by later Google profile changes. The `users` rule enforces this (Sol Arch r4): create only, by the owner of the uid; allowed fields `name`, `email`, `createdAt`; `name` is a string equal to its trimmed self, 1 to 80 characters; **no update in R1**. Whether "80 characters" counts letters or bytes is tested in the rules tests with "ñ" and an emoji, and the page counts the same way. (G-2, G-1)
+- **Name:** required, 1 to 80 characters after leading and trailing spaces are removed. Any letters, including ñ, accents, apostrophes, hyphens and full stops. On the email path it comes from "Your name". On the Google path it comes from the Google profile name, cut to 80 characters and then trimmed; a Google name of only spaces counts as no name, and then the name comes from "What's your name?". It is written once and not overwritten by later Google profile changes. The `users` rule enforces this (Sol Arch r4): create only, by the owner of the uid; allowed fields `name`, `email`, `createdAt`; `name` is a string equal to its trimmed self, 1 to 80 characters; **no update in R1**, **(r5)** except REQ-005's one clause that lets the person add or move `privacyAck` and nothing else (see [Follow-up from REQ-005](#follow-up-from-req-005-r5)). Whether "80 characters" counts letters or bytes is tested in the rules tests with "ñ" and an emoji, and the page counts the same way. (G-2, G-1)
 - **First name for the greeting:** the first word of the stored name. If no name is stored, the greeting is "Welcome back" with no name. Accepted limitation: a name stored as "Ma. Cristina Lopez" greets "Welcome back, Ma."; a preferred-name field is out of scope. (G-2)
 - **Email:** the account's email from Firebase Authentication (SA-001: the rule checks it equals the signed-in email). Leading and trailing spaces are removed from every email the person types, on sign-in, create-account and reset, before it is sent. Spaces inside an email make it invalid. Passwords are never trimmed or changed. (G-4)
 - **Phone: not collected by REQ-001.** The create-account page (1F) has no phone field, and sign-in doesn't need one. A household's mobile number is the staff-only `householdContacts/{householdId}.contactMobile`, entered by the admin office (REQ-003). Not collecting it here also follows data minimisation (RA 10173). Sol Arch (r4) drops `phone` from SA-001 §4.2 and from the `users` rule's allowed fields (SA-001 follow-up). (G-3)
@@ -673,6 +673,17 @@ REQ-002 is not edited by this revision. The BA words these for the next REQ-002 
 ## Follow-up for REQ-004 (r4)
 
 REQ-004 is not edited by this revision. For its next revision (Sol Arch r4, question 5): `redeemInvite` refuses if the person has no `users/{uid}` record, and the invite is then not used up. Calls to `checkInvite` and `redeemInvite` give up after 15 seconds, so the offline message shows promptly.
+
+## Follow-up from REQ-005 (r5)
+
+Reconciles this REQ with approved REQ-005 (privacy notice), raised by QA in TC-05 G-1, G-10, G-16. No approved behaviour of this REQ changes; the rule gains one clause.
+
+- **`users/{uid}` rule:** the create stays exactly as r4 says (owner of the uid; keys `name`, `email`, `createdAt`; no `phone`; `privacyAck` not allowed in the create). **One update clause is added:** the owner of the uid may update the record only when the change touches `privacyAck` alone, and `privacyAck` names the current notice version with the server time (full rule in REQ-005, Data changes). Name and email still can't be changed.
+- **Read:** the person, the admin office **and the treasurer** (REQ-005 Sol Arch change 5).
+- **Order of the pages after sign-in:** "What's your name?" (only when this REQ needs it) → privacy notice (REQ-005) → the page asked for, or "Enter your invite code", or the dashboard. The create-if-missing step therefore runs before the privacy gate, because the acknowledgement is an update to an existing record.
+- **Verification banner:** the signed-in privacy notice page is one of the "every signed-in page" places the banner shows. The signed-out notice view (from the sign-in page link) has no banner.
+- **15-second limit:** applies to the privacy notice's "Continue" too, with REQ-005's own message.
+- **SA-001 §4.2 follow-up (Sol Arch):** record the `privacyAck` update clause and the treasurer read on `USERS`.
 
 ## Sol Arch review (r4)
 

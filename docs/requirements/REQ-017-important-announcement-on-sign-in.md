@@ -10,11 +10,11 @@
 | Architecture | SA-001 §4.2 (`announcements.important`, `announcements/{id}/reads/{uid}`), §4.4 item 8; CODING-STANDARDS rule 11. Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-016 (announcements), REQ-001 (sign-in), REQ-004 (linked households, for the count) |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (`reads` rules, `householdReads` functions-only, counting trigger keyed on `memberOf`, linked total by count queries, unlinked-household note, "Got it" queued not failed); editing after "Got it" points to REQ-016 decision 6 (open) · r4, 2026-11-28: owner approval recorded; recommendations accepted · 2026-11-28: size re-done with mock-up reuse (REVIEW-sizing-reuse.md, owner approved) |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (`reads` rules, `householdReads` functions-only, counting trigger keyed on `memberOf`, linked total by count queries, unlinked-household note, "Got it" queued not failed); editing after "Got it" points to REQ-016 decision 6 (open) · r4, 2026-11-28: owner approval recorded; recommendations accepted · r5, 2026-11-28: answers TC-17 gaps G-1 to G-9: an important announcement shows as the pop-up, never as the banner; selection rule shared with REQ-016 r5 so none is dropped past 10; linked and total counts are active households only; count-failure copy; aggregate count readable by members accepted; `reads` limited to household members and staff; order of blocking screens; the pop-up shows on whichever homeowner page opens first and stays there; an edit under REQ-016 decision 6 (b) doesn't pop up again · r6, 2026-11-28: privacy notice (REQ-005) stated as always shown before the pop-up, in UX/UI notes as well as the scenario and Data changes · r7, 2026-11-28: REQ-016 decisions 6 (a) and 8 (b) approved (owner: "Approve all"): text can't be edited once anyone pressed "Got it", and the pop-up results stay live while the portal is open · 2026-11-28: size re-done with mock-up reuse (REVIEW-sizing-reuse.md, owner approved) |
 
 ## Owner decisions
 
-Approved by the owner on 2026-11-28 ("Approve all as shown"): every recommendation in the right-hand column is accepted. Editing an important announcement after "Got it" is REQ-016 decision 6, still open.
+Approved by the owner on 2026-11-28 ("Approve all as shown"): every recommendation in the right-hand column is accepted. Editing an important announcement after "Got it" is REQ-016 decision 6, approved as (a) on 2026-11-28 ("Approve all"): the title and message are locked once anyone has pressed "Got it".
 
 | # | Decision | Approved |
 |---|---|---|
@@ -67,6 +67,30 @@ Feature: Important announcement pop-up
     And it closes only when he presses "Got it"
     And pressing Escape or clicking outside it does not close it
 
+  Scenario: An important announcement is never the banner (G-1)
+    Given Juan hasn't pressed "Got it" on the water interruption notice
+    Then it shows as the pop-up, not as the banner
+    When he presses "Got it"
+    Then it does not appear as the banner afterwards either
+    And it is listed under Announcements with the "Important" label
+
+  Scenario: The pop-up shows on whatever page is opened first (G-8)
+    Given Juan opens the portal from a notification link to Dues & Payments
+    Then the pop-up shows before Dues & Payments
+    And after "Got it" he stays on Dues & Payments
+
+  Scenario: Blocking screens come in a fixed order (G-7)
+    Given Ana has signed in for the first time with an invite code, and an important announcement is live
+    Then she sees the privacy notice first (REQ-005)
+    And then "You're joining Blk 2 Lot 7" (REQ-004)
+    And then the important announcement pop-up
+    And then her dashboard
+
+  Scenario: More than 10 live announcements (G-2)
+    Given 11 announcements have live banners and the newest is important
+    When Juan opens the portal
+    Then the important one pops up
+
   Scenario: Shown once per person, on every device
     Given Juan pressed "Got it" on his phone
     When he opens the portal on his laptop
@@ -93,6 +117,17 @@ Feature: Important announcement pop-up
     And members of 120 households pressed "Got it"
     When Paolo opens the announcement
     Then he sees "Seen by 120 of 340 linked households (623 in total)"
+
+  Scenario: Deactivated households are left out of both figures (G-3)
+    Given 623 active households, 340 of them linked
+    And Blk 11 Lot 1 is linked but deactivated
+    When Paolo opens the announcement
+    Then the figures read "of 340 linked households (623 in total)", not counting Blk 11 Lot 1
+
+  Scenario: The linked total can't load (G-4)
+    Given the household counts can't be loaded
+    When Paolo opens the announcement
+    Then he sees "Seen by 120 households. Couldn't load the linked total. Try again." with "Try again"
 
   Scenario: Two people in one household count once
     Given Juan and Elena of Blk 4 Lot 12 both pressed "Got it" at the same moment
@@ -140,6 +175,12 @@ Feature: Important announcement pop-up
     Then he sees no seen-by count
     And the server refuses his request to read other people's read records
 
+  Scenario: People with no household can't create read records (G-6)
+    Given Dina has signed in but isn't linked to a household and has no staff role
+    When her browser tries to save a read record for an announcement
+    Then the server refuses it
+    And a guard's attempt is refused the same way
+
   Scenario: Staff see only the count, not who read it
     Given Paolo is admin office staff
     When his browser asks for Juan's read record or the list of households that have seen it
@@ -157,10 +198,11 @@ Feature: Important announcement pop-up
 | What | Where | Rule | Written by | Read by |
 |---|---|---|---|---|
 | Important flag | `announcements/{id}.important` (REQ-016) | Set at posting; staff only; never changed after | Staff | Pop-up query |
-| Acknowledgement: `ackAt` (and REQ-016's `dismissedAt`) | `announcements/{id}/reads/{uid}` | A person creates or updates only their own. Keys limited to `dismissedAt` and `ackAt`; each set once, to the server time, and never changed after. No household id from the client. **Read: own only**; staff don't read individual `reads` | Homeowner (fire-and-forget: `void setDoc(...).catch(reportError)`, CS-4; queued offline, lost if the tab closes) | Their pop-up and banner query; the counting trigger |
+| Acknowledgement: `ackAt` (and REQ-016's `dismissedAt`) | `announcements/{id}/reads/{uid}` | A person creates or updates only their own, and only if they are a member of a household (`memberOf/{uid}` lists at least one) or hold the admin, treasurer or board role; a signed-in person with no household, and guards, are refused (G-6). Keys limited to `dismissedAt` and `ackAt`; each set once, to the server time, and never changed after. An important announcement is never shown as the banner (G-1), so only `ackAt` is written for it. No household id from the client. **Read: own only**; staff don't read individual `reads` | Homeowner (fire-and-forget: `void setDoc(...).catch(reportError)`, CS-4; queued offline, lost if the tab closes) | Their pop-up and banner query; the counting trigger |
 | Households that have seen it | `announcements/{id}/householdReads/{householdId}` | **Functions only.** A trigger, `onDocumentWritten(reads/{uid})`, acts only when `ackAt` goes from absent to set; it looks up the person's households on the server (`memberOf/{uid}`, REQ-016) and, in one transaction per household, creates the document if missing and increments the count **only when it created it**. A staff member with no household is not counted. A household that unlinks later stays counted | Trigger | A future "not yet seen" list (out of scope; staff only, DPO to confirm) |
-| Seen count | `announcements/{id}.seenHouseholdCount` | Written by the trigger only; unchangeable by clients (REQ-016 rules) | Trigger | Staff |
-| Linked household count | `households` | **Two `count()` queries when staff open the announcement** (`linkStatus == 'linked'`, `active == true`), about 2 reads; no kept counter, so it can't drift | — | Staff |
+| Seen count | `announcements/{id}.seenHouseholdCount` | Written by the trigger only; unchangeable by clients (REQ-016 rules). It sits on the announcement, which members can read, so the figure is readable in the data though never shown to homeowners. **Accepted (G-5):** it is an aggregate count with no personal data | Trigger | Staff |
+| Linked household count | `households` | **Two `count()` queries when staff open the announcement**, about 2 reads; no kept counter, so it can't drift. **{linked}** = `linkStatus == 'linked'` **and** `active == true`; **{total}** = `active == true` (G-3): a deactivated household is in neither figure. If the queries fail, the count shows without the totals and with "Try again" (G-4) | — | Staff |
+| Which announcements pop up, and when | REQ-016's selection rule (r5) | Every live important announcement whose banner hasn't ended and that the person hasn't acknowledged, none dropped because more than 10 are live (G-2). Checked on the **first homeowner page of the session**, whatever it is (a bookmark or notification link included), and on switching to "My household"; the person stays on that page after "Got it" (G-8). Order of blocking screens at one sign-in: privacy notice (REQ-005, including a re-acknowledgement after a material change), then the invite confirmation (REQ-004), then this pop-up (G-7). REQ-016 decision 6 was approved as (a), so the text can't change after "Got it" and G-9 can't arise. The results stay live while the portal is open (REQ-016 decision 8 (b)), so a deleted important announcement doesn't pop up after its deletion | — | Web app |
 
 ## UX/UI notes
 
@@ -168,8 +210,9 @@ Feature: Important announcement pop-up
 - **Consistency:** "Important announcement" and "Got it" (glossary); reuses the mock-up's `.modal` and the `.ann.imp` style; staff see a pill "Pop-up on sign-in" on important announcements, as in the mock-up.
 - **Mobile-first:** the pop-up fits 375 px with "Got it" visible without scrolling for a message under 600 characters; longer messages scroll inside the dialog with the button fixed at the bottom.
 - **States:** none to show (no pop-up); one; several; save still queued when the tab closes (shown again next time, by design: the homeowner is never blocked by a network error).
-- **Pop-up query:** reuses REQ-016's banner query (once per session, at most 10), filtered to `important`, plus the person's `reads/{uid}` for each candidate. Never reads every announcement.
+- **Pop-up query:** reuses REQ-016's banner query (once per session, at most 10), filtered to `important`, plus the person's `reads/{uid}` for each candidate. Never reads every announcement. *r5:* it must meet REQ-016 r5's selection rule (no important announcement dropped past 10 live); Sol Arch to confirm the query shape.
 - **Stable layout:** the pop-up opens before the dashboard renders behind it, so nothing shifts under it.
+- **Order (r6):** the privacy notice (REQ-005, including a re-acknowledgement after a material change) always comes first; then the invite confirmation (REQ-004) if any; then this pop-up; then the page. The pop-up never shows while the privacy notice is pending.
 - **Safe actions:** "Got it" is idempotent; no destructive action here.
 - **Roles:** homeowners see the pop-up; only admin, treasurer and board see counts; rules stop anyone, staff included, reading other people's `reads`, and `householdReads` is functions only.
 - **Copy honesty:** staff see "Seen by", never "notified": a "Got it" shows the notice was displayed and acknowledged in the portal, not served under the by-laws.
@@ -184,7 +227,8 @@ Feature: Important announcement pop-up
 | Pop-up item | {date} · {title} · {message} |
 | Button | Got it |
 | Staff pill | Pop-up on sign-in |
-| Staff count | Seen by {n} of {linked} linked households ({total} in total) |
+| Staff count | Seen by {n} of {linked} linked households ({total} in total) · (totals failed) Seen by {n} households. Couldn't load the linked total. Try again. |
+| Homeowner list label | Important |
 | Form hint | Use for water, power, road or safety notices. Every homeowner must press Got it. |
 
 ## Out of scope
@@ -199,7 +243,6 @@ Feature: Important announcement pop-up
 
 | Question | Who decides |
 |---|---|
-| Editing an important announcement after "Got it" (REQ-016 decision 6, added after approval) | Owner |
 | Delete `reads` and `householdReads` 12 months after the banner ends (Sol Arch's proposal, same period as REQ-011)? | Data Protection Officer (to be named by the HOA board) |
 | Should the office get a list of households that haven't pressed "Got it", to call them? | Admin office (privacy: staff only) |
 

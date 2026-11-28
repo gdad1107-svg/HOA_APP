@@ -10,11 +10,11 @@
 | Architecture | SA-001 §3 (`voidReceipt`), §4.2 (`receipts.voided`, `voidReason`), §4.3 Flow 1 point 2, §4.4 item 12, R-1, R-11; CODING-STANDARDS rules 5, 12, 15. Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-012, REQ-013, REQ-006 (activity log), REQ-011 (notifications) |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft. r2, 2026-11-28: reconciled with REQ-023 and REQ-024 (conflict C1): a void counts in the month it is made, and a receipt from a closed month can be voided without reopening it. r3, 2026-11-28: Sol Arch review recorded. r4, 2026-11-28: Sol Arch's changes applied (recalculated allocation, closed-month check, void file kept beside the issued one, one notification per member, reason hint, overpayment, role-removed and month-boundary scenarios, `voidedByName`); reinstating a void and board notification added as open decisions 7 and 8. r5, 2026-11-28: owner approval recorded; recommendations accepted. r6, 2026-11-28: reference reservation row aligned to REQ-010 (no status; a void never deletes it) · 2026-11-28: size re-done with mock-up reuse (REVIEW-sizing-reuse.md, owner approved) |
+| Revision | r1, 2026-11-28: first draft. r2, 2026-11-28: reconciled with REQ-023 and REQ-024 (conflict C1): a void counts in the month it is made, and a receipt from a closed month can be voided without reopening it. r3, 2026-11-28: Sol Arch review recorded. r4, 2026-11-28: Sol Arch's changes applied (recalculated allocation, closed-month check, void file kept beside the issued one, one notification per member, reason hint, overpayment, role-removed and month-boundary scenarios, `voidedByName`); reinstating a void and board notification added as open decisions 7 and 8. r5, 2026-11-28: owner approval recorded; recommendations accepted. r6, 2026-11-28: reference reservation row aligned to REQ-010 (no status; a void never deletes it). r7, 2026-11-28: answers TC-14 gaps G-1 to G-12: no per-bill paid amounts (a void lowers the household's paid total and recalculates the balance and `openBills`, REQ-009 r3); reason-length copy; "Payment voided" notification rows and routes for REQ-011, with a variant for people who joined after the payment; a retry by the same treasurer shows the success toast; statement note only once a lot has a void; void-file states and the treasurer's two files; "Made before you joined" rows hide the reason; submitter note; deactivated household; credit wording in the toast. r8, 2026-11-28: activity-log scenario aligned to REQ-006 (the log records who and when and points to the payment; the void reason lives on the payment only). r9, 2026-11-28: decisions 7 (a, `reinstatePayment` script) and 8 (yes) approved (owner: "Approve all"); board notice and reinstated-payment data made unconditional; reinstatement scenario added · 2026-11-28: size re-done with mock-up reuse (REVIEW-sizing-reuse.md, owner approved) |
 
 ## Owner decisions
 
-Approved by the owner on 2026-11-28 ("Approve all as shown"): every recommendation in the right-hand column is accepted. Decisions 7 and 8 were added afterwards from Sol Arch's review and are still open. Questions for the HOA board or its accountant under Open questions stay open.
+Approved by the owner on 2026-11-28 ("Approve all as shown"): every recommendation in the right-hand column is accepted. Decisions 7 and 8 were added afterwards from Sol Arch's review and approved as recommended on 2026-11-28 ("Approve all"): 7 (a), 8 yes. Questions for the HOA board or its accountant under Open questions stay open.
 
 | # | Decision | Approved |
 |---|---|---|
@@ -24,8 +24,8 @@ Approved by the owner on 2026-11-28 ("Approve all as shown"): every recommendati
 | 4 | Self-void: a treasurer voiding their own household's payment | **Refused**, as for approval (REQ-012 decision 3) |
 | 5 | Which month a void counts in, and voiding a receipt dated in a closed month (story 24, R2) | **The void counts in the month it is made** (Manila time), as a minus line; the receipt's own month keeps its total. So a receipt from a closed month **can** be voided without reopening that month, and the closed month never changes. The month of a void is always the current month, which can't be closed until it ends (REQ-024 decision 5). Same rule as REQ-023 decision 3 and REQ-024. *Changed in r2 from "refused once month closing exists; reversed in the original month". Refusing would leave a receipt known to be wrong standing until the board reopened a month it has already been shown. Recording the reversal in the current period is the usual bookkeeping practice; the HOA's accountant to confirm (open questions).* In R1, `voidReceipt` writes the void's period from the start, so nothing changes when month closing arrives |
 | 6 | **D5:** does the BIR allow a voided receipt to be kept and stamped, rather than cancelled in another way? | **Open with the board's accountant**, with REQ-013 decision 2; blocks go-live, not the build. Built as "stamp VOID, keep the number", which fits common practice but is **unverified** for BIR |
-| 7 | *Open, added after approval (Sol Arch change 1).* Decision 3 has the board ask the developer to reverse a mistaken void, but nothing can reverse one without the manual database edit the Problem rules out | **Open.** Recommended **(a)**: a developer script, `reinstatePayment`, run on the board's written request. It creates a new **pending** payment linked to the voided one (`reinstatedFrom`), reusing its reference number as a recorded exception; that payment goes through normal approval and gets a **new** receipt number. +0.5 day. Alternative (b): no reversal in R1, accepting that the homeowner's money stays unrecorded until a manual process exists |
-| 8 | *Open, added after approval (Sol Arch change 2).* Notify every board member in-app of each void, to cover "one person reverses money on their own" | **Open.** Recommended **yes** (about 0 days, REQ-011's notify helper), on top of the R2 monthly void list |
+| 7 | *Added after approval (Sol Arch change 1).* Decision 3 has the board ask the developer to reverse a mistaken void, but nothing can reverse one without the manual database edit the Problem rules out | **(a)**, approved 2026-11-28 ("Approve all"): a developer script, `reinstatePayment`, run on the board's written request. It creates a new **pending** payment linked to the voided one (`reinstatedFrom`), reusing its reference number as a recorded exception; that payment goes through normal approval and gets a **new** receipt number. +0.5 day. Not chosen: (b) no reversal in R1, accepting that the homeowner's money stays unrecorded until a manual process exists |
+| 8 | *Added after approval (Sol Arch change 2).* Notify every board member in-app of each void, to cover "one person reverses money on their own" | **Yes**, approved 2026-11-28 ("Approve all") (about 0 days, REQ-011's notify helper), on top of the R2 monthly void list |
 
 ## Problem
 
@@ -79,27 +79,59 @@ Feature: Voiding a payment
     And OR-00093 reads "Void" in the treasurer's payment detail and in the household's payment history
     And Blk 2 Lot 7's balance reads ₱1,800.00
     And the bell of every member linked to Blk 2 Lot 7 shows "Payment voided: ₱1,800.00, OR-00093. Reason: Duplicate of OR-00090."
-    And the activity log records who voided it, the reason and when
+    And the activity log records who voided it and when, pointing to the payment; the reason stays on the payment, not in the log (REQ-006)
 
-  Scenario: Board members are told of every void (if decision 8 is accepted)
+  Scenario: A member who joined after the payment is told without the details (G-3, G-8)
+    Given Ben Cruz was linked to Blk 2 Lot 7 after OR-00093's payment was submitted
+    When the treasurer voids OR-00093
+    Then Ben's bell shows "A payment of ₱1,800.00 made before you joined was voided. Your balance is updated."
+    And Ben's payment history shows it as "Void · Made before you joined", with no reason and no receipt number
+
+  Scenario: The void leaves a credit (G-11)
+    Given Blk 6 Lot 4 has ₱2,000.00 credit, including a ₱1,800.00 payment approved as OR-00095
+    When the treasurer voids OR-00095
+    Then they see "OR-00095 is void. Blk 6 Lot 4 now has ₱200.00 credit."
+
+  Scenario: Board members are told of every void (decision 8)
     When the treasurer voids OR-00093
     Then every board member's bell shows "Payment voided by Liza Santos: ₱1,800.00, OR-00093, Blk 2 Lot 7."
+    And pressing it opens the Activity log filtered to Payments
 
   Scenario: The number is never reused
     Given OR-00093 is void
     When the next payment is approved
     Then it gets OR-00094
 
+  Scenario: A mistaken void is reinstated by the developer (decision 7 (a))
+    Given OR-00093 is void and the board asked in writing for the void to be reversed
+    When the developer runs the reinstatement script for OR-00093
+    Then a new ₱1,800.00 payment from Blk 2 Lot 7 with reference "4012883219554" is pending approval, marked "Reinstated from OR-00093"
+    And OR-00093 stays void with its number kept
+    And when the treasurer approves the new payment, it gets a new receipt number
+
   Scenario: A voided receipt is marked
     When a member of Blk 2 Lot 7 downloads OR-00093 after it is voided
     Then the PDF is stamped "VOID" with the date voided and the reason
     And everything else on it is unchanged
-    And the treasurer can still download the original as issued, without the stamp
+    And the treasurer can still download the original as issued, without the stamp, with "Original as issued" beside "Receipt PDF (void copy)" (G-7)
+
+  Scenario: While the stamped file is being made (G-6, REQ-013)
+    Given OR-00093 was voided a moment ago
+    When a member of Blk 2 Lot 7 opens Dues & Payments
+    Then the payment shows "Void" and a disabled "Preparing receipt…"
+    And the unstamped file is never offered to them
 
   Scenario: Voiding needs a reason
     When the treasurer presses "Void" and leaves the reason blank
     Then "Void payment" stays disabled
     And the reason box shows the hint "The homeowner sees this reason. Don't include other people's names or account numbers."
+
+  Scenario: The reason must be 5 to 200 characters (G-2)
+    When the treasurer types "Dup" and leaves the reason box
+    Then "Void payment" stays disabled
+    And "Write at least 5 characters." shows under the box
+    When they type a reason of 200 characters
+    Then the counter reads "200/200" and the box accepts no more
 
   Scenario: The dialog says what will happen
     When the treasurer presses "Void"
@@ -109,6 +141,12 @@ Feature: Voiding a payment
   Scenario: Pressing twice voids once
     When the treasurer presses "Void payment" twice quickly
     Then the payment is voided once and the balance goes up by ₱1,800.00 once
+
+  Scenario: A dropped connection does not void twice (G-4)
+    Given Liza pressed "Void payment" and the connection dropped before the answer came back
+    When she presses "Void payment" again
+    Then she sees "OR-00093 is void. Blk 2 Lot 7's balance is back to ₱1,800.00."
+    And the balance went up by ₱1,800.00 once
 
   Scenario: Two treasurers void the same receipt
     Given two treasurers have OR-00093 open
@@ -133,6 +171,11 @@ Feature: Voiding a payment
     And the statement applies the remaining payments to the oldest bills first, so no later month shows paid while an earlier one is unpaid
     And OR-00094's receipt is unchanged
     And the statement notes "Receipts show how a payment was applied on the day it was issued."
+
+  Scenario: The statement note shows only once the lot has a void (G-5)
+    Given Blk 8 Lot 2 has never had a payment voided
+    When a member opens Dues & Payments
+    Then the note "Receipts show how a payment was applied on the day it was issued." is not shown
 
   Scenario: Voiding an overpayment whose credit was already used
     Given Juan paid ₱2,000.00 against ₱1,800.00 owed, leaving ₱200.00 credit
@@ -161,6 +204,17 @@ Feature: Voiding a payment
     When she opens an approved payment from Blk 9 Lot 3
     Then "Void" is not shown and she sees "This is your own household's payment. Another treasurer must void it."
 
+  Scenario: The treasurer can't void a payment they submitted (G-9)
+    Given Mark submitted a payment for Blk 4 Lot 1 while he was a member, and was later removed from the lot
+    When he opens that approved payment as treasurer
+    Then "Void" is not shown and he sees "You submitted this payment. Another treasurer must void it."
+    And if his browser sends the void anyway, the server refuses it
+
+  Scenario: A payment from a deactivated household can be voided (G-10)
+    Given Blk 2 Lot 7 was deactivated after OR-00093 was approved
+    When the treasurer voids OR-00093
+    Then it is voided as usual and the lot's balance goes back up by ₱1,800.00
+
   Scenario: A void counts in the month it is made (decision 5)
     Given OR-00093 for ₱1,800.00 is dated Nov 28, 2026
     When the treasurer voids it on Dec 3, 2026
@@ -186,17 +240,18 @@ Feature: Voiding a payment
 
 | What | Where | Rule | Written by | Read by |
 |---|---|---|---|---|
-| Payment status `voided`, `voidedBy`, `voidedByName` (copied at the void, for the conflict message), `voidedAt`, `voidReason` | `payments/{id}` | Only from `approved`; reason 5–200 characters; refused unless the caller holds the treasurer role (`staff/{uid}`, read in the transaction), is not a member of the payment's household (`members/{hh}_{uid}` must not exist) and is not its submitter. A repeat by the same voider returns "already voided" and writes nothing | `voidReceipt` | Treasurer; the household |
+| Payment status `voided`, `voidedBy`, `voidedByName` (copied at the void, for the conflict message), `voidedAt`, `voidReason` | `payments/{id}` | Only from `approved`; reason 5–200 characters after trimming (the screen keeps "Void payment" disabled under 5 and stops input at 200, G-2); refused unless the caller holds the treasurer role (`staff/{uid}`, read in the transaction), is not a member of the payment's household (`members/{hh}_{uid}` must not exist) and is not its submitter. **A repeat by the same voider returns the original result (the balance after the void) and writes nothing; the screen shows the success toast, as REQ-012 does for a repeated approval** (G-4). A void by someone else first returns the conflict with `voidedByName`. A payment from a deactivated household (REQ-003) is voided as usual (G-10). `voidReason` is on the household-readable payment, shown as "Void: {reason}", except on "Made before you joined" rows, which show "Void" only (G-8) | `voidReceipt` | Treasurer; the household |
 | Receipt void: `voided`, `voidReason`, `voidedAt`, `voidedBy` | `receipts/{orNo}` | Number and snapshot never change | `voidReceipt` | PDF function, REQ-013 (staff and functions only) |
-| Receipt files | Storage `receipts/{orNo}/issued.pdf` (kept) and `receipts/{orNo}/void.pdf` (added) | A trigger fires when `voided` goes from false to true and renders the original layout from the snapshot plus the stamp (built from `voidedAt` and `voidReason` only), with the same "same output every run" rule and `pdfStatus` handling as REQ-013. The issued file is never overwritten | Receipt PDF trigger | `getReceiptUrl`: homeowners get the void version, the treasurer can get either |
-| Bills | each bill's `paidCentavos` | **Recalculated from scratch** in the void transaction: `shared/domain/ledger.js` runs over all the household's bills and its remaining approved payments, and only bills whose `paidCentavos` changed are rewritten. Never by subtracting the voided lines (that would break oldest-first and the overdue rules, REQ-018, C4) | `voidReceipt` | REQ-009, REQ-015, REQ-018 |
-| Household totals | `households/{id}` `paidCentavos`, `balanceCentavos` (negative = credit), `openBills` | Rewritten from the recalculation in the same transaction. `pendingCentavos` is **not** touched by a void | `voidReceipt` | REQ-009, REQ-015 |
+| Receipt files | Storage `receipts/{orNo}/issued.pdf` (kept) and `receipts/{orNo}/void.pdf` (added) | A trigger fires when `voided` goes from false to true and renders the original layout from the snapshot plus the stamp (built from `voidedAt` and `voidReason` only), with the same "same output every run" rule and status handling as REQ-013 (`voidPdfStatus`; `voidReceipt` sets the payment's `receiptPdfStatus` back to `preparing` in the void transaction). The issued file is never overwritten | Receipt PDF trigger | `getReceiptUrl`: homeowners get the void version only, and are refused while it is preparing or failed, never served the unstamped file (G-6); the treasurer sees "Receipt PDF (void copy)" and "Original as issued" (G-7) |
+| Bills | **Read only, never written** (r7, G-1; REQ-009 r3, Sol Arch's S2 design) | No per-bill paid amount is stored, so nothing on a bill changes. Oldest-first holds automatically: every screen works out each bill's paid amount from the bills and the household's paid total (REQ-009), so after a void the remaining payments fall on the oldest bills and no later month shows paid while an earlier one is unpaid | — | REQ-009, REQ-015, REQ-018 |
+| Household totals | `households/{id}` `paidCentavos`, `balanceCentavos` (negative = credit), `openBills` | **Recalculated** in the void transaction: `paidCentavos` down by the payment's amount; `balanceCentavos` and the `openBills` summary worked out again by `shared/domain/ledger.js` from all the household's bills and the new paid total (never by subtracting the voided receipt's lines). `pendingCentavos` is **not** touched by a void | `voidReceipt` | REQ-009, REQ-015 |
 | Monthly totals | `monthlyTotals/{period}.duesCentavos` | Reduced in the **period of the void** (server time, Asia/Manila), never in the receipt's own period (decision 5, REQ-023 decision 3); same transaction as the void. **If that period is closed, refused with "Couldn't void. Try again."** (free: the document is read anyway; covers a void that commits just after a midnight close) | `voidReceipt` | REQ-023, REQ-024, R2 reports |
 | Void period | `receipts/{orNo}.voidPeriod` (`YYYY-MM`) | The month of the void, Manila time | `voidReceipt` | REQ-023 |
 | Reference reservation | `paymentRefs/{normalisedRef}` (REQ-010, no status) | **Never deleted by a void** (decision 3); only a rejection deletes it (REQ-012) | — | REQ-010 |
-| Notifications | `notifications` (REQ-011) | **One per linked member** of the household (REQ-011 decision 2); if decision 8 is accepted, also one per board member | `voidReceipt` | Homeowner bell; board bell |
+| Notifications | `notifications` (REQ-011), ids `payvoid_{paymentId}_{uid}` | **One per linked member** of the household (REQ-011 decision 2), opening Dues & Payments; members linked after the payment was submitted get the "made before you joined" text with no receipt number or reason (G-3, G-8); and (decision 8) one per board member, opening the Activity log filtered to Payments (the board has no payment screens in R1). The rows to add to REQ-011's catalogue are in Copy of record | `voidReceipt` | Homeowner bell; board bell |
+| Statement note | REQ-009's statement | "Receipts show how a payment was applied on the day it was issued." shows only when the lot has at least one `voided` payment (G-5): before any void, every receipt matches the statement | — | REQ-009 |
 | Activity log | `auditLog` (REQ-006) | `payment.voided`, ids only; the reason stays on the payment and the receipt, never in the log | `voidReceipt` | Board, treasurer |
-| Reinstated payment (only if decision 7 (a)) | `payments/{id}.reinstatedFrom` | A new **pending** payment linked to the voided one, reusing its reference number as a recorded exception; approved normally, with a new receipt number | `reinstatePayment` developer script, on the board's written request | Treasurer |
+| Reinstated payment (decision 7 (a)) | `payments/{id}.reinstatedFrom` | A new **pending** payment linked to the voided one, reusing its reference number as a recorded exception; approved normally, with a new receipt number | `reinstatePayment` developer script, on the board's written request | Treasurer |
 
 ## UX/UI notes
 
@@ -214,15 +269,16 @@ Feature: Voiding a payment
 | Where | Text |
 |---|---|
 | Button | Void · Void payment · (in flight) Voiding… |
-| Dialog | Void {OR no.} for {amount}? · The balance of {lot} goes back up by {amount}. The receipt number is kept and never reused. The homeowner will see this reason. · Reason · The homeowner sees this reason. Don't include other people's names or account numbers. · Cancel · Void payment |
-| Toast | {OR no.} is void. {lot}'s balance is back to {balance}. |
+| Dialog | Void {OR no.} for {amount}? · The balance of {lot} goes back up by {amount}. The receipt number is kept and never reused. The homeowner will see this reason. · Reason · The homeowner sees this reason. Don't include other people's names or account numbers. · {n}/200 · (under 5 characters, on leaving the box) Write at least 5 characters. · Cancel · Void payment |
+| Toast | {OR no.} is void. {lot}'s balance is back to {balance}. · (when the lot is still in credit) {OR no.} is void. {lot} now has {amount} credit. |
 | Status | Void |
-| History | Void: {reason} |
-| Notification | Payment voided: {amount}, {OR no.}. Reason: {reason}. · (board, if decision 8) Payment voided by {name}: {amount}, {OR no.}, {lot}. |
-| Statement note | Receipts show how a payment was applied on the day it was issued. |
+| History | Void: {reason} · (made before you joined) Void · Made before you joined |
+| Notification (rows for REQ-011's catalogue) | **Payment voided** · each linked person of the household · Payment voided: {amount}, {OR no.}. Reason: {reason}. · opens Dues & Payments · **Payment voided (joined after it was made)** · each person linked after the payment was submitted · A payment of {amount} made before you joined was voided. Your balance is updated. · opens Dues & Payments · **Payment voided (board, decision 8)** · each board member · Payment voided by {name}: {amount}, {OR no.}, {lot}. · opens Activity log (Payments) |
+| Statement note (only once the lot has a void) | Receipts show how a payment was applied on the day it was issued. |
 | PDF stamp | VOID · {date voided} · {reason} |
+| Treasurer's files | Receipt PDF (void copy) · Original as issued |
 | Conflict | {OR no.} was already voided by {name}. Nothing was changed. |
-| Own household | This is your own household's payment. Another treasurer must void it. |
+| Own household / submitter | This is your own household's payment. Another treasurer must void it. · You submitted this payment. Another treasurer must void it. |
 | Error | Couldn't void. Nothing was changed. Check your connection and try again. · (closed period) Couldn't void. Try again. |
 
 ## Out of scope
@@ -237,7 +293,6 @@ Feature: Voiding a payment
 
 | Question | Who decides |
 |---|---|
-| Decisions 7 (reinstating a mistaken void) and 8 (board notified of every void), added after approval | Owner |
 | **D5 (decision 6):** does the BIR accept "stamp VOID, keep the number"? Blocks go-live, not the build | HOA board, with its accountant |
 | Who is the second treasurer-role holder? Without one, a treasurer's own household's mistaken approval can't be voided (decision 4) | HOA board |
 | Does the HOA's accountant accept that a void is counted in the month it is made, leaving the receipt's own (possibly closed) month unchanged? (Decision 5; the same rule as REQ-023 decision 3) | Treasurer, with the accountant |
@@ -285,6 +340,8 @@ I support A. To cover A's "one person alone" downside at no build cost, I recomm
 7. **Add a scenario: a void at the month boundary.** "Given November 2026 was closed at 00:00 on Dec 1 while a void dated Nov 30 was being saved, Then the void is refused with 'Couldn't void. Try again.', and when it is retried it counts in December 2026."
 8. **Data changes, Reference reservation row:** stays `active`, so no new `paymentRefs` status is needed. `pendingCentavos` is not touched by a void.
 9. Mock-up screens 14A–14C still show the pre-C1 wording (RELEASE-PLAN follow-up). Fix them before publishing.
+
+**BA, r7:** answer 1's "rewrites only the bills whose `paidCentavos` changed", and the drift risk about recounting bills' `paidCentavos`, are superseded by Sol Arch's S2 answer in REQ-009 r3: bills carry no paid amount; the void lowers `households.paidCentavos` and recalculates the balance and `openBills` from all bills (TC-14 G-1). The "recalculate, never subtract" principle stands.
 
 **BA, r4: how the changes were applied.** Changes 3–8 are applied in the scenarios, Data changes, UX notes and copy, with the closed-period check and the recalculated allocation from the answers above. Changes 1 and 2 are decisions 7 and 8, still open; they extend, and don't contradict, approved decision 3 ("no undo screen; the board asks the developer in writing"). **Change 9 is not applied here:** the mock-up file is outside this pass, and screens 14A–14C must be corrected before the mock-up is published.
 

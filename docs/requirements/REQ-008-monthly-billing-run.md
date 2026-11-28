@@ -10,7 +10,7 @@
 | Architecture | SA-001 Flow 4 (`billingRun`, `billingRuns/{period}`, deterministic `bills/{period}_{householdId}`), §3, §4.4 item 1 (totals kept by functions), R-8 (onboarding and opening balances), R-15 (time zone); Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-003 (households), REQ-007 (dues rate), REQ-006 (activity log), REQ-011 (notifications). Bill corrections: [REQ-046](REQ-046-adjust-or-cancel-a-bill.md) (added to S2 by decision 5) |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (`households.billedThrough` replaces `skipped[]`, no stored overdue count, start without opening balances, stale-rate refusal, stopped run derived from a heartbeat, one worker on Continue, credit and months owed in opening balances, preview copy now that corrections exist, deactivation during a run, deterministic notification ids, production guard) · r4, 2026-11-28: owner approval recorded; recommendations accepted; decision 5 points to REQ-046 · 2026-11-28: size re-done with mock-up reuse (REVIEW-sizing-reuse.md, owner approved) |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (`households.billedThrough` replaces `skipped[]`, no stored overdue count, start without opening balances, stale-rate refusal, stopped run derived from a heartbeat, one worker on Continue, credit and months owed in opening balances, preview copy now that corrections exist, deactivation during a run, deterministic notification ids, production guard) · r4, 2026-11-28: owner approval recorded; recommendations accepted; decision 5 points to REQ-046 · **r5, 2026-11-28: answers TC-08 gaps G-1 to G-18** (see [r5 gap answers](#r5-gap-answers-tc-08)): board menu, run bills only households active before it started and refuses a stale household count, undecided late additions block the next run, reminder on a stopped run, late-bill amount, notification and month total, opening balances update household totals, CSV file and row rules, first-run and zero-household refusals, go-live script, singular copy, read rules, `billedThrough` back-fill. **New owner decision 7** (due date of a bill generated after its period has ended). New scenarios tagged `@r5-new` · r6, 2026-11-28: owner approved decision 7 as recommended ("Approve all") · 2026-11-28: size re-done with mock-up reuse (REVIEW-sizing-reuse.md, owner approved) |
 
 ## Owner decisions
 
@@ -24,6 +24,7 @@ Approved by the owner on 2026-11-28 ("Approve all as shown"): every recommendati
 | 4 | A household added after its period was billed | **The treasurer decides**, from a "Not billed for {period}" list on the billing card. The admin office adds households; it doesn't create bills |
 | 5 | Correcting a wrong bill. Without a correction story, a wrong rate billed to 623 households would stay wrong | **Add a story "Adjust or cancel a bill, with a reason"** to S2: [REQ-046](REQ-046-adjust-or-cancel-a-bill.md). Adjustment lines in the month they're made, never edits; bulk by period included. Sol Arch: M, 2.5–3.5 days, bulk +1 day |
 | 6 | **D2**: late penalty, interest and grace period | **None in R1** until the board decides. Bills are dues only, due on the last day of the period |
+| 7 | **(r5, TC-08 G-4)** A period billed after it has ended (the treasurer was away, so December is generated on Jan 5): its bills are due Dec 31, already past, so every statement shows them "Overdue" the moment they appear. Keep the period's due date, or give late-run bills a later one? | **Approved: keep the period's due date** (owner, "Approve all", 2026-11-28, relayed by the coordinator) (decision 6), and warn in the preview: "These bills are due {due date}, which has passed, so they will show as overdue at once." There are no penalties in R1 (decision 6), so "Overdue" costs the homeowner nothing, and one due date per period keeps aging and R2 notices simple. The alternative (due 15 days after the run) is fairer to homeowners but makes due dates differ within a period and needs a rule for late bills too. |
 
 ## Problem
 
@@ -162,10 +163,12 @@ Feature: Monthly billing
     When the December 2026 run finishes
     Then Blk 8 Lot 2 has a December 2026 bill like every other active household
 
+  @r5-changed
   Scenario: No households to bill
     Given there are no active households
     Then "Generate December 2026 billing" is disabled
     And the card reads "Add households in Homeowners before billing."
+    And the billing function refuses a run requested directly, with the same words, and creates no run record (G-12)
 
   Scenario: The rate isn't set
     Given monthly dues have never been saved
@@ -228,6 +231,147 @@ Feature: Opening balances
     Then each household has exactly one opening balance line
 ```
 
+### New in r5: answers to TC-08 gaps
+
+```gherkin
+Feature: Monthly billing (r5 answers to TC-08 gaps)
+
+  Background:
+    Given Carmela Cruz holds the treasurer role
+    And monthly dues are ₱1,800.00
+
+  @r5-new
+  Scenario: The board reaches the billing card (G-1)
+    Given a board member is signed in
+    When they open "Collections" from the menu
+    Then they see the Monthly billing card with "View only. Board members can't change records." and no buttons
+
+  @r5-new
+  Scenario: The household count changed after the preview opened (G-2)
+    Given Carmela opened the December 2026 preview showing 623 bills
+    And the admin then added Blk 8 Lot 2
+    When she presses "Generate billing"
+    Then she sees "The number of households changed since you opened this preview. Check the new figures."
+    And no bill is created
+    And the preview reloads showing 624 bills
+
+  @r5-new
+  Scenario: A household added during the run is left for the treasurer (G-2)
+    Given the December 2026 run started with 623 households
+    When the admin adds Blk 8 Lot 2 while it runs
+    Then the run creates exactly 623 bills and its progress never passes "623 of 623"
+    And Blk 8 Lot 2 is listed under "1 household added since December 2026 was billed"
+
+  @r5-new
+  Scenario: A late addition must be decided before the next period is billed (G-3)
+    Given Blk 8 Lot 2 is listed as added since December 2026 was billed and nobody has decided
+    When Carmela opens the January 2027 preview on Jan 1, 2027
+    Then it reads "Decide on 1 household added since December 2026 was billed before generating January 2027 billing: Blk 8 Lot 2" with "Bill for December 2026" and "Don't bill"
+    And "Generate billing" is disabled until it is decided
+    And the billing function refuses a January 2027 run while it is undecided
+
+  @r5-new
+  Scenario: A period billed after it ended (G-4, decision 7)
+    Given December 2026 was not billed and today is Jan 5, 2027
+    When Carmela presses "Generate December 2026 billing"
+    Then the preview also says "These bills are due Dec 31, 2026, which has passed, so they will show as overdue at once."
+
+  @r5-new
+  Scenario: A run that stopped before the reminder time (G-5)
+    Given the December 2026 run stopped at 410 of 623 at 8:30 AM on Dec 1, 2026
+    When 9:00 AM Manila time passes
+    Then every treasurer gets "December 2026 billing stopped at 410 of 623. Open Collections to finish it."
+    And it is sent once per period
+
+  @r5-new
+  Scenario: A late bill tells the household and uses the period's rate (G-6, G-7, G-18)
+    Given December 2026 was billed at ₱1,800.00 and the dues were then changed to ₱2,000.00
+    When Carmela bills late addition Blk 8 Lot 2 for December 2026
+    Then the confirm reads "Bill Blk 8 Lot 2 ₱1,800.00 for December 2026, due Dec 31, 2026?"
+    And each linked person of Blk 8 Lot 2 gets "Your December 2026 statement is ready: ₱1,800.00 due Dec 31, 2026." once
+    And December 2026's billed total for the month goes up by ₱1,800.00 once
+
+  @r5-new
+  Scenario: Opening balances change the household's totals (G-8)
+    Given Blk 3 Lot 9 has an opening balance of ₱9,000.00 and Blk 6 Lot 4 a credit of ₱1,200.00
+    When the opening balances are loaded
+    Then the directory and the statement both show Blk 3 Lot 9's balance as ₱9,000.00
+    And both show Blk 6 Lot 4's balance as ₱0.00 with ₱1,200.00 credit
+
+  @r5-new
+  Scenario: The opening balance file is a CSV (G-9)
+    When Carmela chooses an .xlsx file
+    Then she sees "Save your spreadsheet as CSV (comma separated), then upload that file."
+    And the file is matched by the headings Block, Lot, Amount and, optionally, Months owed (and Phase if lots are keyed by phase), in any order, any case
+
+  @r5-new
+  Scenario Outline: Opening balance row rules (G-10)
+    When a row for Blk 3 Lot 9 has Amount "<amount>" and Months owed "<months>"
+    Then the check shows "<result>"
+
+    Examples:
+      | amount       | months | result                                                        |
+      | 0.00         |        | Blk 3 Lot 9: nothing owed, no line added                      |
+      | ₱5,400.00    | 3      | ready, ₱5,400.00, 3 months owed                               |
+      |  5400        |        | ready, ₱5,400.00                                              |
+      | 1,000,000.01 |        | Amount can't be more than ₱1,000,000.00. Check the amount.    |
+      | 5400         | -2     | Months owed must be a whole number, 0 or more.                |
+      | -1200        | 2      | Months owed can't be given for a credit.                      |
+
+  @r5-new
+  Scenario: A deactivated household's opening balance is loaded (G-10)
+    Given Blk 7 Lot 1 is deactivated
+    When the file has a row for Blk 7 Lot 1 with ₱3,600.00
+    Then the check lists it as ready with "(inactive)"
+    And after loading, its statement shows "Balance before December 2026 · ₱3,600.00"
+
+  @r5-new
+  Scenario: The first run waits for the opening choice (G-11)
+    Given no period has been billed, no opening balances are loaded and "Start with everyone at ₱0.00" was not pressed
+    Then "Generate December 2026 billing" is disabled with "Load opening balances, or start everyone at ₱0.00, first."
+    And the billing function refuses a first run requested directly
+
+  @r5-new
+  Scenario: Billing is switched on by the developer (G-13)
+    When the developer runs the go-live script for the production project on the owner's written go-live approval
+    Then it prints the project, asks for typed confirmation, and sets billing live
+    And the activity log records "Developer {name} switched billing on for this portal"
+    And before that, late bills and continuing a run are refused like a new run
+    But opening balances and "Start with everyone at ₱0.00" are allowed before go-live, because they prepare it
+
+  @r5-new
+  Scenario Outline: Singular and zero counts read correctly (G-14)
+    Given <state>
+    Then the card reads "<text>"
+
+    Examples:
+      | state                         | text                                                                   |
+      | 1 deactivated household       | … due Dec 31, 2026. 1 deactivated household is not billed. Check …    |
+      | 0 deactivated households      | … due Dec 31, 2026. Check the figures: …                               |
+      | 1 late addition               | 1 household added since December 2026 was billed: Blk 8 Lot 2          |
+      | 3 late additions              | 3 households added since December 2026 was billed: …                   |
+
+  @r5-new
+  Scenario: People linked to a deactivated household get no billing notice (G-15)
+    Given Blk 7 Lot 1 is deactivated and Ana is still linked to it
+    When December 2026 is billed
+    Then Blk 7 Lot 1 has no December 2026 bill
+    And Ana gets no "statement is ready" notification
+
+  @r5-new
+  Scenario: Homeowners and guards can't read billing records (G-16)
+    Given Juan is a homeowner
+    Then Firestore refuses his read of any billing run, monthly total or billing configuration
+    And the same is true for a guard and for the admin office's billing runs and monthly totals
+
+  @r5-new
+  Scenario: Households created before the marker existed are back-filled (G-17)
+    Given staging has households without "billed through"
+    When the developer runs the back-fill script
+    Then every household has "billed through" set to "" unless it already had a value
+    And the data check reports 0 households without it
+```
+
 ## Data changes
 
 | What | Where | Rule | Written by | Read by |
@@ -245,7 +389,20 @@ Feature: Opening balances
 | Notifications | `notifications` (REQ-011), ids `stmt_{period}_{householdId}_{uid}` and `billrem_{period}_{uid}` | One per linked person per billed household; one reminder per treasurer per period, by construction | Billing worker; a separate reminder `onSchedule` at `0 9 1 * *`, `timeZone: Asia/Manila` | Those people |
 | Change records | `auditLog` (shared helper, REQ-006) | `billing.run`, `billing.lateBill`, `billing.skip`, `billing.opening`, `billing.startAtZero` (counts and totals) | Functions | Treasurer, board, admin office |
 
-**Cross-REQ impact on approved S1 work:** REQ-003's `createHousehold` and `commitHouseholdImport` must set `billedThrough: ""` on every household, because Firestore range filters skip documents that lack the field. Add to the S1 test plan (TC-03).
+**Cross-REQ impact on approved S1 work:** REQ-003's `createHousehold` and `commitHouseholdImport` must set `billedThrough: ""` on every household, because Firestore range filters skip documents that lack the field. Add to the S1 test plan (TC-03). **(r5) Done in REQ-003 r5**, together with `activeSince` (below).
+
+**r5 rules (TC-08 gaps):**
+
+- **Which households a run bills (G-2).** `startBillingRun` takes `expectedHouseholdCount` as well as `expectedRateCentavos`, and refuses if the active count changed since the preview ("The number of households changed since you opened this preview. Check the new figures."). It stores `startedAt`. The worker bills only households with `active == true` and `activeSince <= startedAt` (`activeSince` is set on create, import and reactivation, REQ-003 r5). A household added or reactivated during the run is skipped and appears under late additions, so the run creates exactly the stored count, less any deactivated during the run. *Sol Arch to confirm.*
+- **Undecided late additions (G-3).** `startBillingRun` refuses while any household is still listed as a late addition for the previous period (`active == true && billedThrough < previousPeriod`, with at least one run done). The preview lists them with both buttons. This keeps decision 4: the treasurer decides; nothing is dropped silently.
+- **Zero households and no opening choice (G-11, G-12).** `startBillingRun` refuses when there are no active households, and refuses the first run until `config/billing.firstPeriod` is set (by loading opening balances or "Start with everyone at ₱0.00").
+- **Stopped-run reminder (G-5).** At 9:00 AM on the 1st the reminder job also notifies each treasurer when the run exists but is "stopped" (running, heartbeat older than 5 minutes), id `billstop_{period}_{uid}`.
+- **Late bills (G-6, G-7, G-18).** `billHousehold` bills at the period's **run snapshot rate**, never the current rate; writes the same "statement is ready" notification (id `stmt_{period}_{hh}_{uid}`, so once); and **increments** `monthlyTotals/{period}.billedCentavos` by the bill's amount in the same transaction (the run's `sum()` set happens once, at finish; late bills only happen after it). *Sol Arch to confirm the increment.*
+- **Opening balances and totals (G-8).** `commitOpeningBalances` updates the household in the same transaction as each line: an amount raises `billedCentavos` and `balanceCentavos`; a credit lowers `balanceCentavos` only (so stored balance = billed − paid − credit, as REQ-009's ledger works it out). `billedThrough` is unchanged, and opening lines are **not** in `monthlyTotals` (they are not a month's billing).
+- **Go-live switch (G-13).** `config/billing.goLive` is set by a developer script on the owner's written go-live approval, with the project printed and typed confirmation on `-prod` (L-003, as `setRole`), and the audit entry `billing.goLive`. The production guard covers `startBillingRun`, `continueBillingRun`, `billHousehold` and `skipLateBill`. Opening balances and start-at-zero are allowed before go-live, because they are the go-live preparation.
+- **Read rules (G-16).** `billingRuns`: treasurer and board. `monthlyTotals`: treasurer and board. `config/billing`: treasurer, board and admin office. Homeowners and guards read none of them. No client writes to any.
+- **Back-fill (G-17).** A developer script sets `billedThrough: ""` (only where the field is missing) on every household, in staging now and in any project holding households created before REQ-003 r5. A data check (count of households without the field = 0) is on the S2 release checklist. Production holds no households yet (development hold), so it needs none if REQ-003 r5 ships first.
+- **Deactivated households (G-15).** Not billed, so their linked people get no billing notification of any kind (confirms the existing rule).
 
 **Observability:** alert on a run that is `running` with a heartbeat older than 10 minutes, and on a period not billed by the 5th. Time-zone tests at 23:59 and 00:00 Manila, on a server clock in UTC (R-15).
 
@@ -290,6 +447,40 @@ Feature: Opening balances
 | Commit button | Load {r} opening balances (in flight: Loading…) |
 | Statement line | Balance before {first period} · Credit before {first period} |
 | Board note | View only. Board members can't change records. |
+| Preview, deactivated count **(r5, G-14)** | 1 deactivated household is not billed. · {m} deactivated households are not billed. · (0: the sentence is left out) |
+| Late additions **(r5, G-14)** | 1 household added since {period} was billed: {lot} · {n} households added since {period} was billed: {lots} (replaces "household(s)") |
+| Stale household count **(r5, G-2)** | The number of households changed since you opened this preview. Check the new figures. |
+| Undecided late additions **(r5, G-3)** | Decide on {n} household(s) added since {period} was billed before generating {next period} billing: {lots} (singular and plural as above) |
+| Overdue at once **(r5, G-4, decision 7)** | These bills are due {due date}, which has passed, so they will show as overdue at once. |
+| Stopped reminder **(r5, G-5)** | {period} billing stopped at {x} of {n}. Open Collections to finish it. |
+| No opening choice **(r5, G-11)** | Load opening balances, or start everyone at ₱0.00, first. |
+| Opening balances card **(r5, G-9)** | Opening balances · Load what each household owed before the portal, once, before the first billing. · Upload CSV file · Check file · Save your spreadsheet as CSV (comma separated), then upload that file. Columns: Block, Lot, Amount, Months owed (optional). (Replaces "Upload spreadsheet") |
+| Row problems, added **(r5, G-10)** | {lot}: nothing owed, no line added · Amount can't be more than ₱1,000,000.00. Check the amount. · Months owed must be a whole number, 0 or more. · Months owed can't be given for a credit. · (inactive) after a ready row for a deactivated household |
+
+## r5 gap answers (TC-08)
+
+Answers to QA's gaps in [TC-08](../test-cases/TC-08-monthly-billing-run-v1.md). One needed an owner decision (#7). Log: [GAP-ANSWERS-TC-05-11](../test-cases/GAP-ANSWERS-TC-05-11.md).
+
+| Gap | Answer | Where |
+|---|---|---|
+| G-1 Board reaches Collections | Board R1 menu gains Collections (read-only card); REQ-002 r4 | Scenario G-1 |
+| G-2 Household snapshot | Stale count refused at start; worker bills only households active since before `startedAt`; additions during the run become late additions. *Sol Arch to confirm* | r5 rules; scenarios G-2 |
+| G-3 Undecided late addition | Next run refused until decided; preview lists it with both buttons | r5 rules; scenario G-3 |
+| G-4 Catch-up bills overdue at once | **Owner decision 7, approved** ( keep the period's due date and warn in the preview) | Owner decisions; scenario G-4 |
+| G-5 Reminder on a stopped run | Yes, its own text and id | r5 rules; scenario G-5 |
+| G-6 Late bill notification | Yes, the same "statement is ready", once | r5 rules; scenario G-6 |
+| G-7 Late bill rate | The period's run snapshot | r5 rules; scenario G-6 |
+| G-8 Opening balances and totals | Yes, in the same transaction; credit lowers the balance only | r5 rules; scenario G-8 |
+| G-9 File format | CSV only (REQ-003 rules: headings, encoding, limits, lot normalisation); columns Block, Lot, Amount, Months owed | Copy; scenario G-9 |
+| G-10 Row rules | 0.00 accepted, no line; shared peso parser with a minus for credit; cap ₱1,000,000.00 per row; months owed whole, 0–999, not with a credit; deactivated households loaded and marked | Copy; outline G-10 |
+| G-11 Before the opening choice | Button disabled with a reason; server refuses | r5 rules; scenario G-11 |
+| G-12 Zero households | Refused by the server too, no run record | Scenario "No households to bill" (changed) |
+| G-13 Go-live switch | Developer script on the owner's written approval, audited; guard covers runs, continue, late bills, skip | r5 rules; scenario G-13; REQ-006 sentence |
+| G-14 Singular and zero | Copy given for each | Copy; outline G-14 |
+| G-15 Deactivated household's people | No billing notification (confirmed) | r5 rules; scenario G-15 |
+| G-16 Read rules | Stated for runs, month totals, config | r5 rules; scenario G-16 |
+| G-17 Back-fill | Developer script plus a zero-missing data check; QA's "field added for a query" pattern passed to Sol Arch for LEARNINGS | r5 rules; scenario G-17 |
+| G-18 Late bill month total | Incremented in the late bill's transaction. *Sol Arch to confirm* | r5 rules; scenario G-6 |
 
 ## Out of scope
 

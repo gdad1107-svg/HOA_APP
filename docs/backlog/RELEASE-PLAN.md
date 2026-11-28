@@ -25,7 +25,7 @@ Size in build days with Claude Code. Each size reuses the mock-up's screens (L-0
 
 | Sprint | Release | REQs | Stories | Size (days) | Stage now | Blocked by |
 |---|---|---|---|---|---|---|
-| S1 | R1 Pay dues online | 001–004 | Sign in, roles, household directory, invitations | **16–22.25** (Sol Arch, with reuse) | Owner approved, Sol Arch reviewed. **QA test plans in progress** (TC-01 to TC-04 are stubs) | — |
+| S1 | R1 Pay dues online | 001–004 | Sign in, roles, household directory, invitations | **16–22.25** (Sol Arch, with reuse) | Owner approved, Sol Arch reviewed, TC-01 to TC-04 approved; QE triage done for TC-02 and TC-04. Ready to build, **on hold until the client deal closes** | Development hold; TC-03 needs cases for `billedThrough` and `activeSince` |
 | S2 | R1 | 005–011, 046 | Privacy notice, activity log, dues and QR settings, billing run, statement, submit payment, notifications, adjust or cancel a bill (046) | **20.5–25.5** (Sol Arch, with reuse, incl. REQ-046) | 005–011 **owner approved** 2026-11-28 ("Approve all as shown"), Sol Arch's changes applied. Next: QA test plans. REQ-046 is a draft | REQ-046 approval and Sol Arch review; treasurer: do e-wallet reference numbers repeat (before build); DPO confirms P1 and the notice text |
 | S3 | R1 | 012–017 | Approve or reject payment, official receipt, void, homeowner dashboard, announcements, sign-in pop-up | **10.5–13.75** (Sol Arch, with reuse) | **Owner approved** 2026-11-28 ("Approve all as shown"; REQ-013 #3 as Sol Arch proposed), Sol Arch's changes applied. Next: QA test plans | 6 new owner questions (REQ-012 #7, 014 #7–8, 016 #6–7, 90-day banner limit); board names the 2nd treasurer; D5 before go-live |
 | S4 | R2 Collect and account | 018–027 | Delinquent list, email, notices, bulk notices, expenses, collections, fund summary and close, admin dashboard, requests | **12.5–18** (BA, with reuse) | Drafted, awaiting owner review | D2, email provider (SA-001 Q7), board-approved letter texts |
@@ -68,6 +68,16 @@ Follow-ups: the 012–017 and 018–027 mockups still show the old void and mont
 | DPO | Name a Data Protection Officer | S2 (REQ-005), S5 (REQ-028), S7 (REQ-043) |
 
 ## Change log
+
+- 2026-11-28: owner approved the 10 open decisions ("Approve all"): REQ-008 #7, 010 #7–8, 012 #7, 013 #8, 014 #7–8, 016 #6–8. S2 (except REQ-046) and S3 have no open owner decisions; next is QE triage.
+
+- 2026-11-28: BA answered the test-plan gaps: 176 of 181 in the REQ text (GAP-ANSWERS-TC-05-11.md, GAP-ANSWERS-TC-12-17.md), 5 sent to the owner. Follow-ups applied to approved S1 REQs (REQ-001 r5, 002 r4, 003 r5, 004 r4); TC-03 needs cases for billedThrough and activeSince. 10 owner decisions open across S2 and S3.
+
+- 2026-11-28: BA mapped every mock-up screen to the REQs (MOCKUP-REUSE.md): 7 reused as is, 42 reused with changes, 23 new, 4 not used. S1 size corrected to Sol Arch's 16–23 days. Sol Arch to confirm sizes assume porting mock-up screens and that area J is not double-counted.
+
+- 2026-11-28: owner approved TC-05 to TC-17 ("Approve, send gaps"); the BA is answering the 181 gaps. All Dev builds on hold until the client deal closes (owner, 2026-11-28).
+
+- 2026-11-28: QA drafted TC-05 to TC-17 for S2 and S3 (1,540 cases; 181 requirement gaps for the BA) on branch docs/qa-s2-s3, awaiting owner review. S1: TC-01 to TC-04 approved; QE triage done for TC-02 and TC-04.
 
 - 2026-11-28: Sol Arch re-sized REQ-001 to REQ-046 to reuse the mock-up (L-006): 96–127 → 84–111 days. The old headline "60–96" was stale. S1 now uses Sol Arch's reviewed sizes instead of the backlog's. Owner: "APPROVED — FINAL: sizing reuse review, merge it".
 

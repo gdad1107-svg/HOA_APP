@@ -10,7 +10,7 @@
 | Architecture | SA-001 §4.4 item 1 (oldest-bill-first allocation in `shared/domain/ledger.js`, totals kept by functions), §4.2 (`bills`, `payments`, `households` totals), R-11 (drift), R-16 (sale privacy); Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-008 (bills and opening balances). Payments appear once REQ-010 and REQ-012 ship. Corrections appear once REQ-046 ships |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (all bills plus one stored paid total, no per-bill paid amounts; ledger rules for dues-only payments, adjustments, opening credit and Manila overdue; midnight scenario; mismatch report carries both figures; embedded ₱ font, lazy PDF; "Made before you joined" rows; live balance) · r4, 2026-11-28: owner approval recorded; recommendations accepted · 2026-11-28: size re-done with mock-up reuse (REVIEW-sizing-reuse.md, owner approved) |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (all bills plus one stored paid total, no per-bill paid amounts; ledger rules for dues-only payments, adjustments, opening credit and Manila overdue; midnight scenario; mismatch report carries both figures; embedded ₱ font, lazy PDF; "Made before you joined" rows; live balance) · r4, 2026-11-28: owner approval recorded; recommendations accepted · **r5, 2026-11-28: answers TC-09 gaps G-1 to G-16** (see [r5 gap answers](#r5-gap-answers-tc-09)) and the S3 BA's requests (void note only once a lot has a void; "Rejected: / Void: {reason}" rows): reason on the payment summary, "before you joined" exception for one's own payments, payments list paging and empty copy, page refreshes on any totals change and at midnight, singular and earlier-balance summary, credit wording kept, one line per correction, dues-only list, date paid on rows, opening line counted as a line, PDF without payments, treasurer's correction control, staff see full details, routes. Pre-join data in the SDK sent to the owner as REQ-010 decision 7. New scenarios tagged `@r5-new` · r6, 2026-11-28: gap table notes REQ-010 decision 7 approved (DPO to confirm) · 2026-11-28: size re-done with mock-up reuse (REVIEW-sizing-reuse.md, owner approved) |
 
 ## Owner decisions
 
@@ -122,8 +122,8 @@ Feature: Statement of account
 
   Scenario: A corrected bill shows its correction
     Given Blk 5 Lot 1 was billed ₱1,800.00 for December 2026
-    And the treasurer corrected it by −₱200.00 (REQ-046)
-    Then December 2026 shows billed ₱1,800.00 and "Corrected: −₱200.00"
+    And the treasurer corrected it by −₱200.00 with reason "Wrong rate" (REQ-046)
+    Then December 2026 shows billed ₱1,800.00 and "Corrected: −₱200.00 (Wrong rate)"
     And the balance counts ₱1,600.00 for December 2026
 
   Scenario: An amenity fee does not pay dues
@@ -185,10 +185,12 @@ Feature: Statement of account
     When he opens Blk 3 Lot 9 in the directory and presses "Statement"
     Then he sees the same statement the homeowner sees, headed "Blk 3 Lot 9"
     And there is no way to change a bill or payment from it
+    But a treasurer opening the same statement sees "Correct this bill" on each period once REQ-046 ships, and still no way to change a payment (r5, G-13)
 
+  @r5-changed
   Scenario: A homeowner cannot see another lot's statement
     Given Maria Santos is linked only to Blk 1 Lot 3
-    When she opens the statement address for Blk 3 Lot 9
+    When she opens the staff statement route for Blk 3 Lot 9 ("#/homeowners/{household id}/statement")
     Then she sees "You don't have access to this page"
     And Firestore refuses her read of Blk 3 Lot 9's bills and payments
 
@@ -203,6 +205,111 @@ Feature: Statement of account
     And the mismatch is reported to the developer's error monitoring with the household id and both figures as numbers, and nothing else
 ```
 
+### New in r5: answers to TC-09 gaps
+
+```gherkin
+Feature: Statement of account (r5 answers to TC-09 gaps)
+
+  Background:
+    Given today is Dec 5, 2026 in Manila
+
+  @r5-new
+  Scenario: Every member sees a rejection's reason (G-1)
+    Given Carlo submitted a payment for Blk 5 Lot 1 that the treasurer rejected with "Amount does not match the screenshot"
+    When his spouse, also linked since before the payment, opens Dues & Payments
+    Then the payment row reads "Dec 3, 2026 · ₱1,800.00 · ref …9554 · Rejected: Amount does not match the screenshot"
+
+  @r5-new
+  Scenario: One's own payments are never "before you joined" (G-2)
+    Given Ana submitted a payment for Blk 2 Lot 7 on Dec 3, 2026 and was later removed and linked again on Jan 10, 2027
+    When Ana opens Dues & Payments
+    Then her Dec 3 payment shows its reference ending and status in full, not "Made before you joined"
+
+  @r5-new
+  Scenario: The payments list in pages, and empty (G-3)
+    Given Blk 3 Lot 9 has 14 dues payments
+    Then the 10 newest show under "Payments" with "Show older payments" below
+    When the homeowner presses it
+    Then the other 4 show below and the button goes away
+    Given a lot with no payments
+    Then "Payments" reads "No payments yet. Payments you submit appear here."
+
+  @r5-new
+  Scenario: The page catches up when the household's totals change (G-4, G-5)
+    Given Grace has Dues & Payments open with a payment "Pending approval"
+    When the treasurer approves it, or a period is billed, a payment is voided or a bill is corrected
+    Then the summary, the period cards and the first page of payments all update without a reload
+    And the row reads "Approved · OR-00093" at the same time the summary changes
+    And no mismatch is reported while the page is catching up
+
+  @r5-new
+  Scenario: A page left open across midnight (G-5)
+    Given the homeowner opened the statement at 11:58 PM on Dec 31, 2026 with December 2026 "Unpaid"
+    When it passes 12:00 AM on Jan 1, 2027, Manila time, without a reload
+    Then December 2026 reads "Overdue" and the summary count goes up by 1
+
+  @r5-new
+  Scenario Outline: The summary's overdue wording (G-6)
+    Given <state>
+    Then the summary reads "<summary>"
+
+    Examples:
+      | state                                                       | summary                                                       |
+      | one period overdue                                          | Balance ₱1,800.00 · 1 period overdue                          |
+      | two periods and the opening balance overdue                 | Balance ₱12,600.00 · 2 periods overdue and an earlier balance |
+      | only the opening balance overdue                            | Balance ₱9,000.00 · Earlier balance overdue                   |
+      | nothing overdue                                             | Balance ₱1,800.00 · Nothing overdue                           |
+
+  @r5-new
+  Scenario: Credit reads the same as before (G-7)
+    Given Blk 6 Lot 4 has ₱1,200.00 credit
+    Then the statement summary reads "₱1,200.00 credit"
+    And the dashboard tile (REQ-015) and receipt (REQ-013) use their own approved wording
+
+  @r5-new
+  Scenario: Two corrections on one bill are both listed (G-8)
+    Given December 2026 was corrected by −₱200.00 ("Wrong rate") and then by +₱200.00 ("Other")
+    Then the December 2026 card lists "Corrected: −₱200.00 (Wrong rate)" and then "Corrected: +₱200.00 (Other)"
+    And its due amount is ₱1,800.00
+    And neither line shows the treasurer's note
+
+  @r5-new
+  Scenario: Only dues payments are listed (G-9)
+    Given an amenity fee payment exists for the lot (R3)
+    Then the dues Payments list does not show it
+
+  @r5-new
+  Scenario: A payment row shows the date paid (G-10)
+    Given Carlo paid on Nov 30, 2026 and submitted on Dec 3, 2026
+    Then his row reads "Nov 30, 2026 · ₱1,800.00 · ref …9554 · Pending approval"
+
+  @r5-new
+  Scenario: The opening line counts as one line (G-11)
+    Given Blk 3 Lot 9 has an opening balance and 20 billed periods
+    Then the 12 newest periods show
+    And "Show earlier periods (9)" reveals the other 8 periods and the opening line
+
+  @r5-new
+  Scenario: The PDF lists periods, not payments (G-12)
+    When the homeowner downloads the PDF
+    Then it lists every period with billed, paid, status and the balance
+    And it lists no payments, no reference numbers and no person's name, only the lot and the HOA name
+
+  @r5-new
+  Scenario: Staff see a sold lot's earlier payments in full (G-14)
+    Given Blk 2 Lot 7 was sold and Ana's payments were made before Ben joined
+    When the treasurer opens Blk 2 Lot 7's statement
+    Then Ana's payments show their reference ending, status and reason, with no "Made before you joined" label
+
+  @r5-new
+  Scenario: The receipts note appears only once a lot has a void (S3 BA, TC-14 G-5)
+    Given Blk 2 Lot 7 has never had a voided payment
+    Then the statement does not show "Receipts show how a payment was applied on the day it was issued."
+    When a payment of Blk 2 Lot 7 is voided
+    Then the note shows above the Payments list, and a row reads "{date} · ₱1,800.00 · Void: Duplicate of OR-00090"
+    And a "Made before you joined" row reads "Void · Made before you joined", with no reason or receipt number
+```
+
 ## Data changes
 
 No new collections. This REQ reads what REQ-008 and the payment REQs write.
@@ -215,6 +322,15 @@ No new collections. This REQ reads what REQ-008 and the payment REQs write.
 | Ledger rule | `shared/domain/ledger.js` | Screen, PDF, functions | Unit-tested with the sample accounts in the scenarios above |
 
 **Read cost (Sol Arch's answer):** the statement reads **all** the lot's bills (about 12 a year, so about 60 for a five-year-old lot) plus the totals, and never reads payment history to work out the balance. "Show earlier periods" is a display choice only, with no extra query. Per-bill paid amounts are **not** stored: a void or correction would have to rewrite many bills. Revisit if a lot passes about 60 bills.
+
+**r5 data rules (TC-09 gaps):**
+
+- **Payments list (G-9, G-3):** the query adds `kind == 'dues'` (index `householdId, kind, submittedAt desc`), 10 at a time, "Show older payments" loads the next 10. Amenity fees (R3) are listed wherever REQ-031 decides.
+- **Rejection and void reasons (G-1):** read from the payment summary `payments/{id}.reason` (REQ-010 r8, matching REQ-012 and REQ-014), so every member sees them; hidden on screen on "Made before you joined" rows.
+- **"Made before you joined" (G-2):** a payment whose `submittedAt` is before the viewer's `members.linkedAt`, **unless the viewer submitted it** (`submittedBy == viewer`), as REQ-013 decision 5 says. Staff never see the label (G-14): they see every payment in full, within their role (reference ending and reason; full reference in `paymentPrivate` for treasurer and admin office; screenshot for treasurer-role holders only).
+- **Refresh (G-4, G-5):** the live listener on `households/{id}` stays the only listener. When its snapshot changes, the page re-reads the bills, the corrections and the first page of payments, then renders. The mismatch check compares the bills with the totals snapshot that started that refresh, and is reported only if a second refresh, started by no newer snapshot, gives the same difference (so a change landing mid-read is never reported). Statuses are recomputed at 12:00 AM Manila by a timer, with no reads. *Sol Arch to confirm.*
+- **Corrections (G-8):** the statement reads the household's corrections (`billAdjustments` where `householdId == X`, the household-visible fields only, REQ-046) and lists each one under its period, in the order made, as "Corrected: {signed amount} ({reason})". The ledger still uses the bill's `adjustedCentavos`; a sum of lines that differs from it is reported like a balance mismatch.
+- **Routes (G-15):** homeowner `#/dues` (the household chosen in the view switch, held in memory); staff `#/homeowners/{householdId}/statement`, an opaque id, never the lot label or a name (SA-001 §8.2). A homeowner opening the staff route, even for their own lot, gets REQ-002's "You don't have access to this page".
 
 **PDF library:** jsPDF and jspdf-autotable from npm, pinned to the current release after `npm audit` (not the mock-up's 2.5.1), loaded with a dynamic `import()` only when "Download PDF" is pressed, with an embedded subset of an open-licence font (for example Noto Sans) so "₱" and "ñ" print.
 
@@ -252,6 +368,38 @@ No new collections. This REQ reads what REQ-008 and the payment REQs write.
 | Empty | No bills yet. Your first statement appears when the HOA bills the next period. |
 | Load error | We couldn't load your statement. Check your connection and try again. · Try again |
 | Staff button | Statement |
+| Page sub-heading, rate changing **(r5, TC-07 G-3)** | {lot} · Monthly dues {latest billed rate} · {new rate} from {next period}, due on the last day of each month. (The rate shown is the latest bill's amount; with no bills, the saved rate) |
+| Summary, singular and earlier balance **(r5, G-6)** | 1 period overdue · {n} periods overdue · {n} period(s) overdue and an earlier balance · Earlier balance overdue. "Periods" counts months only; the opening line is the "earlier balance" |
+| Payments heading **(r5, G-3)** | Payments |
+| Payments more **(r5, G-3)** | Show older payments (in flight: Loading…) |
+| Payments empty **(r5, G-3)** | No payments yet. Payments you submit appear here. |
+| Payment row **(r5, G-10; S3 BA)** | {date paid} · {amount} · ref …{last 4} · Pending approval / Approved · {OR no.} / Rejected: {reason} / Void: {reason} · (before joining:) {date paid} · {amount} · {status} · Made before you joined |
+| Receipts note **(r5, S3 BA, TC-14 G-5)** | Receipts show how a payment was applied on the day it was issued. Shown above Payments only once the lot has at least one voided payment |
+| Correction line **(r5, G-8)** | Corrected: {signed amount} ({reason}), one line per correction, in the order made |
+| Show more **(r5, G-11)** | Show earlier periods ({n}): n counts the hidden periods plus the opening line if hidden |
+
+## r5 gap answers (TC-09)
+
+Answers to QA's gaps in [TC-09](../test-cases/TC-09-statement-of-account-v1.md). One went to the owner (G-16, as REQ-010 decision 7). Log: [GAP-ANSWERS-TC-05-11](../test-cases/GAP-ANSWERS-TC-05-11.md).
+
+| Gap | Answer | Where |
+|---|---|---|
+| G-1 Where the rejection reason lives | On `payments/{id}` (household-visible), as approved REQ-012 and REQ-014 decision 2 already say and as every member's bell already shows; dropped from `paymentPrivate` in REQ-010 r8 | r5 data rules; scenario G-1 |
+| G-2 "Before you joined" exception | Not applied to payments the viewer submitted (REQ-013 decision 5); same wording in REQ-010 r8 | r5 data rules; scenario G-2 |
+| G-3 Paging and empty copy | "Show older payments"; "No payments yet…" | Copy; scenario G-3 |
+| G-4 Row stays "pending" | Totals change triggers a re-read of the first page of payments | r5 data rules; scenario G-4/G-5 |
+| G-5 Bills read once; midnight | Same refresh for bills and corrections; mismatch reported only if it survives a second refresh; midnight timer | r5 data rules; scenarios G-4/G-5, midnight |
+| G-6 "1 periods"; opening line | Singular; months only, opening line called "an earlier balance" | Copy; outline G-6 |
+| G-7 Credit wording | REQ-009's approved "₱1,200.00 credit" stays on the statement; the dashboard tile and receipt keep their own approved copy (agreed with the S3 BA, TC-12 G-5) | Scenario G-7 |
+| G-8 Correction lines | REQ-046's copy with the reason; one line per correction from `billAdjustments`; approved scenario corrected to include the reason | r5 data rules; copy; scenario "A corrected bill…" (changed), G-8 |
+| G-9 Amenity fees | Dues list queries `kind == dues` only | r5 data rules; scenario G-9 |
+| G-10 Row date | Date paid (what matches the homeowner's e-wallet); list still ordered by submission | Copy; scenario G-10 |
+| G-11 Opening line in "last 12" | Counts as one line | Copy; scenario G-11 |
+| G-12 PDF and payments | The PDF lists periods and balance only (the approved scenario's scope), no payments, no names | Scenario G-12 |
+| G-13 Correction control on the staff statement | Treasurer sees "Correct this bill" (REQ-046); nobody can change a payment from it | Scenario "Staff open a household's statement" (changed) |
+| G-14 Staff and a sold lot | Full details within their role; no label | r5 data rules; scenario G-14 |
+| G-15 Routes | `#/dues` and `#/homeowners/{householdId}/statement`; homeowners refused on the staff route | r5 data rules; scenario (changed) |
+| G-16 Pre-join data in the SDK | **Owner decision 7 in REQ-010, approved: accept** (DPO to confirm) | REQ-010 |
 
 ## Out of scope
 
