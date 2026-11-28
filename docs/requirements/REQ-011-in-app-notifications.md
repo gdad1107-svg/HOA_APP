@@ -10,7 +10,7 @@
 | Architecture | SA-001 §4.1 (`notifs` → `notifications`), §3 and §4.4 item 8 (no fan-out for announcements), ADR-002 (email is separate); Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-002 (roles), REQ-004 (members) |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (bounded live listener for the count, deterministic ids, route codes not URLs, no contact details in parameters, removal clean-up by a retried trigger within a minute, removed staff, catalogue additions for the QR self-alert and bill corrections) · r4, 2026-11-28: owner approval recorded; recommendations accepted |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (bounded live listener for the count, deterministic ids, route codes not URLs, no contact details in parameters, removal clean-up by a retried trigger within a minute, removed staff, catalogue additions for the QR self-alert and bill corrections) · r4, 2026-11-28: owner approval recorded; recommendations accepted · 2026-11-28: size re-done with mock-up reuse (REVIEW-sizing-reuse.md, owner approved) |
 
 ## Owner decisions
 
@@ -313,3 +313,10 @@ Questions for Sol Arch (from the BA, r1):
 #### Size
 
 **S, 2 person-days with Claude Code (BA: 1.5–2).** It includes the `onDocumentDeleted` trigger and the `notify()` helper with deterministic ids and the route allow-list.
+
+#### Size with mock-up reuse (2026-11-28, replaces the size above)
+
+**1.75 person-days with Claude Code** (was 2). Re-sized under the owner's rule to reuse what is already in the repo (L-006), in [REVIEW-sizing-reuse.md](../architecture/REVIEW-sizing-reuse.md), approved by the owner on 2026-11-28 ("APPROVED — FINAL: sizing reuse review, merge it").
+
+- **Parts** (port UI · extend UI · new UI · back end · tests): 0.25 · 0.25 · 0 · 1 · 0.25
+- **Reuses:** Port: bell and panel in `headerHTML()` 557–559, `readAll` 1339. Extend: empty and error (623). BE: `notify()` helper, delete trigger, route allow-list

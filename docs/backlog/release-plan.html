@@ -103,7 +103,7 @@ footer{color:var(--muted);font-size:.8rem}
     </section>
   </div>
 
-  <footer>Sizes are build days with Claude Code. S2 and S3 use Sol Arch's estimates; the other sprints use the backlog sizes (S 0.5–1, M 2–3, L 4–6), not yet confirmed. Sol Arch's S2 and S3 estimates came in well above the backlog, so expect the same for later sprints. Source: docs/backlog/RELEASE-PLAN.md.</footer>
+  <footer>Sizes are build days with Claude Code and reuse the mock-up's screens. Total about 84–111 days (R1 47–61.5). S1–S3 are Sol Arch's sizes. S4–S7 are the BA's estimates with reuse applied and are not yet reviewed. Source: docs/backlog/RELEASE-PLAN.md.</footer>
 </div>
 
 <script>
@@ -117,13 +117,13 @@ footer{color:var(--muted);font-size:.8rem}
   ];
   // stage: index of the stage now being worked on (0-based); done = stages before it
   var SPRINTS=[
-    {s:"S1",r:"R1",reqs:"001–004",size:"6–10 days",stage:3,stop:false,stories:"Sign in · roles and permissions · household directory · invitations",now:"QA test plans in progress (TC-01 to TC-04 are stubs)",blk:""},
-    {s:"S2",r:"R1",reqs:"005–011, 046",size:"23–27.5 days (Sol Arch, incl. REQ-046)",stage:3,stop:false,stories:"Privacy notice · activity log · dues and QR settings · billing run · statement · submit payment · notifications · adjust or cancel a bill (046)",now:"005–011 approved with Sol Arch's changes. Next: QA test plans. REQ-046 still a draft",blk:"REQ-046 approval and Sol Arch review; treasurer: do e-wallet reference numbers repeat (before build); DPO confirms P1 and notice text"},
-    {s:"S3",r:"R1",reqs:"012–017",size:"12.5–16.5 days (Sol Arch)",stage:3,stop:false,stories:"Approve or reject payment · official receipt · void · homeowner dashboard · announcements · sign-in pop-up",now:"Approved with Sol Arch's changes. Next: QA test plans",blk:"6 new questions for you; board names 2nd treasurer; D5 before go-live"},
-    {s:"S4",r:"R2",reqs:"018–027",size:"11–18 days",stage:1,stop:false,stories:"Delinquent list · email · notices · bulk notices · expenses · collections · fund summary · admin dashboard · requests",now:"Drafted, waiting on your review. Largest sprint: may split into S4a and S4b",blk:"D2, email provider, board-approved letter texts"},
-    {s:"S5",r:"R3",reqs:"028–034",size:"8.5–14 days",stage:1,stop:false,stories:"Register vehicle · stickers · amenities · book · approve booking · cancel · pause for overdue",now:"Drafted, waiting on your review",blk:"D7 amenity fee timing"},
-    {s:"S6",r:"R3",reqs:"035–039",size:"7–11 days",stage:1,stop:false,stories:"Reports and CSV · request a record · fulfil · good standing certificate · board financial report",now:"Drafted, waiting on your review",blk:"D6 board report"},
-    {s:"S7",r:"R4",reqs:"040–045",size:"9.5–15 days",stage:1,stop:true,stories:"Guest pass · cancel pass · guard verifies · check in and out · logs · ID photo deletion",now:"Drafted. Whole release blocked",blk:"D9 gate add-on in scope, DPO on ID photos"}
+    {s:"S1",r:"R1",reqs:"001–004",size:"16–22.25 days (Sol Arch, with reuse)",stage:3,stop:false,stories:"Sign in · roles and permissions · household directory · invitations",now:"QA test plans in progress (TC-01 to TC-04 are stubs)",blk:""},
+    {s:"S2",r:"R1",reqs:"005–011, 046",size:"20.5–25.5 days (Sol Arch, with reuse, incl. REQ-046)",stage:3,stop:false,stories:"Privacy notice · activity log · dues and QR settings · billing run · statement · submit payment · notifications · adjust or cancel a bill (046)",now:"005–011 approved with Sol Arch's changes. Next: QA test plans. REQ-046 still a draft",blk:"REQ-046 approval and Sol Arch review; treasurer: do e-wallet reference numbers repeat (before build); DPO confirms P1 and notice text"},
+    {s:"S3",r:"R1",reqs:"012–017",size:"10.5–13.75 days (Sol Arch, with reuse)",stage:3,stop:false,stories:"Approve or reject payment · official receipt · void · homeowner dashboard · announcements · sign-in pop-up",now:"Approved with Sol Arch's changes. Next: QA test plans",blk:"6 new questions for you; board names 2nd treasurer; D5 before go-live"},
+    {s:"S4",r:"R2",reqs:"018–027",size:"12.5–18 days (BA, with reuse)",stage:1,stop:false,stories:"Delinquent list · email · notices · bulk notices · expenses · collections · fund summary · admin dashboard · requests",now:"Drafted, waiting on your review. Largest sprint: may split into S4a and S4b",blk:"D2, email provider, board-approved letter texts"},
+    {s:"S5",r:"R3",reqs:"028–034",size:"9–12.25 days (BA, with reuse)",stage:1,stop:false,stories:"Register vehicle · stickers · amenities · book · approve booking · cancel · pause for overdue",now:"Drafted, waiting on your review",blk:"D7 amenity fee timing"},
+    {s:"S6",r:"R3",reqs:"035–039",size:"9–10.75 days (BA, with reuse)",stage:1,stop:false,stories:"Reports and CSV · request a record · fulfil · good standing certificate · board financial report",now:"Drafted, waiting on your review",blk:"D6 board report"},
+    {s:"S7",r:"R4",reqs:"040–045",size:"6.25–8.5 days (BA, with reuse; plus staff page)",stage:1,stop:true,stories:"Guest pass · cancel pass · guard verifies · check in and out · logs · ID photo deletion",now:"Drafted. Whole release blocked",blk:"D9 gate add-on in scope, DPO on ID photos"}
   ];
   var REQS=[
     ["001","Sign in"],["002","Roles"],["003","Directory"],["004","Invite"],
