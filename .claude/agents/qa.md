@@ -100,10 +100,17 @@ State these up front, before the case list.
    smoke pass doesn't cover? Name it for QE. If not, say "smoke unchanged" — don't
    restate the checklist.
 2. **Acceptance** — at least one case per Gherkin scenario, unhappy paths included.
-3. **Regression** — what else could break, and why: shared components; collections
-   or fields another feature also reads or writes; totals derived from touched data;
-   open defects in the area; every known failure pattern that plausibly applies. List
-   the existing specs and screens QE should re-run.
+   These are the cases QE runs to decide whether the **user story can be closed**,
+   so map every acceptance criterion to its case ids in a table. A criterion with no
+   case is a gap that blocks closing the story.
+3. **Regression** — what else could break, and why: the features this change
+   touches, and the areas it could affect — shared components; collections or
+   fields another feature also reads or writes; totals derived from touched data;
+   roles whose access changes; open defects in the area; every known failure
+   pattern that plausibly applies. List the existing specs and screens QE should
+   re-run, and say which areas are **not** affected. QE merges this list with the
+   other stories in the release batch into one targeted regression run before
+   demo, so keep it specific — "re-run everything" is not a regression lens.
 
 ## List every scenario — the owner's rule
 

@@ -157,9 +157,9 @@ function field(text, name) {
   const line = new RegExp(`^\\*\\*${name}:?\\*\\*:?\\s*(.+)$`, 'mi').exec(text);
   return line ? strip(line[1]) : null;
 }
-// Approved only when the status *starts* with Final / Approved ("Final — approved by …",
-// "Approved by the owner, …"). "Draft. Becomes final when …" is not approved.
-const isApproved = (s) => /^(final|approved)\b/i.test(strip(s ?? ''));
+// Approved only when the status *starts* with Final / Approved / Accepted ("Final — approved
+// by …", "Approved by the owner, …", an ADR's "Accepted"). "Draft. Becomes final when …" is not.
+const isApproved = (s) => /^(final|approved|accepted)\b/i.test(strip(s ?? ''));
 const firstToken = (s) => (s ? s.split(/[.:—–(]/)[0].trim() : null);
 function tableRows(text, heading) {
   const i = text.search(new RegExp(`^##\\s+${heading}`, 'mi'));

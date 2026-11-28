@@ -2029,7 +2029,7 @@ All M cases assert the refusal explicitly ("nothing changed on screen" is not pr
 
 ## QE triage
 
-*QE-owned. Written at triage, 2026-11-28, against TC-04 v1 (owner-approved, merged as `e0cb23d`). QA owns everything above this line. QE changed only each case's **Layer** field and added the layer legend.*
+*QE-owned. Written at triage, 2026-11-28, against TC-04 v1 (owner-approved, merged as `e0cb23d`). Refreshed the same day, before merging, for SA-001 r3 (now Final) and TC-03 (now on `main`). QA owns everything above this line. QE changed only each case's **Layer** field and added the layer legend.*
 
 ### Shape
 
@@ -2040,7 +2040,7 @@ All M cases assert the refusal explicitly ("nothing changed on screen" is not pr
 | UI | 70 | 30% | 11 | 15 | 3 in the `mobile` project (Q6, Q7, Q13); 1 `exclusive` (S10) |
 | Journey | 1 | <1% | 0 | 0 | C7: print → code → link → staff see Linked |
 | Manual | 7 | — | 0 | 1 | 1 on staging (D16), 1 physical print (I13), 1 real phone keyboard (Q8), 4 charters (X1–X4) |
-| **Total** | **239** | | **52** | **45** | **142** runnable once the app exists; 68 of all cases are provisional (SA-001 Draft) |
+| **Total** | **239** | | **52** | **45** | **142** runnable once the app exists; 68 of all cases are tagged provisional, still to be re-checked against SA-001 r3 (Final) |
 
 **API carries half the plan, and that is the right shape for REQ-004.** The feature is server logic: five callable functions, a transaction per redeem, function-only collections (`invites`, `inviteAttempts`, `mail`, `members`) and the rules that decide who sees which household. Only a few things need a browser: the join screens, the directory pills, the slip PDF and deep links. Against the 70 / 20 / 10 target, Unit is low because the wrong-code window, the expiry dates and the pill derivation are the only real calculations. Taken together, TC-01 and TC-04 come to Unit 61, API 165, UI 164, Journey 1. That is still too much UI, but it's moving the right way.
 
@@ -2048,8 +2048,15 @@ All M cases assert the refusal explicitly ("nothing changed on screen" is not pr
 
 - **Gap G-n (44 cases):** each keeps its layer but is **not automatable** until the BA answers the gap. REQ-004 r4 is answering them in a sibling session. QE did not read or edit `docs/requirements/`.
 - **Blocked on a decision (8):** L1–L6 (decision 5, and L1, L3, L5 also need the payments REQ), J18 (the board's people-per-household limit), G12 (the bounce event needs the email provider; decision 3). They stay blocked.
-- **Step 2 (45, plus 10 of the blocked above):** deferred until an email provider is chosen (SA-001 Q7). QE also deferred **G11**: it's tagged "Step 1 and 2" but starts from an "Email failed" household (finding 4). The 9 "Step 1 and 2" cases that remain (E5, E7, E10, M1, P6, P7, Q7, R6, X3) run their Step 1 half now and add the email half later.
-- **Provisional — SA-001 Draft (68):** layered against the Draft design and still flagged (*provisional* in the coverage map). Each one is re-checked when SA-001 is approved, before its test is written.
+- **Step 2 (45, plus 10 of the blocked above):** deferred until an email provider is chosen (the owner picks it; ADR-002, now Final, leaves it open). QE also deferred **G11**: it's tagged "Step 1 and 2" but starts from an "Email failed" household (finding 4). The 9 "Step 1 and 2" cases that remain (E5, E7, E10, M1, P6, P7, Q7, R6, X3) run their Step 1 half now and add the email half later.
+- **Provisional — SA-001 Draft (68):** QA wrote these against the Draft. SA-001 r3 and ADR-001 to ADR-005 were approved (Final) on 2026-11-28, after this triage was first written. A spot check of r3 shows that the details the layers rest on are unchanged:
+  - the five callable functions (`createInvites`, `checkInvite`, `redeemInvite`, `removeMember`, `cancelInvite`);
+  - `inviteAttempts/{uid}`, 5 refused codes per 15 minutes per account;
+  - codes stored as a keyed hash;
+  - expiry per channel, ending at the end of the day in Asia/Manila;
+  - `shared/domain/` for logic shared by the web app and functions.
+
+  So the layers stand. Each case stays flagged *provisional* in the coverage map until QA re-checks its expected result against r3 (finding 9), and QE re-checks it again before writing its test. r3 still leaves the lot key (§4.2) and sale privacy (R-16) open; L1–L6 are blocked anyway.
 - **13 blocked cases are P1:** E6, G8, G12, K1, K3, K4, K6, K7, K8, K11, L1, L3, S5. Six of them sit in block K (remove after a sale). See finding 2: most of what they assert doesn't depend on the gap.
 
 ### Where each case went, and why
@@ -2091,7 +2098,7 @@ All M cases assert the refusal explicitly ("nothing changed on screen" is not pr
 
 ### Unit scenarios for Dev
 
-Dev writes these with the feature; QE reviews them against this list. Paths follow SA-001 §9 (`shared/domain/` is shared by web and functions).
+Dev writes these with the feature; QE reviews them against this list. Paths follow SA-001 r3 §9 (`shared/domain/` is shared by web and functions).
 
 | Module (anticipated) | Cases | Seam it needs |
 |---|---|---|
@@ -2165,12 +2172,12 @@ TC-01's contract still applies: `screen-<view>`, `app-version`, `form-error`, `s
 | `ui/privacy-after-sale.spec.js` | UI | L4 (blocked) |
 | `ui/invite-link.journey.spec.js` | Journey | C7 |
 
-**Smoke.** TC-03 is **not on `main`** yet (it's still on its QA branch), so TC-04's four smoke additions go in whole:
+**Smoke.** TC-03 is now on `main`. Its smoke scope already loads the Homeowners directory for admin **and** treasurer (heading, Import / Add household, search, filter chips, empty state), the import page and the Add household dialog. So TC-04 adds only what TC-03's smoke doesn't check:
 
 1. **P1** gets the `@smoke` tag: the no-household account lands on not-linked and opens "Enter your invite code".
 2. **`SMK-join-link`** (new, read-only): `/join#{fixture code}` opens the confirm screen, and the test never presses Yes. It's deferred with P2 until the `/join` link ships (Step 2), unless Dev ships `/join` in Step 1 (finding 5).
 3. **`SMK-admin-household-detail`** and **`SMK-treasurer-household-detail`** (new): 4E opens and shows "People with portal access" and "Invitations".
-4. **`SMK-admin-homeowners-portal`** (new): the directory shows the Portal column with a pill on every row, plus "Invite selected" and "Print invite slips". When TC-03 merges, its directory smoke item takes the screen-load half and this one keeps only the pills and the two actions. QE reconciles it at TC-03's triage.
+4. **`SMK-admin-homeowners-portal`** (new, trimmed): on the directory TC-03's smoke item has already loaded, a link-status pill on every row, plus the "Invite selected" and "Print invite slips" actions. It doesn't re-check the heading, search or chips. When QE triages TC-03, the two smoke items share one page load.
 
 **Changed (when the real app exists):**
 
@@ -2210,7 +2217,7 @@ TC-01's contract still applies: `screen-<view>`, `app-version`, `form-error`, `s
 
 ### Implementation status
 
-2026-11-28: **nothing automated.** The real app doesn't exist yet (`main` holds only the mock-ups), and Dev is waiting on SA-001 approval. Every row is **Planned**, **Deferred: Step 2**, or **Blocked** on the gap or decision it names. No spec, fixture or config was written at triage.
+2026-11-28: **nothing automated.** The real app doesn't exist yet (`main` holds only the mock-ups). SA-001 r3 was approved on 2026-11-28, so the design is settled, but no app code or test has been written. Every row is **Planned**, **Deferred: Step 2**, or **Blocked** on the gap or decision it names. No spec, fixture or config was written at triage.
 
 ### Findings for QA
 
@@ -2239,14 +2246,21 @@ These are QE's reading of the cases, for QA to accept or reject. QE did not chan
 5. **Smoke item 2 (`/join#code`) assumes the `/join` route exists in Step 1.** Only the email link uses it. Confirm with the BA or Dev whether Step 1 ships `/join`; if not, the smoke item waits for Step 2 with P2.
 6. **"Controllable server clock" staging notes (A8, the D and E blocks)** don't need a staging clock. Unit proves the boundaries, and API seeds `expiresAt` or the attempt record to a time already past. Only D16 needs staging, and it is Manual there.
 7. **F7, F8, J15, N1, N2 and N6 carry "two sessions" notes.** QE proves them with two tokens at API, not two browsers.
-8. **TC-03 overlaps to settle at TC-03's triage:** TC-03's link-status pills and deactivate-cancels-invite cases against TC-04's R3, S1, Q9, Q13 and J14. One layer each, and no second row.
+8. **TC-03 overlaps to settle at TC-03's triage** (TC-03 is on `main` but not yet triaged): TC-03's link-status pills and deactivate-cancels-invite cases against TC-04's R3, S1, Q9, Q13 and J14. One layer each, and no second row.
+
+9. **Re-check the 68 *provisional* cases against SA-001 r3 (Final).** The spot check found no change that moves a layer. QA owns the tag and the expected results, so QA should confirm each one and drop the tag, or rewrite the case where r3 differs.
+10. **Two TC-04 cases overlap TC-02 rows that have since merged**, both at API:
+    - **K2** (a removed member's next household read is refused at once) overlaps **TC-02-D5**. TC-02's own finding 7 already proposes that TC-04 owns it. It also answers TC-01's triage finding 3.
+    - **M2** (`createInvites` refused for board, guard, homeowner, no-role and signed-out callers) overlaps **TC-02-C13**, and M2 is the wider case.
+
+    QE proposes that TC-04 keeps both tests and that the TC-02 rows become cross-references once QA agrees. QE didn't edit TC-02.
 
 ### For Sol Arch (and Dev)
 
 - **`shared/domain/` placement is what keeps 29 cases at Unit.** The code normaliser, the attempt window, the expiry dates and the pill derivation need to be plain modules that both the web app and the functions import. If they live inside function handlers, those cases move up to API. That would be a design finding, not a test choice.
-- **The slip PDF builder must run in Node** (no DOM) for I3 and I5. Name the PDF library in SA-001 with that in mind.
+- **The slip PDF builder must run in Node** (no DOM) for I3 and I5. SA-001 r3 §9 has functions make *official* PDFs. A slip isn't one: REQ-004 and B10 have the browser build it and store nothing. Please confirm that in SA-001, and name a PDF library that runs in Node.
 - **Functions read time through an injectable `now()`.** QE doesn't need an emulator clock override if API cases can seed times.
 - **Emulator mail stub:** it must accept, refuse, pause and inject a bounce, controlled only when `FUNCTIONS_EMULATOR` is set, so no staging or production path can reach it. The bounce event shape waits on the provider (G12).
-- **The emulator HMAC key** is a separate test secret (B4). SA-001 should say where it lives so it can never be the production key.
+- **The emulator HMAC key** is a separate test secret (B4). SA-001 r3 should say where it lives, so it can never be the production key.
 - **Function logs (B8):** QE reads them from the emulator's log output. Please confirm functions don't log request payloads by default (CS-14).
-- **Staging:** the mail allow-list (G15) and the staging host for the guard (ADR-005), plus the test-folder layout. These are the same open items TC-01 raised.
+- **Staging:** the mail allow-list (G15) and the staging host for the guard (ADR-005), plus the test-folder layout. SA-001 r3 still names `tests/rules/` and `tests/e2e/`, while TC-01, TC-02 and TC-04 plan `tests/specs/api/`, `tests/specs/staging/` and `tests/specs/ui/`. These are the same open items TC-01 raised.

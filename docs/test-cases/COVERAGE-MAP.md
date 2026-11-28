@@ -246,15 +246,206 @@ Triaged by QE 2026-11-28 from [TC-01 v1.1](TC-01-sign-in-v1.md) (owner-approved)
 | TC-01-T3 | 15 minutes: slow and flaky network | exploratory | Manual | Manual: exploratory charter::TC-01-T3 | Planned |
 | TC-01-T4 | 15 minutes: staying signed in on an iPhone over weeks | exploratory | Manual | Manual: exploratory charter::TC-01-T4 | Planned |
 
+## TC-02 Roles and permissions (REQ-002): planned for the real app
+
+Triaged by QE 2026-11-28 from [TC-02 v1](TC-02-roles-and-permissions-v1.md) (owner-approved). Like TC-01's rows, these target the **real app** (Firebase Auth, Firestore, Storage and Functions on the Emulator Suite), which doesn't exist yet, so nothing is automated and every row is **Planned** or **Blocked** on the BA gap it names (gaps are numbered as in TC-02's *Requirement gaps for the BA*). Reasons, the Unit list for Dev, the locator contract and the automation order are in TC-02's **QE triage** section. Unit files are Dev's, under `web/src/app/` and `scripts/set-role/` (paths anticipated from SA-001); API specs live in `tests/specs/api/`, UI specs in `tests/specs/ui/`. No row runs on staging. *(forced refresh)* rows force the token refresh on the emulator. Firestore and Storage rules are proven only by these API rows; SonarQube can't read them.
+
+| Layer | Cases | Share of automated | Blocked |
+|---|---|---|---|
+| Unit | 19 | 11% | 1 |
+| API | 93 | 55% | 28 |
+| UI | 56 (2 forced refresh) | 33% | 4 |
+| Manual | 4 | — | 0 |
+| **Total** | **172** | | **33** |
+
+**Gaps:** none. Every case has a layer and a named test or manual run. **Overlaps:** none by layer. A2, A4, A6 and A8 (Unit, menu model) are contained in A1, A3, A5 and A7 (UI, rendered menu), and D5 may duplicate a TC-04 rules case; both are raised with QA in TC-02's findings. **Shape:** API-heavy, as a rules requirement should be; UI is above the 10% target, mostly menus, the switch and the no-access page.
+
+**Effect on the rows above:** NAV-02 and NAV-04 retire in the real app (replaced by TC-02-F\* and TC-02-L3); `SMK-admin-nav` and `SMK-guard-nav` stay for the mock-up only. Those rows are left as they are until then.
+
+| Scenario id | Scenario | Type | Layer | Test file::test name | Status |
+|---|---|---|---|---|---|
+| TC-02-A1 | Homeowner sees exactly the R1 homeowner menu | happy | UI | role-menus.spec.js::TC-02-A1 `@smoke` | Planned |
+| TC-02-A2 | Homeowner's menu does not show Homeowners | security | Unit | menu.test.js::TC-02-A2 | Planned |
+| TC-02-A3 | Admin office staff see the R1 admin menu, without Approvals | happy | UI | role-menus.spec.js::TC-02-A3 `@smoke` | Planned |
+| TC-02-A4 | Admin's menu does not show Accounting | security | Unit | menu.test.js::TC-02-A4 | Planned |
+| TC-02-A5 | Treasurer sees the R1 treasurer menu | happy | UI | role-menus.spec.js::TC-02-A5 `@smoke` | Planned |
+| TC-02-A6 | Treasurer's menu does not show Scan Pass | security | Unit | menu.test.js::TC-02-A6 | Planned |
+| TC-02-A7 | Board member sees only Dashboard in R1 | happy | UI | role-menus.spec.js::TC-02-A7 `@smoke` | Planned |
+| TC-02-A8 | Board member's menu does not show Homeowners | security | Unit | menu.test.js::TC-02-A8 | Planned |
+| TC-02-A9 | A guard-role account sees no household, money or staff pages in R1 | security | Unit | menu.test.js::TC-02-A9 | Planned |
+| TC-02-A10 | Menus for unreleased features appear for no role | negative | Unit | menu.test.js::TC-02-A10 | Planned |
+| TC-02-A11 | Role names use the same word on every screen | usability | Unit | source-checks.test.js::TC-02-A11 | Blocked on BA gap 7 |
+| TC-02-B1 | ZZ Homeowner A1: Read Household A, allowed | security | API | rules-roles.spec.js::TC-02-B1 | Planned |
+| TC-02-B2 | ZZ Homeowner A1: Read Household B, refused | security | API | rules-roles.spec.js::TC-02-B2 | Planned |
+| TC-02-B3 | ZZ Homeowner A1: List all households (no filter), refused | security | API | rules-roles.spec.js::TC-02-B3 | Planned |
+| TC-02-B4 | ZZ Homeowner A1: Read `members` of Household B, refused | security | API | rules-roles.spec.js::TC-02-B4 | Planned |
+| TC-02-B5 | ZZ Homeowner A1: Read or list `staff`, refused | security | API | rules-roles.spec.js::TC-02-B5 | Planned |
+| TC-02-B6 | ZZ Homeowner A1: Read `auditLog`, refused | security | API | rules-roles.spec.js::TC-02-B6 | Planned |
+| TC-02-B7 | ZZ Homeowner A1: Create `staff/{own uid}` with `role: treasurer`, refused | security | API | rules-roles.spec.js::TC-02-B7 | Planned |
+| TC-02-B8 | ZZ Homeowner A1: Update `users/{own uid}` adding `role` or `staffRole`, refused | security | API | rules-roles.spec.js::TC-02-B8 | Planned |
+| TC-02-B9 | ZZ Homeowner A1: Read announcements, allowed | happy | API | rules-roles.spec.js::TC-02-B9 | Planned |
+| TC-02-B10 | ZZ Homeowner A1: Create an announcement, refused | security | API | rules-roles.spec.js::TC-02-B10 | Planned |
+| TC-02-B11 | ZZ Homeowner A1: Write settings (any field), refused | security | API | rules-roles.spec.js::TC-02-B11 | Planned |
+| TC-02-B12 | ZZ Homeowner A1: Write `householdContacts` of Household A, refused | security | API | rules-roles.spec.js::TC-02-B12 | Planned |
+| TC-02-B13 | ZZ Admin S1: List households, allowed | happy | API | rules-roles.spec.js::TC-02-B13 | Planned |
+| TC-02-B14 | ZZ Admin S1: Read `householdContacts`, allowed | happy | API | rules-roles.spec.js::TC-02-B14 | Planned |
+| TC-02-B15 | ZZ Admin S1: List `staff` (for Settings → Staff), allowed | happy | API | rules-roles.spec.js::TC-02-B15 | Planned |
+| TC-02-B16 | ZZ Admin S1: Write `staff/{any uid}`, refused | security | API | rules-roles.spec.js::TC-02-B16 | Planned |
+| TC-02-B17 | ZZ Admin S1: Create an `auditLog` entry, refused | security | API | rules-roles.spec.js::TC-02-B17 | Planned |
+| TC-02-B18 | ZZ Admin S1: Write a financial setting (dues amount, payment QR details), refused | security | API | rules-roles.spec.js::TC-02-B18 | Planned |
+| TC-02-B19 | ZZ Admin S1: Write a non-financial setting, allowed | happy | API | rules-roles.spec.js::TC-02-B19 | Blocked on BA gap 12 |
+| TC-02-B20 | ZZ Admin S1: Create an announcement, allowed | happy | API | rules-roles.spec.js::TC-02-B20 | Planned |
+| TC-02-B21 | ZZ Admin S1: Update a payment's `status` directly, refused | security | API | rules-roles.spec.js::TC-02-B21 | Blocked on BA gap 10 (payments, bills) |
+| TC-02-B22 | ZZ Admin S1: Upload a payment QR image to Storage, refused | security | API | storage-roles.spec.js::TC-02-B22 | Planned |
+| TC-02-B23 | ZZ Treasurer T2: List households, allowed | happy | API | rules-roles.spec.js::TC-02-B23 | Planned |
+| TC-02-B24 | ZZ Treasurer T2: Write a financial setting, allowed | happy | API | rules-roles.spec.js::TC-02-B24 | Planned |
+| TC-02-B25 | ZZ Treasurer T2: Upload a payment QR image to Storage, allowed | happy | API | storage-roles.spec.js::TC-02-B25 | Planned |
+| TC-02-B26 | ZZ Treasurer T2: Update a payment's `status` directly, bypassing `decidePayment`, refused | security | API | rules-roles.spec.js::TC-02-B26 | Blocked on BA gap 10 (payments, bills) |
+| TC-02-B27 | ZZ Treasurer T2: Write `staff/{own uid}` (e.g. change own role), refused | security | API | rules-roles.spec.js::TC-02-B27 | Planned |
+| TC-02-B28 | ZZ Treasurer T2: Write a receipt's number, refused | security | API | rules-roles.spec.js::TC-02-B28 | Blocked on BA gap 10 (payments, bills) |
+| TC-02-B29 | ZZ Treasurer T2: Read `auditLog`, allowed | happy | API | rules-roles.spec.js::TC-02-B29 | Planned |
+| TC-02-B30 | ZZ Board D1: List households, refused | security | API | rules-roles.spec.js::TC-02-B30 | Planned |
+| TC-02-B31 | ZZ Board D1: Read `householdContacts`, refused | security | API | rules-roles.spec.js::TC-02-B31 | Planned |
+| TC-02-B32 | ZZ Board D1: Read `auditLog`, allowed | happy | API | rules-roles.spec.js::TC-02-B32 | Planned |
+| TC-02-B33 | ZZ Board D1: Create an announcement, refused | security | API | rules-roles.spec.js::TC-02-B33 | Planned |
+| TC-02-B34 | ZZ Board D1: Write any setting, refused | security | API | rules-roles.spec.js::TC-02-B34 | Planned |
+| TC-02-B35 | ZZ Board D1: Upload to any Storage path, refused | security | API | storage-roles.spec.js::TC-02-B35 | Planned |
+| TC-02-B36 | ZZ Board D1: Update a payment's `status` directly, refused | security | API | rules-roles.spec.js::TC-02-B36 | Blocked on BA gap 10 (payments, bills) |
+| TC-02-B37 | ZZ Guard G1: Read or list households, refused | security | API | rules-roles.spec.js::TC-02-B37 | Planned |
+| TC-02-B38 | ZZ Guard G1: Read bills or payments of any household, refused | security | API | rules-roles.spec.js::TC-02-B38 | Blocked on BA gap 10 (payments, bills) |
+| TC-02-B39 | ZZ Guard G1: Read `staff` or `auditLog`, refused | security | API | rules-roles.spec.js::TC-02-B39 | Planned |
+| TC-02-B40 | ZZ Guard G1: Create an announcement or write settings, refused | security | API | rules-roles.spec.js::TC-02-B40 | Planned |
+| TC-02-B41 | ZZ Guard G1: Read a payment proof in Storage, refused | security | API | storage-roles.spec.js::TC-02-B41 | Blocked on BA gap 10 (payments, bills) |
+| TC-02-B42 | ZZ No Role N1: Read any household, bill or payment, refused | security | API | rules-roles.spec.js::TC-02-B42 | Planned |
+| TC-02-B43 | ZZ No Role N1: Read `staff`, refused | security | API | rules-roles.spec.js::TC-02-B43 | Planned |
+| TC-02-B44 | Stale token: ZZ Admin S1 after removal, token still carries `role: admin`, `staff/{uid}` deleted: List households, refused | security | API | rules-stale-role.spec.js::TC-02-B44 | Planned |
+| TC-02-B45 | Stale token: ZZ Treasurer T2 after removal (with T1 still treasurer), claim still `treasurer`: Write a financial setting, refused | security | API | rules-stale-role.spec.js::TC-02-B45 | Planned |
+| TC-02-B46 | Claim missing, `staff/{uid}` says `treasurer` (a document without a claim): Write a financial setting, refused | security | API | rules-stale-role.spec.js::TC-02-B46 | Planned |
+| TC-02-B47 | Claim `admin`, `staff/{uid}` says `treasurer` (upgrade before token refresh): Write a financial setting, refused | security | API | rules-stale-role.spec.js::TC-02-B47 | Planned |
+| TC-02-B48 | Claim `treasurer`, `staff/{uid}` says `admin` (downgrade before token refresh): Write a financial setting, refused | security | API | rules-stale-role.spec.js::TC-02-B48 | Planned |
+| TC-02-B49 | ZZ Homeowner A1: Read a payment proof file of Household B in Storage, refused | security | API | storage-roles.spec.js::TC-02-B49 | Blocked on BA gap 10 (payments, bills) |
+| TC-02-B50 | Signed out (no auth): Read any R1 collection, including announcements, refused | security | API | rules-roles.spec.js::TC-02-B50 | Planned |
+| TC-02-B51 | Claim hand-set to `treasurer` with no `staff` document (the "nobody edits claims by hand" condition): Read `auditLog`, refused | security | API | rules-stale-role.spec.js::TC-02-B51 | Planned |
+| TC-02-C1 | A board member's request to approve a pending payment is refused, and the payment still reads "Pending approval" | security | API | callables-roles.spec.js::TC-02-C1 | Blocked on BA gap 10 (payments, bills) |
+| TC-02-C2 | Board's decide request on an approved payment is refused and changes nothing | security | API | callables-roles.spec.js::TC-02-C2 | Blocked on BA gap 10 (payments, bills) |
+| TC-02-C3 | Board's decide request on a rejected payment is refused and changes nothing | security | API | callables-roles.spec.js::TC-02-C3 | Blocked on BA gap 10 (payments, bills) |
+| TC-02-C4 | Board's void request on a receipt is refused | security | API | callables-roles.spec.js::TC-02-C4 | Blocked on BA gap 10 (payments, bills) |
+| TC-02-C5 | Board's decide request on a voided payment is refused | security | API | callables-roles.spec.js::TC-02-C5 | Blocked on BA gap 10 (payments, bills) |
+| TC-02-C6 | A homeowner cannot approve their own household's payment | security | API | callables-roles.spec.js::TC-02-C6 | Blocked on BA gap 10 (payments, bills) |
+| TC-02-C7 | Admin office staff cannot approve a payment in R1 | security | API | callables-roles.spec.js::TC-02-C7 | Blocked on BA gap 10 (payments, bills) |
+| TC-02-C8 | A guard cannot approve a payment | security | API | callables-roles.spec.js::TC-02-C8 | Blocked on BA gap 10 (payments, bills) |
+| TC-02-C9 | A removed treasurer's stale token cannot approve a payment | security | API | callables-roles.spec.js::TC-02-C9 | Blocked on BA gap 10 (payments, bills) |
+| TC-02-C10 | A treasurer can approve a pending payment (control) | happy | API | callables-roles.spec.js::TC-02-C10 | Blocked on BA gap 10 (payments, bills) |
+| TC-02-C11 | No client can run `setRole`, whatever its role | security | API | callables-roles.spec.js::TC-02-C11 | Planned |
+| TC-02-C12 | A board member cannot call a household-changing function | security | API | callables-roles.spec.js::TC-02-C12 | Planned |
+| TC-02-C13 | Homeowner, board and guard cannot create invitations | security | API | callables-roles.spec.js::TC-02-C13 | Planned |
+| TC-02-C14 | A refused decision consumes no receipt number | data integrity | API | receipt-counter.exclusive.spec.js::TC-02-C14 | Blocked on BA gap 10 (payments, bills) |
+| TC-02-D1 | A homeowner's device cannot read another household's bills | security | API | rules-household-isolation.spec.js::TC-02-D1 | Blocked on BA gap 10 (payments, bills) |
+| TC-02-D2 | A query mixing own and another household's id is refused | security | API | rules-household-isolation.spec.js::TC-02-D2 | Blocked on BA gap 10 (payments, bills) |
+| TC-02-D3 | A query for bills with no household filter is refused | security | API | rules-household-isolation.spec.js::TC-02-D3 | Blocked on BA gap 10 (payments, bills) |
+| TC-02-D4 | A homeowner can read their own household's bills (control) | happy | API | rules-household-isolation.spec.js::TC-02-D4 | Blocked on BA gap 10 (payments, bills) |
+| TC-02-D5 | A homeowner removed from a household is refused on their next read | security | API | rules-household-isolation.spec.js::TC-02-D5 | Planned |
+| TC-02-D6 | A homeowner's notifications never show staff notifications | security | API | rules-household-isolation.spec.js::TC-02-D6 | Planned |
+| TC-02-E1 | The board's R1 dashboard shows the view-only note | usability | UI | board-view.spec.js::TC-02-E1 | Blocked on BA gap 2 |
+| TC-02-E2 | The board's R1 dashboard has no control that changes a record | security | UI | board-view.spec.js::TC-02-E2 | Planned |
+| TC-02-E3 | (R2) A board member opening Accounting sees collections and expenses | happy | UI | board-view.spec.js::TC-02-E3 | Blocked on BA gap 2 |
+| TC-02-E4 | (R2) Accounting has no "Save expense", "Delete" or "Approve" control for the board | security | UI | board-view.spec.js::TC-02-E4 | Blocked on BA gap 2 |
+| TC-02-E5 | (R2) A board member's direct request to save an expense is refused | security | API | rules-roles.spec.js::TC-02-E5 | Blocked on BA gap 2 |
+| TC-02-E6 | A board member opening the Settings address sees the no-access page | navigation | Unit | route-access.test.js::TC-02-E6 | Planned |
+| TC-02-F1 | The top bar shows a "Treasurer" / "My household" switch | happy | UI | dual-role.spec.js::TC-02-F1 `@smoke` | Planned |
+| TC-02-F2 | Choosing "My household" shows only Blk 2 Lot 10's homeowner pages | security | UI | dual-role.spec.js::TC-02-F2 | Planned |
+| TC-02-F3 | The household view's menu has no staff items | navigation | Unit | menu.test.js::TC-02-F3 | Planned |
+| TC-02-F4 | Switching back to "Treasurer" restores the staff menu | navigation | UI | dual-role.spec.js::TC-02-F4 | Planned |
+| TC-02-F5 | The switch reports its state with `aria-pressed` | usability | UI | dual-role.spec.js::TC-02-F5 | Planned |
+| TC-02-F6 | People with only one kind of access see no switch | negative | Unit | view-switch.test.js::TC-02-F6 | Planned |
+| TC-02-F7 | An admin who is also a homeowner sees "Admin" / "My household" | happy | UI | dual-role.spec.js::TC-02-F7 | Planned |
+| TC-02-F8 | A board member who is also a homeowner sees "Board" / "My household" | happy | UI | dual-role.spec.js::TC-02-F8 | Planned |
+| TC-02-F9 | The household view has no picker for other households | security | UI | dual-role.spec.js::TC-02-F9 | Planned |
+| TC-02-F10 | The switch fits the top bar at 375 px | usability | UI | roles-phone.spec.js::TC-02-F10 | Planned |
+| TC-02-F11 | After a reload, the dual-role person lands in a defined view, never mixing the two | navigation | UI | dual-role.spec.js::TC-02-F11 | Blocked on BA gap 13 |
+| TC-02-F12 | Switching to "My household" doesn't let an announcement pop-up block the switch | integration | UI | dual-role.spec.js::TC-02-F12 | Planned |
+| TC-02-G1 | A homeowner opening the Approvals address sees "You don't have access to this page" | navigation | UI | no-access.spec.js::TC-02-G1 `@smoke` | Planned |
+| TC-02-G2 | No Approvals data is loaded behind the no-access page | security | UI | no-access.spec.js::TC-02-G2 | Planned |
+| TC-02-G3 | "Go to my dashboard" opens the homeowner dashboard | navigation | UI | no-access.spec.js::TC-02-G3 | Planned |
+| TC-02-G4 | Back from the no-access page returns to the previous page, not into the staff page | navigation | UI | no-access.spec.js::TC-02-G4 | Planned |
+| TC-02-G5 | Refreshing the no-access page keeps it | navigation | UI | no-access.spec.js::TC-02-G5 | Planned |
+| TC-02-G6 | Admin office staff opening the Approvals address see the no-access page | navigation | Unit | route-access.test.js::TC-02-G6 | Planned |
+| TC-02-G7 | A board member opening the Homeowners address sees the no-access page | navigation | Unit | route-access.test.js::TC-02-G7 | Planned |
+| TC-02-G8 | A guard opening the Settings or Homeowners address sees the no-access page | navigation | Unit | route-access.test.js::TC-02-G8 | Planned |
+| TC-02-G9 | A treasurer's deep link to Approvals opens Approvals after signing in | navigation | UI | no-access.spec.js::TC-02-G9 | Planned |
+| TC-02-G10 | A signed-out visitor opening a staff address sees the sign-in page, not the no-access page | navigation | UI | no-access.spec.js::TC-02-G10 | Planned |
+| TC-02-G11 | No staff menu item is highlighted on the no-access page | navigation | UI | no-access.spec.js::TC-02-G11 | Planned |
+| TC-02-G12 | The no-access page has a real heading and the copy of record | usability | UI | no-access.spec.js::TC-02-G12 | Planned |
+| TC-02-H1 | After a grant, Settings → Staff lists "ZZ Treasurer T1 · Treasurer" | happy | UI | staff-settings.spec.js::TC-02-H1 | Planned |
+| TC-02-H2 | The grant writes one `staff` record with who granted it and the request it cites *(provisional)* | data integrity | API | set-role-script.spec.js::TC-02-H2 | Planned |
+| TC-02-H3 | The grant writes an activity log entry with ids only | data integrity | API | set-role-script.spec.js::TC-02-H3 | Planned |
+| TC-02-H4 | The newly granted treasurer sees the treasurer menu next time, without signing out | happy | UI | role-change-live.spec.js::TC-02-H4 | Planned |
+| TC-02-H5 | A grant while the person has the portal open updates their menu without a reload | integration | UI | role-change-live.spec.js::TC-02-H5 | Planned |
+| TC-02-H6 | The script refuses a grant with no board request reference | negative | Unit | set-role.test.js::TC-02-H6 | Planned |
+| TC-02-H7 | The script prints the target project before writing | usability | Unit | set-role.test.js::TC-02-H7 | Planned |
+| TC-02-H8 | Against a `-prod` project id, the script asks for typed confirmation and aborts on anything else | negative | API | set-role-script.spec.js::TC-02-H8 | Planned |
+| TC-02-H9 | No service-account key file is in the repository | security | Unit | source-checks.test.js::TC-02-H9 | Planned |
+| TC-02-H10 | Running the same grant twice leaves one `staff` record and the same role | data integrity | API | set-role-script.spec.js::TC-02-H10 | Planned |
+| TC-02-H11 | Granting a role to an email with no account is refused clearly | negative | API | set-role-script.spec.js::TC-02-H11 | Planned |
+| TC-02-H12 | Granting an unknown role is refused | negative | Unit | set-role.test.js::TC-02-H12 | Planned |
+| TC-02-H13 | The first treasurer can be created when there is none | boundary | API | set-role-script.spec.js::TC-02-H13 | Planned |
+| TC-02-H14 | A person holds one staff role at a time | boundary | API | set-role-script.spec.js::TC-02-H14 | Planned |
+| TC-02-H15 | Settings → Staff is read-only and shows the Option B note | usability | UI | staff-settings.spec.js::TC-02-H15 `@smoke` | Planned |
+| TC-02-H16 | Settings → Staff carries the heading "Staff and roles" | usability | UI | staff-settings.spec.js::TC-02-H16 | Planned |
+| TC-02-H17 | Every `setRole` run alerts the owner *(provisional: SA-001 §8.3, not in REQ-002)* | integration | API | set-role-script.spec.js::TC-02-H17 | Blocked on BA gap 9 |
+| TC-02-I1 | After removal, the next staff read from the removed person's device is refused | security | API | role-removal.spec.js::TC-02-I1 | Planned |
+| TC-02-I2 | After removal, the next staff write from the removed person's device is refused | security | API | role-removal.spec.js::TC-02-I2 | Planned |
+| TC-02-I3 | While online, the open Homeowners page changes to the no-access page within a minute | integration | UI | role-change-live.spec.js::TC-02-I3 | Planned |
+| TC-02-I4 | Settings → Staff no longer lists the removed person | integration | UI | staff-settings.spec.js::TC-02-I4 | Planned |
+| TC-02-I5 | Removal deletes the `staff` record and logs before and after *(provisional)* | data integrity | API | set-role-script.spec.js::TC-02-I5 | Planned |
+| TC-02-I6 | Removal signs the person's device out when its token next refreshes | security | UI *(forced refresh)* | role-change-live.spec.js::TC-02-I6 | Planned |
+| TC-02-I7 | A device that was offline at removal is refused on reconnect, and staff data on screen is cleared | security | UI | role-change-live.spec.js::TC-02-I7 | Planned |
+| TC-02-I8 | Removal is refused on every device the person is signed in on | concurrency | UI | role-change-live.spec.js::TC-02-I8 | Planned |
+| TC-02-I9 | A removed staff member who is also a homeowner keeps household access | security | API | role-removal.spec.js::TC-02-I9 | Blocked on BA gap 4 (partial: the sign-out half) |
+| TC-02-I10 | A downgraded treasurer's treasurer actions are refused at once | security | API | role-removal.spec.js::TC-02-I10 | Blocked on BA gap 10 (partial: the settings half runs) |
+| TC-02-I11 | After the token refreshes, the downgraded person has the admin menu and admin access | integration | UI | role-change-live.spec.js::TC-02-I11 | Planned |
+| TC-02-I12 | A downgrade revokes the person's tokens | security | UI *(forced refresh)* | role-change-live.spec.js::TC-02-I12 | Planned |
+| TC-02-I13 | An upgrade (admin → treasurer) does not sign the person out, and treasurer access works after the app refreshes the token | status enumeration | UI | role-change-live.spec.js::TC-02-I13 | Planned |
+| TC-02-I14 | A lateral change (admin → board) refuses admin writes at once | status enumeration | API | role-removal.spec.js::TC-02-I14 | Planned |
+| TC-02-I15 | A staff action submitted just after removal is refused with a message, not silently | stale reference | UI | role-change-live.spec.js::TC-02-I15 | Planned |
+| TC-02-I16 | Re-granting a removed role restores access | happy | API | set-role-script.spec.js::TC-02-I16 | Planned |
+| TC-02-J1 | Removing the only treasurer is refused with the copy of record | negative | API | last-treasurer.spec.js::TC-02-J1 | Planned |
+| TC-02-J2 | After the refusal, nothing about the treasurer changed | data integrity | API | last-treasurer.spec.js::TC-02-J2 | Planned |
+| TC-02-J3 | Downgrading the only treasurer is refused too | negative | API | last-treasurer.spec.js::TC-02-J3 | Blocked on BA gap 3 |
+| TC-02-J4 | With two treasurers, removing one is allowed | boundary | API | last-treasurer.spec.js::TC-02-J4 | Planned |
+| TC-02-J5 | Two removals at the same moment leave at least one treasurer | concurrency | API | last-treasurer.spec.js::TC-02-J5 | Planned |
+| TC-02-J6 | A refused removal records no completed role change | data integrity | API | last-treasurer.spec.js::TC-02-J6 | Planned |
+| TC-02-K1 | While roles load, a homeowner sees a skeleton menu, never a staff menu that then disappears | usability | UI | roles-a11y.spec.js::TC-02-K1 | Planned |
+| TC-02-K2 | While roles load, a staff member never sees the homeowner or not-linked screen first | usability | UI | roles-a11y.spec.js::TC-02-K2 | Planned |
+| TC-02-K3 | The no-access page works at 375 px | usability | UI | roles-phone.spec.js::TC-02-K3 | Planned |
+| TC-02-K4 | The role switch works by keyboard | usability | UI | roles-a11y.spec.js::TC-02-K4 | Planned |
+| TC-02-K5 | A screen reader announces the switch's group name and pressed state | usability | Manual | Manual: real screen reader (VoiceOver, TalkBack)::TC-02-K5 | Planned |
+| TC-02-K6 | Arriving on the no-access page moves focus to its content | usability | UI | no-access.spec.js::TC-02-K6 | Planned |
+| TC-02-K7 | At phone width each role's menu is inside the side drawer | usability | UI | roles-phone.spec.js::TC-02-K7 | Planned |
+| TC-02-K8 | The switch and the no-access page meet AA contrast | usability | UI | roles-a11y.spec.js::TC-02-K8 | Planned |
+| TC-02-K9 | Settings → Staff is readable on a phone | usability | UI | roles-phone.spec.js::TC-02-K9 | Planned |
+| TC-02-K10 | A refused staff action tells the person what to do | usability | Unit | access-messages.test.js::TC-02-K10 | Planned |
+| TC-02-K11 | The no-access page reflows at 320 px and 200 % zoom | usability | UI | no-access.spec.js::TC-02-K11 | Planned |
+| TC-02-L1 | Nobody sees the open "Homeowner \| Admin \| Guard" switch | back-compat | UI | role-menus.spec.js::TC-02-L1 | Planned |
+| TC-02-L2 | A homeowner has no "Viewing as" picker | back-compat | UI | role-menus.spec.js::TC-02-L2 | Planned |
+| TC-02-L3 | Editing browser storage grants no role | security | UI | role-menus.spec.js::TC-02-L3 | Planned |
+| TC-02-L4 | "Reset demo data" exists for no role | back-compat | Unit | source-checks.test.js::TC-02-L4 | Planned |
+| TC-02-L5 | The top bar shows the signed-in person's name, not "HOA Treasurer" | back-compat | UI | role-menus.spec.js::TC-02-L5 | Planned |
+| TC-02-L6 | Both brand builds show the same role menus | regression | UI | role-menus.spec.js::TC-02-L6 | Planned |
+| TC-02-L7 | An existing homeowner who is later made staff keeps their household access | back-compat | UI | role-change-live.spec.js::TC-02-L7 | Planned |
+| TC-02-M1 | 30 minutes trying to read or write past the rules as each role | exploratory | Manual | Manual: exploratory charter::TC-02-M1 | Planned |
+| TC-02-M2 | 20 minutes changing roles rapidly across two devices | exploratory | Manual | Manual: exploratory charter::TC-02-M2 | Planned |
+| TC-02-M3 | 15 minutes as a dual-role person mixing the two views | exploratory | Manual | Manual: exploratory charter::TC-02-M3 | Planned |
+
 ## TC-04 Invite and link (REQ-004): planned for the real app
 
-Triaged by QE 2026-11-28 from [TC-04 v1](TC-04-invite-and-link-v1.md) (owner-approved, `e0cb23d`). Like TC-01's rows, these target the **real app** (Firebase Auth, Firestore and Functions on the Emulator Suite), which doesn't exist yet. Nothing is automated. Each row is:
+Triaged by QE 2026-11-28 from [TC-04 v1](TC-04-invite-and-link-v1.md) (owner-approved, `e0cb23d`), and refreshed before merging for SA-001 r3 (Final) and TC-03. Like TC-01's rows, these target the **real app** (Firebase Auth, Firestore and Functions on the Emulator Suite), which doesn't exist yet. Nothing is automated. Each row is:
 
 - **Planned**;
-- **Deferred: Step 2**, waiting for the email provider (SA-001 Q7);
+- **Deferred: Step 2**, waiting for the email provider, which the owner hasn't picked yet (ADR-002);
 - or **Blocked** on the gap or decision it names. A Gap-blocked row keeps its layer but isn't automated until the BA answers the gap.
 
-*provisional* marks a row that asserts a detail of the Draft SA-001 and gets re-checked when SA-001 is approved. Email is asserted at the `mail` queue, never as delivered mail.
+*provisional* marks a row whose case QA wrote against the Draft SA-001. SA-001 r3 is now Final, and a spot check found no layer change; the flag stays until QA re-checks the case against r3. Email is asserted at the `mail` queue, never as delivered mail.
 
 Reasons, the Unit list for Dev, the locator contract and the automation order are in TC-04's **QE triage** section. Unit files are Dev's, under `shared/domain/`, `web/src/features/invites/` and `functions/src/mail/` (paths anticipated from SA-001 §9). API specs live in `tests/specs/api/`, the staging spec in `tests/specs/staging/`, and UI specs in `tests/specs/ui/`.
 
@@ -269,14 +460,23 @@ Reasons, the Unit list for Dev, the locator contract and the automation order ar
 
 142 rows are runnable once the app exists; 9 of them have a Step 2 half that waits. 68 rows are *provisional*.
 
-**Smoke additions** (new rows, not TC-04 cases). TC-03 isn't on `main` yet, so all four of TC-04's items are added here. When TC-03 merges, its directory smoke item takes the screen-load half of SMK-admin-homeowners-portal. Item 1 is TC-04-P1 tagged `@smoke` in its own spec (its row is under **Cases**), so it has no row here.
+**Gaps:** none. Every case has a layer and a named test or manual run.
+
+**Overlaps:** two, both at API, with TC-02 rows that have since merged:
+
+- TC-04-K2 with TC-02-D5 (a removed member refused at once);
+- TC-04-M2 with TC-02-C13 (non-staff can't create invitations).
+
+The proposal is that TC-04 keeps both tests and the TC-02 rows become cross-references once QA agrees (TC-04 finding 10).
+
+**Smoke additions** (new rows, not TC-04 cases), reconciled with TC-03. TC-03's smoke already loads the directory for admin and treasurer, so SMK-admin-homeowners-portal checks only the pills and the two actions. Item 1 is TC-04-P1 tagged `@smoke` in its own spec (its row is under **Cases**), so it has no row here.
 
 | Scenario id | Scenario | Type | Layer | Test file::test name | Status |
 |---|---|---|---|---|---|
 | SMK-join-link | `/join#{fixture code}` opens the confirm screen (Yes never pressed) | happy | UI | smoke.spec.js::SMK-join-link | Deferred: Step 2 (the `/join` link) |
 | SMK-admin-household-detail | Household detail (4E) opens for admin office staff with People and Invitations | happy | UI | smoke.spec.js::SMK-admin-household-detail | Planned |
 | SMK-treasurer-household-detail | Household detail (4E) opens for the treasurer with People and Invitations | happy | UI | smoke.spec.js::SMK-treasurer-household-detail | Planned |
-| SMK-admin-homeowners-portal | Directory shows the Portal pill on every row, "Invite selected" and "Print invite slips" | happy | UI | smoke.spec.js::SMK-admin-homeowners-portal | Planned |
+| SMK-admin-homeowners-portal | On the directory TC-03's smoke loads: a link-status pill on every row, plus "Invite selected" and "Print invite slips" | happy | UI | smoke.spec.js::SMK-admin-homeowners-portal | Planned |
 
 **Cases**
 

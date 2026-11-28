@@ -5,21 +5,22 @@
 | Raised by | Owner: "draft req-001 to 004 and have SA review it. I'll approve it tomorrow" (2026-11-28) |
 | Epic | [EPIC-001 Access and households](../epics/EPIC-001-access-and-households.md) |
 | Backlog story | [03 Household directory: add, edit and import](../backlog/BACKLOG.md#03-household-directory-add-edit-and-import) |
-| Status | **Approved** by the owner, 2026-11-28 ("approve it"), with every recommendation accepted. Sol Arch reviewed: supports Option A, CSV only in R1, with changes (applied in r2) |
-| Mockup | Screens 3A–3E of the [access and households mockup](https://claude.ai/artifact/KaNMpY53cLTtrk8HARZgUr). Repo copy: [req-001-004-access-mockup.html](../mockups/req-001-004-access-mockup.html) |
+| Status | **Approved** by the owner, 2026-11-28 ("approve it"), with every recommendation accepted. Sol Arch reviewed: supports Option A, CSV only in R1, with changes (applied in r2). r4 approved by the owner, 2026-11-28 ("Approve, apply r4") |
+| Mockup | Screens 3A–3E of the [access and households mockup](https://claude.ai/artifact/KaNMpY53cLTtrk8HARZgUr). Repo copy: [req-001-004-access-mockup.html](../mockups/req-001-004-access-mockup.html). Screen 3F (household dialog, active and inactive) to add; 3B button label to be corrected to "Import households" (r4; both pending, see Follow-ups before build). |
 | Architecture | SA-001 §4.2 (`households`, `lots`) and R-8 (onboarding), Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-002 |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch's corrections applied; CSV only in R1; contacts moved to a staff-only record; concurrency and stale-edit cases added | · r3, 2026-11-28: owner approval recorded; recommendations accepted
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch's corrections applied; CSV only in R1; contacts moved to a staff-only record; concurrency and stale-edit cases added · r3, 2026-11-28: owner approval recorded; recommendations accepted · r4, 2026-11-28: answers to the 21 TC-03 (QA) gaps applied, owner-approved ("Approve, apply r4"); decision 2 pick recorded; decision 3 added (Block/Lot editable) |
 
 ## Owner decisions
 
-Approved by the owner on 2026-11-28 ("approve it"): every recommendation in the right-hand column is accepted. Questions for the HOA board or the admin office under Open questions stay open.
+Approved by the owner on 2026-11-28 ("approve it"): every recommendation in the right-hand column is accepted. Questions for the HOA board or the admin office under Open questions stay open. r4 (2026-11-28, "Approve, apply r4"): decision 2's rule recorded and decision 3 added, both as the BA recommended.
 
 | # | Decision | Approved |
 |---|---|---|
 | 1 | Option A (import with preview, plus forms), B (one at a time) or C (developer loads the list) | **A**, CSV only in R1 (`.xlsx` later, about 1 extra day) |
-| 2 | Before the import is **built** (not before approval): do block numbers repeat across phases? If yes, every lot key includes the phase (`P1-B04-L12`). Changing the key after import means rewriting every record | Ask the admin office this week |
+| 2 | Before the import is **built** (not before approval): do block numbers repeat across phases? If yes, every lot key includes the phase (`P1-B04-L12`). Changing the key after import means rewriting every record | Ask the admin office this week. r4: **key without the phase** (`B04-L12`, phase optional) if the admin office confirms block numbers don't repeat across phases; **key with the phase** (`P1-B04-L12`, phase required on import and form) if they do. The admin office has not answered yet; building the import waits for it |
+| 3 | May Block / Lot be changed on edit? A: read-only (deactivate and add again); B: editable with confirm, the server moves the lot key (about +0.5 day, Sol Arch to confirm) | **B** (r4): editable after a confirm; the server moves the lot key in one transaction, and the household keeps its id, members, invitations and history |
 
 ## Problem
 
@@ -102,7 +103,58 @@ Feature: Household directory
     Given the directory is empty
     When two admins each upload the same 623-row file and press Import at the same moment
     Then the directory has 623 households
-    And the import that finished second lists each of its rows as "Already in the directory, skipped"
+    And the two imports' "Imported" counts add up to 623
+    And each import lists every row it did not write as "Already in the directory, skipped"
+
+  Scenario: A file with nothing to import
+    Given every lot in the uploaded file is already in the directory
+    When the admin uploads it
+    Then the preview reads "Nothing to import. Every lot in this file is already in the directory."
+    And no Import button is shown
+
+  Scenario: A file missing a required column
+    Given a file with the headings Block, Owner name, Email, Mobile, Phase
+    When the admin uploads it
+    Then they see "Column missing: Lot. Use the template's headings: Block, Lot, Owner name, Email, Mobile, Phase."
+    And no preview is shown
+
+  Scenario: A file over the row limit
+    Given a file with 2,001 data rows
+    When the admin uploads it
+    Then they see "This file has 2,001 rows. One import can take up to 2,000. Split it into smaller files and import each one."
+
+  Scenario: An interrupted import is finished by uploading the file again
+    Given an import of 623 rows stopped after 300 households were written
+    When the admin uploads the same file again
+    Then the preview reads "323 households ready to import · 300 already in the directory"
+
+  Scenario: The same lot written differently is one lot
+    Given Blk 4 Lot 12-A is in the directory
+    When the admin imports a row with Block "04" and Lot "12a"
+    Then the preview lists it as "Already in the directory, skipped"
+
+  Scenario: Adding the lot of an inactive household
+    Given Blk 7 Lot 1 is inactive
+    When the admin adds Block 7, Lot 1
+    Then they see "Blk 7 Lot 1 is already in the directory but inactive. Reactivate it from the Inactive list." under the Lot field
+    And nothing is saved
+
+  Scenario: Reactivating does not revive a cancelled invitation
+    Given Blk 7 Lot 1 was deactivated while its invitation was unused, and it has no members
+    When the admin reactivates it
+    Then it shows the link status "Not invited"
+    And its old code is refused with "This invitation is no longer valid. Ask the admin office."
+
+  Scenario: Escape doesn't throw away typing
+    Given the admin has typed an owner name in "Add household"
+    When they press Escape
+    Then they see "Discard your changes to this household?" with "Keep editing" focused
+
+  Scenario: Correcting a mistyped lot
+    Given Blk 12 Lot 12-A exists and Blk 12 Lot 12-B does not
+    When the admin changes its lot to 12-B, saves and confirms "Change lot"
+    Then the list shows Blk 12 Lot 12-B
+    And adding Blk 12 Lot 12-A afterwards succeeds
 
   Scenario: Add one household
     When the admin presses "Add household", enters Block 8, Lot 2, owner "Rina Domingo" and email "rina@example.com", and presses "Save"
@@ -119,7 +171,7 @@ Feature: Household directory
     Given Blk 4 Lot 12 has mobile "0917 555 0101"
     When the admin changes it to "0917 555 0199" and saves
     Then the Homeowners list shows "0917 555 0199" for Blk 4 Lot 12
-    And the activity log records who changed it and when
+    And a change record holds the admin's id, the household's id and the time, and no name, email or mobile (the activity log screen is backlog story 06)
 
   Scenario: Two admins edit the same household
     Given two admins opened Blk 4 Lot 12 for editing
@@ -165,44 +217,96 @@ Feature: Household directory
 
 | Field | Where | Rule | Written by | Read by |
 |---|---|---|---|---|
-| Lot key, e.g. `B04-L12` (or `P1-B04-L12`, decision 2) | `lots/{lotKey}` (SA-001 §4.2) | Unique; the import and the form refuse a lot that exists | Import and household functions only | Rules; import |
-| Lot label "Blk 4 Lot 12", block (number), lot (text, allows "12-A"), phase | `households/{id}` | Block and lot required; phase optional until the board confirms phases | Functions only | Every household screen |
+| Lot key, e.g. `B04-L12` (or `P1-B04-L12`, decision 2) | `lots/{lotKey}` (SA-001 §4.2) | Unique; the import and the form refuse a lot that exists. Built from normalised values (see [Import file rules](#import-file-rules)). An inactive household keeps its lot | Import and household functions only | Rules; import |
+| Lot label "Blk 4 Lot 12", block (number), lot (text, allows "12-A"), phase | `households/{id}` | Block and lot required; phase optional until the board confirms phases (required if decision 2 puts the phase in the key). Block: whole number 1–999. Lot: number 1–9999 with an optional 1–2 letter suffix, stored "12-A". Phase: Phase 1–4 or null. Block and lot editable; the server moves the lot key in one transaction (decision 3) | Functions only | Every household screen |
 | Owner display name | `households/{id}.displayName` | Required, up to 80 characters | Functions | Directory; invitations (REQ-004); letters |
-| Search words | `households/{id}.searchTokens` | Lower-case words of the name, for indexed search | Functions | Search |
-| Link status and member count | `households/{id}.linkStatus`, `memberCount` | Kept by the REQ-004 functions | Functions | Directory |
+| Search words | `households/{id}.searchTokens` | Accent-folded, lower-case word prefixes (2+ characters) of the name, for indexed search | Functions | Search |
+| Link status and member count | `households/{id}.linkStatus`, `memberCount` | Kept by the REQ-004 functions. Set to "Not invited" / 0 on create; a record without them shows "Not invited" | Functions | Directory |
 | **Contact email and mobile** | **`householdContacts/{householdId}`**: `contactEmail`, `contactMobile` | Email optional but valid; mobile optional, Philippine format. **Staff-only**, so after a sale the new owner never sees the previous owner's contacts | Functions | Admin office, treasurer; REQ-004 invitations |
 | Active | `households/{id}.active` | Deactivate, never delete (SA-001 §11.2) | Functions | Directory, billing |
-| Import run: status, counts, rejected rows | `importRuns/{id}` | Staff only; rejected rows deleted after 30 days (DPO to confirm) | Import functions | Import screen |
-| Change record | `auditLog` | Every add, edit, deactivate, import; ids only | Functions | Board, treasurer |
+| Import run: status, counts, rejected rows | `importRuns/{id}` | States previewed → running → completed, plus cancelled and interrupted (no progress for 15 minutes). Counts: ready, rejected, already in the directory, progress. Read only by the staff member who ran it. Rejected rows deleted on Cancel, otherwise after 30 days (DPO to confirm). A previewed run can't be committed after 60 minutes. At most 2,000 rows and 1 MB | Import functions | Import screen |
+| Change record | `auditLog` | Every add, edit, deactivate, import; ids only. Includes household.reactivated and household.relotted. Refused no-op changes write nothing | Functions | Board, treasurer |
 
 Clients never write households directly. Edits carry the time the admin loaded the record, so a stale save is refused. The list is read 50 at a time with indexed queries, not by loading all 623 (cost: Sol Arch review).
 
 The contact email is where invitations are sent. It does **not** give anyone access: access comes only from redeeming an invite (REQ-004, ADR-004).
 
+## Import file rules
+
+Added in r4 (TC-03 gaps Q1, Q2, Q4, Q5, Q7, Q8). The exact messages are under Copy of record. A "file message" is shown on step 1 under the file input, as text with an error icon, announced (`role="alert"`), with focus left on the file input; no preview, no Import button, nothing sent to the server, no import run written.
+
+- **Limits:** at most **2,000 data rows** and **1 MB** per import, checked in the browser before parsing and again by the server. Size is checked first. Exactly 2,000 rows previews as normal; 2,001 or more is a file message.
+- **Columns** are matched **by heading name**: trimmed, case-insensitive, in any order. Required: **Block, Lot, Owner name**. Optional: **Email, Mobile, Phase** (a missing optional column means blank for every row).
+  - A missing required column (including a renamed one, e.g. "Lot No."): file message listing every missing column in template order.
+  - A heading that appears twice: file message.
+  - Extra columns are ignored and never stored; the preview shows "Ignored columns: {names}." above the tiles. "Row" and "Reason" (from our own rejected-rows download) are ignored silently, so a fixed download re-imports cleanly.
+  - A header row with no comma but a `;` or a tab: wrong-separator file message. A file that isn't `.csv` (e.g. `.xlsx`): file message, even though the file picker also filters to `.csv`.
+- **Empty files:** a 0-byte file, and a file with only a header (or only blank rows under it), each get their own file message.
+- **Zero rows ready** (every row has a problem, is already in the directory, or both): the preview is shown with its tiles and rows table, but the Import button is replaced, in the same footer position, by a sentence saying why. Cancel and "Choose a different file" stay.
+- **Encoding:** UTF-8 with or without a BOM; the BOM is removed before the headings are read. A file that isn't valid UTF-8 gets a file message.
+- **Lines:** CRLF, LF, CR-only and mixed line endings all give the same rows. A last row with no final newline is read. A quoted cell containing a line break stays one row.
+- **Blank rows** (every cell empty or spaces, including `,,,,,`) are ignored anywhere: not listed, not counted.
+- **Row numbers** match what the admin sees in Excel or Google Sheets: header = row 1, and blank rows *are* counted in the numbering.
+- **Trimming:** every cell is trimmed of leading and trailing spaces before checking.
+- **Leading apostrophe:** one leading `'` is removed from a cell only when the next character is `=`, `+`, `-` or `@` (what our own download adds), so `'+639000000099` imports as `+639000000099`. Any other apostrophe is kept. A value that then starts with one of those characters is stored and shown as plain text, and escaped again on the next download.
+- **Several problems on one row:** all are listed, in column order (Block, Lot, Owner name, Email, Mobile, Phase, then "appears more than once in the file"), separated by "; ". Same in the download's Reason column. Example: `Lot number is missing; "zz@" is not a valid email address`. Owner name over 80 characters (after trimming) is a problem.
+- **Three counts:** **ready** `{n}` (will be added), **won't be imported** `{m}` (rows with a problem, including in-file duplicates), **already in the directory** `{k}` (skipped, nothing changed). Ready + won't + already = data rows in the file. Each part of the preview heading and the finished banner is dropped when its count is 0.
+- **Rows table:** "Rows that won't be imported" lists problem rows and already-in-directory rows in row order; already rows show their reason in muted text plus the words, not colour alone.
+- **Reason precedence:** if the lot (after normalisation) is already in the directory, the only reason shown is "Already in the directory, skipped" (or the inactive variant), whatever else is wrong, and the row counts in `{k}`. This includes every row of a lot that is both duplicated in the file and already in the directory. Otherwise all the row's problems are shown.
+- **Download** ("Download them" / "Download these rows") holds **only the `{m}` problem rows**, each with Row and Reason. Already-in-directory rows are not in it.
+- **The commit's recount is authoritative:** a lot that became "already" between preview and commit is counted in `{k}` in the banner.
+- **Normalisation**, applied the same way by the import, the Add/Edit form and the lot-key builder:
+
+| Field | Accepted | Normalised to | Rejected (reason) |
+|---|---|---|---|
+| Block | A whole number 1–999, optionally with leading zeros, optionally prefixed "Blk" or "Block" (any case, with or without space): "4", "04", "Blk 4", "block4" | 4 | Anything else, incl. "4A", "0", "-1", "1000", "four": `Block "{value}" isn't a block number. Use a whole number, like 4.` |
+| Lot | A number 1–9999 with optional leading zeros, optionally followed by a one- or two-letter suffix with or without "-" or a space, optionally prefixed "Lot": "12", "012", " 12 ", "12-a", "12A", "12 a", "Lot 12-A" | "12", or "12-A" (suffix upper-case, joined with "-") | Anything else, incl. "0", "12-AB3", "A": `Lot "{value}" isn't a lot number. Use a number like 12, or 12-A.` Values over 10 characters are refused before matching |
+| Phase | Blank; "Phase 1"–"Phase 4", "1"–"4", "P1"–"P4" (any case, with or without space) | null ("Not set"), or "Phase N" | Anything else, incl. "Phase 9", "5": `Phase "{value}" isn't a phase. Use Phase 1 to Phase 4, or leave it blank.` |
+
+So "012" = "12"; "12-a" = "12A" = "12-A"; Block "04" = "4". Lot "12-A" stays distinct from Lot 12. The lot label is always built from the normalised values: "Blk 4 Lot 12-A". If the treasurer's answer on phases gives a number other than 4, only the accepted Phase list changes. If decision 2 puts the phase in the key, a blank Phase becomes the problem "Phase is missing" and "Not set" no longer applies.
+
 ## UX/UI notes
 
 - **Accessibility:** the preview table has a caption and row numbers; errors are text, not only red; the file input has a visible label.
 - **Consistency:** reuses the mock-up's table, search box, `.modal` and `.pill`; link status uses the same pill colours as payment status.
-- **Mobile-first:** the list becomes cards below 640 px. Import is a desktop task; on a phone the import page says "Import works best on a computer" but still works.
-- **States:** empty directory ("No households yet. Import your list or add the first household."); loading skeleton; import in progress with a count; import finished ("Imported 619 households. 4 rows were not imported." with a link to download them); network error keeps the preview.
-- **Forms:** the add/edit dialog does not close on a backdrop click; inline validation on blur; the Lot field shows the duplicate message as soon as it is known.
+- **Mobile-first:** the list becomes cards below 640 px. Import is a desktop task; on a phone the import page says "Import works best on a computer" but still works. Both buttons read "Import households" / "Add household" on every screen size; if they don't fit side by side at 320 px, they stack full width, Add household first.
+- **States:** empty directory ("No households yet. Import your list or add the first household."); loading skeleton; import in progress with a count; import finished ("Imported 619 households. 4 rows were not imported." with a link to download them); network error keeps the preview. Zero rows ready: the Import button is replaced by a sentence saying why (copy of record). Import in progress: "Importing… {x} of {n}" plus "Keep this page open until the import finishes." Interrupted import: the "stopped before it finished" message, also shown on step 1 the next time. Reload on the preview returns to step 1. Search with no match has its own message and "Clear search".
+- **Forms:** the add/edit dialog does not close on a backdrop click; inline validation on blur; the Lot field shows the duplicate message as soon as it is known. Escape with unsaved changes asks "Discard your changes to this household?" (Keep editing focused); with none, it closes. × behaves like Escape; Cancel closes.
+- **Where actions live:** the lot label in each row is a button opening the household dialog (row click does the same); on a phone, "Open". The dialog holds the form plus Deactivate (left, apart from Save) or Reactivate for an inactive household. Deactivate shows a toast with Undo for 10 seconds. Inactive rows offer only Reactivate: no invite actions.
 - **Template guidance:** the template says "Save as CSV UTF-8" so names with ñ survive, and keeps the Mobile column as text so Excel doesn't drop the leading 0. The rejected-rows download escapes cells starting with `=`, `+`, `-` or `@`.
-- **Safe actions:** Import and Save are disabled while in flight; Deactivate asks "Deactivate Blk 7 Lot 1? It won't be billed or shown in the list, and its unused invitation stops working. Its records are kept." and can be undone with "Reactivate".
-- **Live search:** debounced at 200 ms and re-renders only the list.
-- **Roles:** admin office staff and treasurer only; board, guard and homeowners are refused by rules.
+- **Safe actions:** Import and Save are disabled while in flight; Deactivate asks "Deactivate Blk 7 Lot 1? It won't be billed or shown in the list, and its unused invitation stops working. Its records are kept." and can be undone with "Reactivate". Reactivate asks first (copy of record). Deactivate on an inactive household, or Reactivate on an active one, is refused by the server with no change.
+- **Live search:** debounced at 200 ms and re-renders only the list. Matches word starts, 2+ characters, ignoring case and accents; lot forms "blk 4", "block 4", "b4", "4", "blk 4 lot 12", "b4 l12", "4-12". Search applies within the chosen chip. Counts in the heading and chips are active households only; Inactive has its own count.
+- **Roles:** admin office staff and treasurer only; board, guard and homeowners are refused by rules. An import run is visible only to the staff member who ran it. Board and treasurer read change records; admin office staff don't.
 
 ## Copy of record
 
 | Where | Text |
 |---|---|
-| Page heading | Homeowners · {n} households |
-| Buttons | Import households · Add household · Download template |
+| Counts (rule) | Singular for 1 (household, row, was, it); zero parts dropped; 1,000 and over with a comma |
+| Page heading | Homeowners · {n} households (active only) |
+| Buttons | Import households · Add household · Download template (all screen sizes) |
 | Import hint | Fill in the template and save it as CSV UTF-8. |
-| Preview heading | {n} households ready to import · {m} rows won't be imported |
-| Row reasons | Lot number is missing · Block is missing · Owner name is missing · {lot} appears more than once in the file · Already in the directory, skipped · "{value}" is not a valid email address · "{value}" is not a valid mobile number |
+| Preview heading | {n} households ready to import · {m} rows won't be imported · {k} already in the directory |
+| Row reasons | Lot number is missing · Block is missing · Owner name is missing · {lot} appears more than once in the file · Already in the directory, skipped · "{value}" is not a valid email address · "{value}" is not a valid mobile number · Owner name is longer than 80 characters · Block "{value}" isn't a block number. Use a whole number, like 4. · Lot "{value}" isn't a lot number. Use a number like 12, or 12-A. · Phase "{value}" isn't a phase. Use Phase 1 to Phase 4, or leave it blank. · Already in the directory (inactive), skipped |
+| Several reasons | {reason}; {reason} |
 | Import button | Import {n} households (in flight: Importing…) |
-| Import done | Imported {n} households. {m} rows were not imported. Download them to fix and import again. |
+| Import done | Imported {n} households. {m} rows were not imported. Download them to fix and import again. {k} lots were already in the directory and were left unchanged. |
+| Nothing to import | Nothing to import. Fix the rows listed above and upload the file again. · Nothing to import. Every lot in this file is already in the directory. |
+| File messages | This file is empty. Choose the filled-in template and upload it again. · This file has no households in it. Add one row per lot under the headings, then upload it again. · Column missing: {column}. Use the template's headings: Block, Lot, Owner name, Email, Mobile, Phase. (plural: Columns missing: {column}, {column}. …) · The column "{column}" appears twice. Keep one and upload it again. · This file isn't separated by commas. Save it as CSV UTF-8 and upload it again. · This isn't a CSV file. In Excel or Google Sheets, save or download it as CSV UTF-8, then upload it again. · This file isn't saved as CSV UTF-8, so names with ñ would come out garbled. Save the file as CSV UTF-8 and upload it again. · This file has {n} rows. One import can take up to 2,000. Split it into smaller files and import each one. · This file is larger than 1 MB, which is more than a household list needs. Check it's the template saved as CSV UTF-8, or split it into smaller files. |
+| Ignored columns | Ignored columns: {names}. |
+| Import in progress | Importing… {x} of {n} · Keep this page open until the import finishes. |
+| Import stopped | The import stopped before it finished. {x} households were imported. Upload the same file again to import the rest. Households already imported will be skipped. · The import may not have finished. Upload the same file again: households already imported will be skipped. |
+| Last import | Your last import, {date}: {n} households imported, {m} rows not imported. Download them (after 30 days: Your last import, {date}: {n} households imported.) |
 | Duplicate lot | {lot} is already in the directory. |
+| Duplicate lot, inactive | {lot} is already in the directory but inactive. Reactivate it from the Inactive list. |
+| Already in state | {lot} is already inactive. · {lot} is already active. |
+| Invite on inactive | {lot} is inactive. Reactivate it before sending an invitation. |
+| Reactivate confirm | Reactivate {lot}? It will be billed and shown in the list again. (with members: … and its {n} linked members get full access back.) Buttons: Cancel · Reactivate |
+| Household dialog | Title {lot}; buttons Deactivate · Cancel · Save (inactive: Reactivate · Cancel · Save); pill Inactive |
+| Toasts | {lot} deactivated. Undo · {lot} reactivated. |
+| Discard confirm | Discard your changes to this household? Buttons: Keep editing · Discard |
+| No search match | No households match "{query}". Button: Clear search |
+| Lot change confirm | Change {old lot} to {new lot}? The household keeps its members and history. {old lot} becomes free to add. Buttons: Cancel · Change lot |
 | Stale edit | Someone else changed this household. Reload to see the latest, then make your change again. |
 | Empty | No households yet. Import your list or add the first household. |
 | Deactivate confirm | Deactivate {lot}? It won't be billed or shown in the list, and its unused invitation stops working. Its records are kept. |
@@ -217,12 +321,17 @@ The contact email is where invitations are sent. It does **not** give anyone acc
 - Updating existing households from a re-import. R1 skips them; edit them one at a time.
 - What a deactivated household's linked members can still see (recommended: read-only until the office removes them, REQ-004), and skipping deactivated households in billing (billing REQ).
 - Inviting households (REQ-004).
+- A shared list of every staff member's import runs (R1 shows each staff member their own last run).
+- Resuming a stuck import in place: an interrupted import is finished by uploading the same file again.
+- Search inside words (e.g. "tos" finding "Santos"); R1 matches word starts.
 
 ## Open questions
 
 | Question | Who decides |
 |---|---|
-| Decisions for the owner, rows 1–2 | Owner; admin office for row 2 |
+| Owner decision 2: do block numbers repeat across phases? The answer picks the lot key under the approved rule, and building the import waits for it | Admin office |
+| How does commitHouseholdImport get the ready rows: re-sent by the browser (BA preference) or held in the run? | Sol Arch |
+| How many phases are there (accepted Phase values are 1–4 until answered)? | Treasurer (existing question, now also sets the Phase rule) |
 | D3: owners with several lots; tenants | HOA board |
 | What does the HOA's current list look like (columns, format, how many have email)? A sample with invented data would settle the template. | Admin office |
 | Does every lot belong to one phase (Phase 1–4)? The board financial report groups dues by phase. | Treasurer |
@@ -315,6 +424,26 @@ The contact email is where invitations are sent. It does **not** give anyone acc
 - §4.2: add `householdContacts`, `importRuns`, and on `households` the fields `block`, `lot`, `phase`, `searchTokens`, `linkStatus`, `memberCount`. Settle the lot-key format (with or without phase).
 - §3: add the five household functions above.
 - §7: "Lists paginated (50 per page)" stands. State that search uses indexed queries, not a scan in the browser.
+
+#### Pending Sol Arch confirmation (r4)
+
+> **BA note (r4):** the owner approved these requirements on 2026-11-28 ("Approve, apply r4"). Their design is **not yet confirmed** by Sol Arch, and SA-001 has not been edited. Each needs Sol Arch's read before build.
+
+- **Limits:** 2,000 rows and 1 MB fit the callable request size and the commit's time budget; the server also refuses more than 2,000 rows.
+- **Three counts:** `importRuns` keeps ready, rejected and already-in-the-directory counts, and `import.completed` carries them.
+- **Run states:** previewed → running → completed, plus cancelled and interrupted; the 15-minute no-progress rule and who marks a run interrupted; the restated Gherkin 5 (runs may interleave). This reads step 3's "rerunning it continues" as a new preview and commit of the same file, not a second commit of the stuck run.
+- **Inactive households:** `setHouseholdActive` refuses a no-op change and bumps `updatedAt`; `createHousehold` and the import return an "inactive" variant of the duplicate result.
+- **Invites on inactive households:** `createInvites` refuses an inactive household (REQ-004 function notes).
+- **Import run access:** `importRuns` readable only where `createdBy` is the caller and the caller is staff (SA-001 §4.2).
+- **Cancel and expiry:** `cancelled` state, rejected rows deleted at once on Cancel, a previewed run not committable after 60 minutes.
+- **Design gap: the commit has no rows to write.** The run stores status, counts and rejected rows, but `commitHouseholdImport(importId)` takes only the id. Either the browser re-sends the rows at commit (re-validated and compared with the run's row count or hash; BA preference, and what makes "reload returns to step 1" correct) or the run holds the ready rows until commit (more personal data at rest). Sol Arch to choose (Open questions).
+- **Lot change on edit (decision 3):** lot-key move transaction in `updateHousehold`, rules tests, and the +0.5 day size.
+- **Search:** `searchTokens` become accent-folded word prefixes (2+ characters); Firestore allows one `array-contains` per query, so multi-word queries need a design. Confirm the read cost stays near one page.
+
+#### Follow-ups before build (r4)
+
+- **Mock-up screen 3F** (household dialog, active and inactive: title, form, Deactivate / Reactivate, Inactive pill, discard confirm, lot change confirm) must be added before build. Not created yet.
+- Mock-up 3B: the phone button label to read "Import households".
 
 #### Size
 
