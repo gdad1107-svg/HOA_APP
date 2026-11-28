@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Privacy, Billing, Payments and Notifications Mockup</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap">
+<style>
+/* Layout: sticky top bar with role switch, left nav rail (horizontal strip on phones), content column of cards and tables. */
+:root{
+  --bg:#FFFFFF; --surface:#F4F8F5; --surface-2:#E9F2EC; --line:#DAE6DE; --fg:#13241B; --muted:#5A6D62;
+  --accent:#1C7A4A; --accent-strong:#135B36; --accent-soft:#E2F1E8; --on-accent:#FFFFFF;
+  --ok:#1C7A4A; --ok-bg:#E2F1E8; --warn:#8F5B00; --warn-bg:#FCF0D6; --bad:#B42318; --bad-bg:#FDE7E4; --info:#1F5E8C; --info-bg:#E3EEF8;
+  --chart-2:#A9CDB8; --paper:#FFFFFF; --scrim:rgba(10,25,17,.45);
+  --shadow:0 1px 2px rgba(19,36,27,.05),0 6px 20px rgba(19,36,27,.06);
+  --f-head:"Plus Jakarta Sans",Inter,system-ui,sans-serif; --f-body:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:10px; color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--accent)}
+h1,h2,h3{font-family:var(--f-head);text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:1.6rem;font-weight:800}
+h2{font-size:1.1rem;font-weight:700}
+h3{font-size:.98rem;font-weight:700}
+p{margin:0}
+.num,td.money,.money{font-variant-numeric:tabular-nums}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:var(--accent)}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--accent);color:var(--on-accent)}
+.top .logo{background:var(--on-accent)} .top .logo svg{stroke:var(--accent)}
+.top .brand small,.top .who,.top .who-admin{color:rgba(255,255,255,.8)}
+.top .seg{background:rgba(255,255,255,.16)} .top .seg button{color:rgba(255,255,255,.85)}
+.top .seg button[aria-pressed="true"]{background:var(--on-accent);color:var(--accent-strong)}
+.top .bell{background:transparent;border-color:rgba(255,255,255,.4)} .top .bell svg{stroke:var(--on-accent)}
+.top .who select{border-color:transparent}
+.top .bellpanel{color:var(--fg)}
+.top-in{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.logo{width:34px;height:34px;border-radius:9px;background:var(--accent);display:grid;place-items:center;flex:none}
+.logo svg{width:20px;height:20px;stroke:var(--on-accent)}
+.brand b{font-family:var(--f-head);font-size:1rem;display:block;line-height:1.1}
+.brand small{color:var(--muted);font-size:.75rem}
+.seg{display:inline-flex;background:var(--surface-2);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;padding:6px 14px;border-radius:999px;cursor:pointer;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--bg);color:var(--accent-strong);box-shadow:var(--shadow)}
+.top-r{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.who{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--muted)}
+.who select{max-width:220px}
+.who-admin{font-size:.85rem;color:var(--muted)}
+.bell{position:relative;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--bg);cursor:pointer;display:grid;place-items:center}
+.bell svg{width:18px;height:18px;stroke:var(--fg)}
+.bell .dot{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;border-radius:9px;background:var(--bad);color:#fff;font-size:.68rem;font-weight:700;display:grid;place-items:center;padding:0 4px}
+.bellpanel{position:absolute;right:max(16px,env(safe-area-inset-right,0px));top:calc(100% + 6px);width:min(360px,calc(100vw - 32px));background:var(--bg);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 12px 32px rgba(0,0,0,.14);max-height:420px;overflow:auto}
+.bellpanel header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.notif{padding:10px 14px;border-bottom:1px solid var(--line);font-size:.85rem}
+.notif.unread{background:var(--accent-soft)}
+.notif small{display:block;color:var(--muted)}
+
+/* shell */
+.shell{display:grid;grid-template-columns:220px minmax(0,1fr);gap:28px;padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:1320px;margin:0 auto}
+nav.side{display:flex;flex-direction:column;gap:2px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 80px);align-self:start}
+nav.side .navlbl{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:0 12px 6px}
+nav.side button{display:flex;justify-content:space-between;align-items:center;text-align:left;border:0;background:transparent;padding:9px 12px;border-radius:8px;cursor:pointer;font-weight:500;color:var(--fg)}
+nav.side button:hover{background:var(--surface)}
+nav.side button[aria-current="page"]{background:var(--accent-soft);color:var(--accent-strong);font-weight:700}
+.badge{background:var(--accent);color:var(--on-accent);border-radius:999px;font-size:.7rem;font-weight:700;padding:1px 7px}
+main{min-width:0;display:flex;flex-direction:column;gap:20px}
+.menu-btn{display:none;width:38px;height:38px;border-radius:8px;border:1px solid rgba(255,255,255,.4);background:transparent;cursor:pointer;place-items:center;flex:none}
+.menu-btn svg{width:20px;height:20px;stroke:var(--on-accent)}
+.navscrim{position:fixed;inset:0;background:var(--scrim);z-index:39}
+@media (max-width:860px){
+  .shell{grid-template-columns:172px minmax(0,1fr);gap:16px;padding-block:16px 40px}
+  nav.side button{padding:8px 10px;font-size:.88rem}
+  .who span{display:none}
+}
+@media (max-width:640px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .menu-btn{display:grid}
+  nav.side{position:fixed;top:0;bottom:0;left:0;width:min(280px,82vw);z-index:40;background:var(--bg);padding:calc(env(safe-area-inset-top,0px) + 18px) 12px 18px max(12px,env(safe-area-inset-left,0px));box-shadow:4px 0 24px rgba(0,0,0,.18);transform:translateX(-105%);transition:transform .2s ease;overflow-y:auto;align-self:stretch}
+  nav.side button{padding:11px 12px;font-size:.95rem}
+  body.nav-open nav.side{transform:none}
+}
+@media (prefers-reduced-motion:reduce){nav.side{transition:none}}
+
+/* building blocks */
+.ph{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.ph p{color:var(--muted);margin-top:4px}
+.card{background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:18px;min-width:0;display:flex;flex-direction:column;gap:14px}
+.card.soft{background:var(--surface);border-color:transparent}
+.card-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.card-h p{color:var(--muted);font-size:.85rem}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g-73{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr)}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:1060px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){.g2,.g-73{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:420px){.tiles{grid-template-columns:minmax(0,1fr)}}
+.tile{background:var(--surface);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.tile.hero{background:var(--accent);color:var(--on-accent)}
+.tile.hero .tile-l,.tile.hero .tile-s{color:var(--on-accent);opacity:.85}
+.tile-l{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+.tile-v{font-family:var(--f-head);font-size:1.55rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.2}
+.tile-s{font-size:.82rem;color:var(--muted)}
+.tile .btn{margin-top:8px;align-self:flex-start}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:8px 14px;border-radius:8px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--surface)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.primary:hover{background:var(--accent-strong);border-color:var(--accent-strong)}
+.btn.onhero{background:var(--on-accent);color:var(--accent-strong);border-color:transparent}
+.btn.danger{color:var(--bad);border-color:var(--bad-bg)}
+.btn.danger:hover{background:var(--bad-bg)}
+.btn.sm{padding:5px 10px;font-size:.8rem}
+.btn.link{border:0;background:none;padding:0;color:var(--accent);font-weight:600}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.actions{display:flex;gap:6px;flex-wrap:wrap}
+
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;font-size:.75rem;font-weight:600;white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.p-ok{background:var(--ok-bg);color:var(--ok)} .p-warn{background:var(--warn-bg);color:var(--warn)}
+.p-bad{background:var(--bad-bg);color:var(--bad)} .p-info{background:var(--info-bg);color:var(--info)}
+.p-muted{background:var(--surface-2);color:var(--muted)}
+
+.alert{display:flex;gap:12px;align-items:flex-start;padding:12px 16px;border-radius:var(--r);border:1px solid}
+.alert.warn{background:var(--warn-bg);border-color:transparent;color:var(--fg)}
+.alert.bad{background:var(--bad-bg);border-color:transparent}
+.alert.info{background:var(--info-bg);border-color:transparent}
+.alert b{display:block}
+.alert .grow{flex:1;min-width:0}
+
+.tbl{overflow-x:auto;margin:0 -4px}
+table{width:100%;border-collapse:collapse;font-size:.86rem}
+th{text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td.money,th.money{text-align:right;white-space:nowrap}
+tfoot td{font-weight:700;border-top:2px solid var(--line);border-bottom:0}
+tr.click{cursor:pointer} tr.click:hover td{background:var(--surface)}
+.sub{color:var(--muted);font-size:.78rem;display:block}
+.empty{color:var(--muted);text-align:center;padding:24px 8px;font-size:.9rem}
+
+form.f{display:flex;flex-direction:column;gap:12px}
+label.fl{display:flex;flex-direction:column;gap:5px;font-size:.8rem;font-weight:600;color:var(--muted)}
+input[type=text],input[type=number],input[type=date],input[type=search],select,textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:8px 10px;font-weight:400;color:var(--fg)}
+input[type=file]{font-size:.8rem;color:var(--muted);max-width:100%}
+textarea{min-height:84px;resize:vertical}
+.row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:480px){.row2{grid-template-columns:minmax(0,1fr)}}
+.check{display:flex;gap:8px;align-items:center;font-size:.88rem}
+.hint{font-size:.78rem;color:var(--muted);font-weight:400}
+
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{border:0;background:none;padding:10px 14px;cursor:pointer;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;display:flex;gap:6px;align-items:center}
+.tabs button[aria-selected="true"]{color:var(--accent-strong);border-bottom-color:var(--accent)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--bg);padding:5px 12px;border-radius:999px;cursor:pointer;font-weight:600;font-size:.8rem}
+.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-strong)}
+
+/* QR pay */
+.qrwrap{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.qrbox{background:var(--paper);padding:10px;border-radius:12px;border:1px solid var(--line);width:180px;flex:none}
+.qrbox canvas,.qrbox img{display:block;width:100%;height:auto;image-rendering:pixelated}
+.qrbox .qrtag{color:#13241B;text-align:center;font-size:.68rem;font-weight:700;letter-spacing:.08em;margin-top:6px}
+.payee{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.payee b{font-family:var(--f-head)}
+.steps{margin:0;padding-left:18px;color:var(--muted);font-size:.82rem;display:flex;flex-direction:column;gap:2px}
+
+/* amenities */
+.amen{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:760px){.amen{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.amen button{text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:var(--r);padding:12px 14px;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+.amen button b{font-family:var(--f-head)}
+.amen button span{font-size:.8rem;color:var(--muted)}
+.amen button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.cal-h{display:flex;justify-content:space-between;align-items:center}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cal .dow{font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;text-align:center;color:var(--muted);padding:4px 0}
+.cal button{aspect-ratio:1/1;max-width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-variant-numeric:tabular-nums;font-weight:600;font-size:.85rem;padding:0}
+.cal button:disabled{opacity:.35;cursor:not-allowed}
+.cal button .bar{width:60%;height:4px;border-radius:2px;background:var(--surface-2);overflow:hidden}
+.cal button .bar i{display:block;height:100%;background:var(--accent)}
+.cal button.full .bar i{background:var(--bad)}
+.cal button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.cal button[aria-pressed="true"] .bar{background:rgba(255,255,255,.35)}
+.cal button.today{border-color:var(--accent)}
+.legend{display:flex;gap:14px;font-size:.75rem;color:var(--muted);flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:4px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media (max-width:480px){.slots{grid-template-columns:minmax(0,1fr)}}
+.slot{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:8px;padding:9px 12px;cursor:pointer;position:relative}
+.slot input{position:absolute;opacity:0;pointer-events:none}
+.slot-t{font-weight:700;font-variant-numeric:tabular-nums}
+.slot-s{font-size:.75rem;color:var(--ok)}
+.slot.taken{background:var(--surface);cursor:not-allowed}
+.slot.taken .slot-s{color:var(--muted)}
+.slot:has(input:checked){border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.slot:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
+.feebox{background:var(--surface);border-radius:8px;padding:10px 12px;font-size:.84rem}
+
+/* vehicles */
+.vlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.vcard{border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:10px}
+.plate{background:var(--paper);color:#13241B;border:2px solid #13241B;border-radius:6px;padding:4px 10px 6px;text-align:center;align-self:flex-start;min-width:150px}
+.plate small{display:block;font-size:.56rem;letter-spacing:.3em;font-weight:700;color:#1C7A4A}
+.plate b{font-family:var(--f-head);font-size:1.3rem;letter-spacing:.08em}
+.vmeta{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+
+/* tickets */
+details.tk{border:1px solid var(--line);border-radius:var(--r)}
+details.tk summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+details.tk summary::-webkit-details-marker{display:none}
+details.tk[open] summary{border-bottom:1px solid var(--line)}
+.tk-body{padding:12px 14px;display:flex;flex-direction:column;gap:12px}
+.timeline{display:flex;flex-direction:column;gap:10px;border-left:2px solid var(--line);margin-left:4px;padding-left:14px}
+.timeline div{position:relative;font-size:.85rem}
+.timeline div::before{content:"";position:absolute;left:-20px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid var(--bg)}
+.timeline small{color:var(--muted);display:block}
+.thumb{max-width:220px;border-radius:8px;border:1px solid var(--line)}
+
+/* announcements */
+.news{display:flex;flex-direction:column;gap:2px}
+.news article{padding:12px 0;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:4px}
+.news article:last-child{border-bottom:0}
+.news time{font-size:.75rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+
+/* chart */
+.chart{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font-size:11px;font-family:var(--f-body)}
+.chart .grid line{stroke:var(--line)}
+.hbar{display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr) auto;gap:10px;align-items:center;font-size:.84rem}
+.hbar .track{height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden}
+.hbar .track i{display:block;height:100%;background:var(--accent);border-radius:5px}
+
+.fund{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.fund div{padding:14px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.fund div:last-child{border-right:0;background:var(--accent-soft)}
+.fund span{font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+.fund b{font-family:var(--f-head);font-size:1.1rem;font-variant-numeric:tabular-nums}
+@media (max-width:760px){.fund{grid-template-columns:minmax(0,1fr)}.fund div{border-right:0;border-bottom:1px solid var(--line)}}
+
+/* letter */
+.letter{background:var(--paper);color:#1d1d1d;padding:36px 40px;border-radius:4px;border:1px solid var(--line);font-family:Georgia,"Times New Roman",serif;font-size:.92rem;line-height:1.6;display:flex;flex-direction:column;gap:12px}
+.letter .lh{display:flex;justify-content:space-between;gap:12px;border-bottom:2px solid #1C7A4A;padding-bottom:10px;flex-wrap:wrap}
+.letter .lh b{font-family:var(--f-head);color:#135B36;font-size:1.05rem}
+.letter .lh small{display:block;color:#555;font-family:var(--f-body);font-size:.75rem}
+.letter h4{margin:4px 0 0;font-family:var(--f-head);letter-spacing:.06em;text-transform:uppercase;font-size:.95rem;color:#135B36}
+.letter h4.final{color:#B42318}
+.letter table{font-family:var(--f-body);font-size:.8rem;color:#1d1d1d}
+.letter th{color:#555;border-color:#ddd}.letter td{border-color:#eee}
+@media (max-width:560px){.letter{padding:20px}}
+
+/* modal + toast */
+.modal-wrap{position:fixed;inset:0;background:var(--scrim);z-index:50;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding-block:calc(env(safe-area-inset-top,0px) + 40px) 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.modal{background:var(--bg);border-radius:14px;width:min(560px,100%);box-shadow:0 20px 60px rgba(0,0,0,.25);display:flex;flex-direction:column}
+.modal.wide{width:min(760px,100%)}
+.modal-h{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line);gap:10px}
+.modal-b{padding:18px 20px;display:flex;flex-direction:column;gap:14px}
+.modal-f{padding:14px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.x{border:0;background:none;font-size:1.4rem;line-height:1;cursor:pointer;color:var(--muted)}
+.proof{max-width:100%;max-height:70vh;margin:0 auto;display:block;border-radius:8px}
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 16px;font-size:.88rem}
+.kv dt{color:var(--muted)} .kv dd{margin:0;font-weight:600}
+#toasts{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);left:50%;transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;gap:8px;align-items:center;width:min(420px,calc(100vw - 32px))}
+.toast{background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:.88rem;box-shadow:0 8px 24px rgba(0,0,0,.2);animation:tin .2s ease-out}
+.toast.bad{background:var(--bad);color:#fff}
+@keyframes tin{from{transform:translateY(8px);opacity:.4}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.toast{animation:none}}
+.ann{display:flex;gap:14px;align-items:flex-start;padding:14px 16px;border-radius:var(--r);background:var(--accent-soft);border:1px solid var(--accent)}
+.ann .grow{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.ann-k{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--accent-strong)}
+.ann b{font-family:var(--f-head);font-size:1rem}
+.ann p{font-size:.88rem}
+.ann-ic{width:36px;height:36px;border-radius:50%;background:var(--accent);display:grid;place-items:center;flex:none}
+.ann-ic svg{width:18px;height:18px;stroke:var(--on-accent)}
+.ann .actions{align-items:center;flex-wrap:nowrap}
+.ann.imp{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.ann.imp .ann-k,.ann.imp .x{color:var(--on-accent)}
+.ann.imp .ann-ic{background:var(--on-accent)} .ann.imp .ann-ic svg{stroke:var(--accent)}
+@media (max-width:640px){.ann{flex-wrap:wrap}.ann .actions{width:100%;justify-content:space-between}}
+.tipline{display:flex;justify-content:space-between;gap:14px}
+#tip{position:fixed;z-index:70;pointer-events:none;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.8rem;box-shadow:0 8px 24px rgba(19,36,27,.14);min-width:160px;font-variant-numeric:tabular-nums}
+#tip b{display:block;margin-bottom:4px;font-family:var(--f-head)}
+#tip .sw{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
+.viz{--s1:#1C7A4A;--s2:#257de0}
+.chart .hit{fill:transparent;cursor:pointer} .chart .hit:hover,.chart .hit:focus{fill:var(--surface-2)} .chart .hit:focus{outline:none}
+.chart .tot{fill:var(--fg);font-weight:600;font-size:11px}
+.insight{font-size:.85rem;color:var(--fg);background:var(--surface);border-radius:8px;padding:8px 12px}
+.insight b{color:var(--accent-strong)}
+.heat{width:100%;border-collapse:separate;border-spacing:3px;font-size:.82rem}
+.heat th{border:0;padding:4px 6px;text-align:right}.heat th:first-child{text-align:left}
+.heat td{border:0;border-radius:4px;padding:8px 6px;text-align:right;font-variant-numeric:tabular-nums;cursor:default}
+.heat td.rowh{text-align:left;font-weight:700;background:none;padding-left:0;white-space:nowrap}
+.heat td.tot{font-weight:700;background:var(--surface)}
+.heat tr.sum td{font-weight:700;background:var(--surface)}
+.heat td.na{color:var(--muted);background:var(--surface)}
+.split{display:flex;height:28px;border-radius:6px;overflow:hidden;gap:2px}
+.split i{display:block;height:100%}
+.split-l{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:.85rem}
+.split-l span{display:flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:10px;height:10px;border-radius:3px;flex:none}
+.hero-n{font-family:var(--f-head);font-size:1.9rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+.hbars{display:flex;flex-direction:column;gap:10px}
+@media (max-width:640px){.hbars .hbar{grid-template-columns:minmax(0,1fr) auto!important;row-gap:4px}.hbars .hbar .track{grid-column:1/-1;grid-row:2}}
+.hbar .track i.alt{background:var(--chart-2)}
+.note{font-size:.78rem;color:var(--muted)}
+details.tv summary{cursor:pointer;font-size:.82rem;font-weight:600;color:var(--accent)}
+.rtypes{display:flex;flex-direction:column;gap:6px}
+.rtype{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:9px 12px;cursor:pointer}
+.rtype input{margin-top:3px;accent-color:var(--accent)}
+.rtype:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.rtype b{display:block;font-size:.88rem}
+.rtype span{font-size:.78rem;color:var(--muted)}
+.rtype .auto{color:var(--accent-strong);font-weight:600}
+.rr{border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:10px}
+.rr-h{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.stepper{display:flex;gap:4px}
+.stepper span{flex:1;font-size:.72rem;font-weight:600;color:var(--muted);border-top:3px solid var(--surface-2);padding-top:5px}
+.stepper span.on{color:var(--accent-strong);border-color:var(--accent)}
+.stepper span.bad{color:var(--bad);border-color:var(--bad)}
+.dyn{display:flex;gap:8px;align-items:center}
+.dyn input{flex:1;min-width:0}
+.dyn .x{flex:none;width:28px}
+.passes{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.pass{border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;gap:12px;align-items:flex-start}
+.pass.dim{opacity:.6}
+.pass img.qr{width:84px;height:84px;flex:none;border-radius:6px;border:1px solid var(--line);background:#fff;image-rendering:pixelated}
+.pass .grow{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.qrbig{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;align-self:center;width:min(280px,100%)}
+.qrbig img{display:block;width:100%;image-rendering:pixelated}
+.code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:1.3rem;font-weight:700;letter-spacing:.12em;text-align:center}
+.verdict{border-radius:var(--r);padding:16px 18px;display:flex;gap:14px;align-items:center}
+.verdict b{font-family:var(--f-head);font-size:1.4rem;display:block}
+.verdict.ok{background:var(--accent);color:var(--on-accent)}
+.verdict.bad{background:var(--bad);color:#fff}
+.verdict.warn{background:var(--warn-bg);color:var(--fg)}
+.verdict .ic{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.2);display:grid;place-items:center;font-size:1.5rem;font-weight:800;flex:none}
+.gst{border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.gst-h{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+.gst-h b{font-size:1rem}
+.gst form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:10px;align-items:end}
+@media (max-width:760px){.gst form{grid-template-columns:minmax(0,1fr)}}
+.bigbtn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:2px dashed var(--accent);border-radius:14px;padding:28px 16px;cursor:pointer;background:var(--accent-soft);color:var(--accent-strong);font-weight:700;font-size:1.05rem;text-align:center}
+.bigbtn small{font-weight:500;color:var(--muted);font-size:.8rem}
+.bigbtn input{position:absolute;opacity:0;width:1px;height:1px}
+.bigbtn:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.idthumb{width:56px;height:36px;object-fit:cover;border-radius:4px;border:1px solid var(--line);cursor:pointer}
+.steplbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--accent-strong);margin:0}
+.req{color:var(--bad)}
+.demo-note{font-size:.75rem;color:var(--muted)}
+</style>
+<style>
+/* Mockup viewer: a review bar on top, then one screen at a time in a phone or desktop frame, using the mock-up's own styles above. */
+.mk{--mk-bg:#EEF3F0;--mk-ink:#13241B;--mk-muted:#5A6D62;--mk-line:#D2DFD7}
+html,body{background:#EEF3F0}
+body::before{display:none}
+.mkbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:80;background:#13241B;color:#fff;padding-block:12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:10px}
+.mkbar h1{font-size:1.05rem;color:#fff}
+.mkbar p{font-size:.8rem;color:rgba(255,255,255,.75)}
+.mkrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.mkrow select{width:auto;max-width:100%;background:#fff;color:#13241B}
+.mkrow .btn{background:transparent;color:#fff;border-color:rgba(255,255,255,.35)}
+.mkrow .btn:hover{background:rgba(255,255,255,.1)}
+.mkreq{display:flex;gap:6px;flex-wrap:wrap}
+.mkreq button{border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:999px;padding:4px 12px;font-weight:600;font-size:.8rem;cursor:pointer}
+.mkreq button[aria-pressed="true"]{background:#fff;color:#13241B}
+.mkwrap{max-width:1180px;margin:0 auto;padding-block:20px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+.mkinfo{background:#fff;border:1px solid #D2DFD7;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.mkinfo .k{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:#135B36}
+.mkinfo h2{font-size:1.15rem}
+.mkinfo p{font-size:.86rem;color:#3d4f45}
+.mkopt{display:inline-flex;gap:6px;align-items:center;font-size:.75rem;font-weight:700;border-radius:999px;padding:2px 10px}
+.mkopt.rec{background:#E2F1E8;color:#135B36}.mkopt.alt{background:#FCF0D6;color:#8F5B00}
+.frame{background:#fff;border:1px solid #C9D8CF;border-radius:14px;overflow:hidden;box-shadow:0 10px 30px rgba(19,36,27,.08);position:relative;align-self:center;width:100%}
+.frame.phone{max-width:390px;border-radius:28px;border:8px solid #13241B}
+.frame.desk{max-width:1180px}
+.frame.paper{max-width:720px;border-radius:4px;background:#fff}
+.frame .shell{max-width:none}
+.frame .modal-wrap{position:absolute}
+.frame.phone .shell{grid-template-columns:minmax(0,1fr);padding-block:16px 24px}
+.frame.phone nav.side{display:none}
+.frame.phone .top-in{gap:10px}
+.frame.phone .menu-btn{display:grid}
+.mknav{display:flex;justify-content:space-between;gap:8px}
+.signbox{max-width:400px;margin:0 auto;display:flex;flex-direction:column;gap:16px;padding-block:28px 32px}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;border:1px solid #747775;background:#fff;color:#1F1F1F;border-radius:8px;padding:11px 14px;font-weight:600;min-height:44px;width:100%;cursor:pointer}
+.gbtn svg{width:18px;height:18px}
+.or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.8rem}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+.f input[type=email],.f input[type=password],.f input[type=tel]{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:10px 12px;font-weight:400;color:var(--fg);min-height:44px}
+.f .btn.primary.big{padding:12px 14px;min-height:44px;width:100%}
+.ferr{color:var(--bad);font-size:.78rem;font-weight:600}
+input.bad{border-color:var(--bad)!important;box-shadow:0 0 0 1px var(--bad)}
+.pwrow{display:flex;gap:8px;align-items:center}
+.pwrow input{flex:1}
+.codein{font-family:ui-monospace,SFMono-Regular,Menlo,monospace!important;font-size:1.3rem!important;letter-spacing:.14em;text-transform:uppercase;text-align:center}
+.mail{font-family:var(--f-body);background:#fff;display:flex;flex-direction:column}
+.mail .mh{padding:14px 16px;border-bottom:1px solid #e5e5e5;font-size:.82rem;color:#555;display:flex;flex-direction:column;gap:2px}
+.mail .mh b{color:#111;font-size:.95rem}
+.mail .mb{padding:22px 18px;display:flex;flex-direction:column;gap:14px;font-size:.92rem}
+.mail .brandline{display:flex;align-items:center;gap:10px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;padding:18px}
+.rolecol{border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:2px}
+.rolecol h3{margin-bottom:6px}
+.rolecol .it{padding:6px 8px;border-radius:6px;font-size:.86rem}
+.rolecol .it.on{background:var(--accent-soft);color:var(--accent-strong);font-weight:700}
+.rolecol .ro{font-size:.72rem;color:var(--muted);margin-top:6px}
+.hocards{display:flex;flex-direction:column;gap:10px}
+.hocard{border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.hocard .r{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.slip{border:2px dashed #9fb5a8;border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:8px}
+.slips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:24px}
+@media (max-width:640px){.slips{grid-template-columns:minmax(0,1fr)}}
+.membr{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--line)}
+.membr:last-child{border-bottom:0}
+.errlist{display:flex;flex-direction:column;gap:10px}
+.callout{font-size:.75rem;font-weight:700;color:#8F5B00;background:#FCF0D6;border-radius:6px;padding:4px 8px;align-self:flex-start}
+.mknote{font-size:.8rem;color:#3d4f45}
+</style>
+<style>
+/* Additions for REQ-005 to REQ-011 */
+.notice{display:flex;flex-direction:column;gap:12px;font-size:1rem;line-height:1.6;padding-bottom:8px}
+.notice h3{font-size:1rem;margin-top:6px}
+.notice p{color:var(--fg)}
+.stickyf{position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding:12px 16px calc(env(safe-area-inset-bottom,0px) + 12px);display:flex;flex-direction:column;gap:8px;box-shadow:0 -6px 16px rgba(19,36,27,.06)}
+.check.big{min-height:44px;font-size:.95rem;font-weight:600}
+.check.big input{width:22px;height:22px;accent-color:var(--accent)}
+.changed{background:var(--info-bg);border-radius:var(--r);padding:12px 14px}
+.changed ul{margin:6px 0 0;padding-left:18px}
+.entries{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.entries li{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);align-items:flex-start}
+.entries li:last-child{border-bottom:0}
+.entries .when{flex:none;width:150px;font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.entries .what{flex:1;min-width:0}
+@media (max-width:640px){.entries li{flex-direction:column;gap:2px}.entries .when{width:auto}}
+.frame.phone .entries li{flex-direction:column;gap:2px}.frame.phone .entries .when{width:auto}
+.filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:10px;align-items:end}
+@media (max-width:860px){.filters{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.frame.phone .filters{grid-template-columns:minmax(0,1fr)}
+.sumbox{background:var(--accent);color:var(--on-accent);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:4px}
+.sumbox .tile-l{color:var(--on-accent);opacity:.85}
+.sumbox.ok{background:var(--surface);color:var(--fg)}.sumbox.ok .tile-l{color:var(--muted)}
+.pcards{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.pcard{border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px}
+.pcard .p{font-weight:700;font-family:var(--f-head)}
+.pcard dl{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin:4px 0 0;font-size:.82rem}
+.pcard dt{color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em}
+.pcard dd{margin:0;font-variant-numeric:tabular-nums;font-weight:600}
+.sk{background:linear-gradient(90deg,var(--surface) 0%,var(--surface-2) 50%,var(--surface) 100%);border-radius:6px;height:14px}
+.sk.tall{height:64px}
+.prog{height:8px;background:var(--surface-2);border-radius:4px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--accent)}
+.filepick{display:flex;align-items:center;gap:10px;border:1px dashed var(--accent);border-radius:8px;padding:10px 12px;min-height:44px;background:var(--accent-soft);color:var(--accent-strong);font-weight:600}
+.filepick img,.filepick .th{width:40px;height:56px;border-radius:4px;background:#cfd8d3;flex:none}
+.inprefix{display:flex;align-items:center;gap:6px}.inprefix span{font-weight:700;color:var(--muted)}
+.f input.lg{min-height:44px;padding:10px 12px}
+.bellfull{position:absolute;inset:0;background:var(--bg);z-index:45;display:flex;flex-direction:column}
+.bellfull header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.notifbtn{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:var(--bg);padding:12px 16px;min-height:44px;cursor:pointer;font-size:.9rem}
+.notifbtn.unread{background:var(--accent-soft)}
+.notifbtn small{display:block;color:var(--muted);margin-top:2px}
+.notifbtn .ud{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-right:6px}
+.toastin{background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:.88rem;align-self:center}
+.paper .pdf{padding:36px 40px;display:flex;flex-direction:column;gap:14px;font-size:.86rem}
+.pdf .lh{display:flex;justify-content:space-between;border-bottom:2px solid #1C7A4A;padding-bottom:10px;gap:12px;flex-wrap:wrap}
+.pdf .lh b{font-family:var(--f-head);color:#135B36;font-size:1.05rem}
+.pdf small{color:#555}
+.qrsvg{display:block;width:100%;height:auto}
+.okline{color:var(--ok);font-weight:600;font-size:.85rem}
+</style>
+
+<div class="mk">
+  <div class="mkbar">
+    <div><h1>Privacy, activity log, billing, statement, payments and notifications mockup · REQ-005 to REQ-011</h1><p>Draft for owner review. Sample HOA and invented people only. Each screen names the REQ scenario it shows. Comment on any screen.</p></div>
+    <div class="mkrow">
+      <div class="mkreq" id="mkreq" role="group" aria-label="Requirement"></div>
+    </div>
+    <div class="mkrow">
+      <label for="mksel" style="font-size:.8rem;color:rgba(255,255,255,.8)">Screen</label>
+      <select id="mksel"></select>
+      <button class="btn sm" id="mkprev" type="button">‹ Previous</button>
+      <button class="btn sm" id="mknext" type="button">Next ›</button>
+    </div>
+  </div>
+  <div class="mkwrap">
+    <div class="mkinfo" id="mkinfo"></div>
+    <div id="mkstage" style="display:flex;flex-direction:column"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const HOA='Greenfield Homes HOA';
+const HOUSE='<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>';
+const BELL='<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1112 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 004 0"/></svg>';
+const MENU='<button class="menu-btn" aria-label="Open menu" type="button"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>';
+
+function appTop(opts={}){
+  const {menu=false,right='',sub='Resident portal'}=opts;
+  return `<header class="top"><div class="top-in">${menu?MENU:''}<div class="brand"><span class="logo">${HOUSE}</span><div><b>${HOA}</b><small>${sub}</small></div></div><div class="top-r">${right}</div></div></header>`;
+}
+const bell=n=>`<button class="bell" aria-label="Notifications${n?`, ${n} unread`:''}" type="button">${BELL}${n?`<span class="dot">${n}</span>`:''}</button>`;
+function nav(lbl,items,cur){return `<nav class="side" aria-label="Sections"><div class="navlbl">${lbl}</div>${items.map(i=>`<button type="button" ${i===cur?'aria-current="page"':''}><span>${i}</span></button>`).join('')}</nav>`}
+const shell=(n,m)=>`<div class="shell">${n}<main>${m}</main></div>`;
+const ph=(t,s,r='')=>`<div class="ph"><div><h1>${t}</h1>${s?`<p>${s}</p>`:''}</div>${r?`<div class="actions">${r}</div>`:''}</div>`;
+const pill=(k,t)=>`<span class="pill p-${k}">${t}</span>`;
+const HOMENAV=['Dashboard','Dues & Payments','Announcements'];
+const STAFFNAV=['Dashboard','Approvals','Homeowners','Collections','Activity log','Announcements','Settings'];
+const homeTop=(n=0)=>appTop({menu:true,right:bell(n)});
+const staffTop=(who,n=0)=>appTop({sub:'Administration',right:`<span class="who-admin">Signed in as <b>${who}</b></span>${bell(n)}`});
+const callout=t=>`<span class="callout">${t}</span>`;
+
+/* Invented QR-like pattern, not a real code */
+function fakeQr(seed){
+  const n=25;let s=seed||7;const rnd=()=>{s=(s*9301+49297)%233280;return s/233280};
+  let r='';
+  const finder=(x,y)=>`<rect x="${x}" y="${y}" width="7" height="7" fill="#13241B"/><rect x="${x+1}" y="${y+1}" width="5" height="5" fill="#fff"/><rect x="${x+2}" y="${y+2}" width="3" height="3" fill="#13241B"/>`;
+  for(let y=0;y<n;y++)for(let x=0;x<n;x++){
+    const inF=(x<8&&y<8)||(x>n-9&&y<8)||(x<8&&y>n-9);
+    if(!inF&&rnd()>.52)r+=`<rect x="${x}" y="${y}" width="1" height="1" fill="#13241B"/>`;
+  }
+  return `<svg class="qrsvg" viewBox="-1 -1 ${n+2} ${n+2}" role="img" aria-label="Payment QR code for Greenfield Homes HOA"><rect x="-1" y="-1" width="${n+2}" height="${n+2}" fill="#fff"/>${r}${finder(0,0)}${finder(n-7,0)}${finder(0,n-7)}</svg>`;
+}
+const qrBlock=(tag='SCAN TO PAY')=>`<div class="qrwrap"><div class="qrbox">${fakeQr(11)}<div class="qrtag">${tag}</div></div><div class="payee"><span class="hint">Pay to</span><b>Greenfield Homes HOA</b><span class="hint">E-wallet collection account</span><ol class="steps"><li>Scan the QR with your e-wallet or bank app.</li><li>Pay the amount shown.</li><li>Enter the reference number and attach the screenshot.</li></ol></div></div>`;
+
+/* ---------- REQ-005 privacy ---------- */
+const NOTICE=`<div class="notice"><p class="hint">Version 1 · effective Dec 1, 2026</p><h3>What we collect</h3><p>Your name, email, mobile number, your lot, your household's bills and payments, and the payment screenshots you upload.</p><h3>Why</h3><p>To bill dues, record payments, issue official receipts and contact you about your account.</p><h3>Who sees it</h3><p>People linked to your lot, the admin office and the treasurer. Board members see totals and reports.</p><h3>How long we keep it</h3><p>[Set by the HOA's Data Protection Officer.]</p><h3>Your rights</h3><p>You can ask the admin office for a copy of your data or to correct it.</p><p class="hint">Sample text only. The HOA's Data Protection Officer writes the real notice.</p></div>`;
+function noticePage(opts){
+  const {ticked=false,changed=false}=opts;
+  return appTop({})+`<div style="padding:20px 16px 0"><h1>${changed?"We've updated our privacy notice":'Privacy notice'}</h1>${changed?`<div class="changed" style="margin-top:12px"><b>What changed</b><ul><li>Guest passes: guest names and plates are shared with the guard.</li><li>Guest ID photos are deleted after 30 days.</li></ul></div>`:''}<div style="margin-top:12px">${NOTICE.replace('Version 1 · effective Dec 1, 2026',changed?'Version 2 · effective Mar 1, 2027':'Version 1 · effective Dec 1, 2026')}</div></div>
+  <div class="stickyf"><label class="check big" for="pa${changed?2:1}"><input id="pa${changed?2:1}" type="checkbox" ${ticked?'checked':''}> I have read and understood the privacy notice</label>${ticked?'':'<span class="hint">Tick the box to continue</span>'}<button class="btn primary big" type="button" style="min-height:44px" ${ticked?'':'disabled'}>Continue</button><button class="btn" type="button" style="min-height:44px">I don't agree</button></div>`;
+}
+
+/* ---------- REQ-006 activity ---------- */
+const ENTRIES=[
+ ['Dec 3, 2026 · 9:14 AM','<b>Carmela Cruz (Treasurer)</b> approved ₱1,800.00 from Blk 5 Lot 1 (OR-00093)','Payments'],
+ ['Dec 3, 2026 · 8:52 AM','Blk 5 Lot 1 submitted ₱1,800.00 (ref ending 9554)','Payments'],
+ ['Dec 2, 2026 · 4:30 PM','<b>Carmela Cruz (Treasurer)</b> replaced the payment QR code','Settings'],
+ ['Dec 1, 2026 · 9:05 AM','<b>Carmela Cruz (Treasurer)</b> generated December 2026 billing: 623 bills, ₱1,121,400.00','Billing'],
+ ['Nov 30, 2026 · 11:58 PM','<b>Paolo Aquino (Admin office)</b> changed the contact mobile of Blk 4 Lot 12','Households'],
+ ['Nov 30, 2026 · 3:10 PM','<b>Paolo Aquino (Admin office)</b> removed a person from Blk 2 Lot 7','Invitations'],
+ ['Nov 29, 2026 · 10:02 AM','<b>Developer Rico Lim</b> made Carmela Cruz Treasurer (board request BR-2026-07)','Roles']
+];
+const entryList=list=>`<ul class="entries">${list.map(e=>`<li><span class="when">${e[0]}</span><span class="what">${e[1]} <span class="sub">${e[2]}</span></span></li>`).join('')}</ul>`;
+const filters=(lot='',type='All')=>`<form class="filters" onsubmit="return false" aria-label="Filters"><label class="fl" for="ft">Type<select id="ft"><option>${type}</option><option>Payments</option><option>Billing</option><option>Households</option><option>Invitations</option><option>Roles</option><option>Settings</option><option>Privacy</option></select></label><label class="fl" for="fl">Lot<input id="fl" type="search" value="${lot}" placeholder="e.g. Blk 5 Lot 1"></label><label class="fl" for="ff">From<input id="ff" type="date"></label><label class="fl" for="fto">To<input id="fto" type="date"></label><button class="btn" type="button">Clear filters</button></form>`;
+
+/* ---------- REQ-009 statement ---------- */
+const PER=[['November 2026','Nov 30, 2026','1,800.00','0.00','bad','Overdue'],['October 2026','Oct 31, 2026','1,800.00','0.00','bad','Overdue'],['September 2026','Sep 30, 2026','1,800.00','0.00','bad','Overdue'],['August 2026','Aug 31, 2026','1,800.00','1,800.00','ok','Paid'],['July 2026','Jul 31, 2026','1,800.00','1,800.00','ok','Paid'],['June 2026','Jun 30, 2026','1,800.00','1,800.00','ok','Paid']];
+const pcards=rows=>`<ul class="pcards">${rows.map(r=>`<li class="pcard"><span class="p">${r[0]}</span>${pill(r[4],r[5])}<dl><div><dt>Due date</dt><dd>${r[1]}</dd></div><div><dt>Billed</dt><dd>₱${r[2]}</dd></div><div><dt>Paid</dt><dd>₱${r[3]}</dd></div></dl></li>`).join('')}</ul>`;
+const ptable=rows=>`<div class="tbl"><table><thead><tr><th>Period</th><th>Due date</th><th class="money">Billed</th><th class="money">Paid</th><th>Status</th></tr></thead><tbody>${rows.map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td class="money">₱${r[2]}</td><td class="money">₱${r[3]}</td><td>${pill(r[4],r[5])}</td></tr>`).join('')}</tbody><tfoot><tr><td colspan="2">Balance</td><td class="money">₱10,800.00</td><td class="money">₱5,400.00</td><td class="money">₱5,400.00</td></tr></tfoot></table></div>`;
+const summary=`<div class="sumbox" role="region" aria-label="Balance"><span class="tile-l">Balance</span><span class="tile-v">₱5,400.00</span><span>3 periods overdue</span></div>`;
+
+/* ---------- REQ-010 pay ---------- */
+function payForm(o={}){
+  const {ref='4012 8832 1955 4',shot=true,refErr='',shotErr='',saving=false,optional=false}=o;
+  return `<form class="f" onsubmit="return false">
+   <label class="fl" for="pAmt">Amount (₱)<span class="inprefix"><span>₱</span><input class="lg" id="pAmt" type="text" inputmode="decimal" value="1,800.00"></span></label>
+   <label class="fl" for="pRef">Reference number<input class="lg ${refErr?'bad':''}" id="pRef" type="text" value="${ref}" autocomplete="off"><span class="hint">Exactly as it appears on your confirmation, e.g. 4012 8832 1955 4</span></label>${refErr?`<span class="ferr" role="alert">${refErr}</span>`:''}
+   <label class="fl" for="pDate">Date paid<input class="lg" id="pDate" type="date" value="2026-12-03"></label>
+   <span class="fl" style="gap:5px">Proof of payment (screenshot)${optional?' <span class="hint">Optional</span>':''}<label class="filepick" for="pShot">${shot?'<span class="th" aria-hidden="true"></span>screenshot-dec3.jpg · Change screenshot':'Attach screenshot'}<input id="pShot" type="file" accept="image/*" style="position:absolute;opacity:0;width:1px;height:1px"></label></span>${shotErr?`<span class="ferr" role="alert">${shotErr}</span>`:''}
+   <button class="btn primary big" type="button" ${saving?'disabled':''}>${saving||'Submit for approval'}</button></form>`;
+}
+const payPage=(inner,extra='')=>homeTop()+`<div style="padding:16px;display:flex;flex-direction:column;gap:14px">${ph('Dues & Payments','Blk 5 Lot 1 · Monthly dues ₱1,800.00')}${extra}<section class="card"><h2>Pay with QR</h2>${qrBlock()}${inner}</section></div>`;
+
+/* ---------- REQ-011 notifications ---------- */
+const NOTIFS=[
+ [1,'Payment approved: ₱1,800.00 (ref …9554). Receipt OR-00093 is being prepared.','Today · 9:14 AM'],
+ [1,'Your December 2026 statement is ready: ₱1,800.00 due Dec 31, 2026.','Dec 1, 2026 · 9:05 AM'],
+ [0,'Receipt OR-00071 is ready to download.','Nov 4, 2026 · 2:11 PM'],
+ [0,'Your November 2026 statement is ready: ₱1,800.00 due Nov 30, 2026.','Nov 1, 2026 · 9:02 AM']
+];
+const notifItems=list=>list.map(n=>`<button class="notifbtn ${n[0]?'unread':''}" type="button">${n[0]?'<span class="ud" aria-hidden="true"></span><span class="sr" style="position:absolute;left:-9999px">Unread</span>':''}${n[1]}<small>${n[2]}</small></button>`).join('');
+
+const S=[
+/* ---------- REQ-005 ---------- */
+{id:'5A',req:'REQ-005',dev:'phone',opt:'rec',title:'Privacy notice at first sign-in',scn:'"A homeowner sees the notice at first sign-in".',note:'Shown after sign-in and before "Enter your invite code". The tick box and buttons stay in a sticky footer, so nobody has to scroll to find them. Continue is disabled, and the hint says why.',html:()=>`<div style="position:relative;max-height:760px;overflow:auto">${noticePage({})}</div>`},
+{id:'5B',req:'REQ-005',dev:'phone',opt:'rec',title:'Updated notice (material change)',scn:'"A material change asks again" and "The acknowledgement is recorded".',note:'"What changed" sits above the full text. The box is ticked here, so Continue is enabled. While saving it reads "Saving…" and is disabled.',html:()=>`<div style="position:relative;max-height:760px;overflow:auto">${noticePage({ticked:true,changed:true})}</div>`},
+{id:'5C',req:'REQ-005',dev:'phone',opt:'rec',title:'Notice fails to load · person does not agree',scn:'"The notice fails to load" and "A person who does not agree is signed out".',note:'Two states stacked. Nothing is deleted when someone does not agree.',html:()=>appTop({})+`<div style="padding-inline:16px"><div class="signbox"><h1>Privacy notice</h1><div class="sk"></div><div class="sk" style="width:80%"></div><div class="alert bad" role="alert"><div class="grow">We couldn't load the privacy notice. Check your connection and try again.</div></div><button class="btn big" type="button">Try again</button><button class="btn primary big" type="button" disabled>Continue</button>${callout('Other state: after "I don\'t agree"')}<h1>Sign in to ${HOA}</h1><div class="alert info" role="status"><div class="grow">You've been signed out. To ask about how your data is used, contact the admin office at (046) 555 0100.</div></div><button class="btn link" type="button">Privacy notice</button></div></div>`},
+{id:'5D',req:'REQ-005',dev:'desk',opt:'rec',title:'Staff see who has read the notice',scn:'"The acknowledgement is recorded" and "A person who has not read the notice yet, seen by staff".',note:'Shown on the household\'s people list in the directory (REQ-003/004). Per person, not per household.',html:()=>staffTop('Paolo Aquino')+shell(nav('Administration',STAFFNAV,'Homeowners'),ph('Blk 4 Lot 12','Owner on file: Juan Dela Cruz')+`<section class="card"><div class="card-h"><h2>People linked to this lot</h2></div><div class="membr"><div><b>Juan Dela Cruz</b><span class="sub">Owner · linked Nov 30, 2026</span></div><div class="actions">${pill('ok','Privacy notice v1 read Dec 1, 2026')}<button class="btn sm danger" type="button">Remove</button></div></div><div class="membr"><div><b>Lorna Dela Cruz</b><span class="sub">Family · linked Dec 2, 2026</span></div><div class="actions">${pill('warn','Privacy notice not read yet')}<button class="btn sm danger" type="button">Remove</button></div></div></section>`)},
+{id:'5E',req:'REQ-005',dev:'phone',opt:'alt',title:'Option B: a line at account creation only',scn:'Option B only. Shown for comparison.',note:'Cheapest, but Google sign-in skips this form, and a changed notice can never be shown again.',html:()=>appTop({})+`<div style="padding-inline:16px"><div class="signbox"><h1>Create an account</h1><form class="f" onsubmit="return false"><label class="fl" for="bn">Your name<input id="bn" type="text" value="Ana Reyes"></label><label class="fl" for="be">Email<input id="be" type="email" value="ana.reyes@example.com"></label><label class="fl" for="bp">Password<input id="bp" type="password" value="xxxxxxxxxx"></label><p class="hint">By creating an account you confirm you have read the <a href="#">privacy notice</a>.</p><button class="btn primary big" type="button">Create account</button></form></div></div>`},
+
+/* ---------- REQ-006 ---------- */
+{id:'6A',req:'REQ-006',dev:'desk',opt:'rec',title:'Activity log (treasurer)',scn:'"An approval is recorded with person and time", "No one can edit or delete the log", "A long log loads in pages", "The log does not show homeowners\' personal data".',note:'Read-only: no edit or delete controls. Lots, never homeowner names. References show the last 4 digits. Times are Manila time.',html:()=>staffTop('Carmela Cruz',1)+shell(nav('Administration',STAFFNAV,'Activity log'),ph('Activity log','Every change to money and records, with who made it and when. Entries can\'t be edited or deleted.')+`<section class="card">${filters()}${entryList(ENTRIES)}<button class="btn" type="button">Show older entries</button></section>`)},
+{id:'6B',req:'REQ-006',dev:'phone',opt:'rec',title:'Filtered by lot, on a phone (board member)',scn:'"Filter by lot to settle a dispute" and "A board member reads but cannot change anything".',note:'One sentence per entry, so no table is needed at 375 px. On a phone the filters sit behind a "Filter" button; shown open here.',html:()=>staffTop('Teresa Lim')+`<div style="padding:16px;display:flex;flex-direction:column;gap:14px">${ph('Activity log','')}<div class="alert info"><div class="grow">View only. Board members can't change records.</div></div><section class="card">${filters('Blk 5 Lot 1','Payments')}<p class="hint">Blk 5 Lot 1 · 2 entries</p>${entryList(ENTRIES.slice(0,2))}</section></div>`},
+{id:'6C',req:'REQ-006',dev:'phone',opt:'rec',title:'Empty filter · load error · loading',scn:'"Nothing matches the filters" and "The log fails to load".',note:'Three states stacked. The filters are kept after an error.',html:()=>staffTop('Teresa Lim')+`<div style="padding:16px;display:flex;flex-direction:column;gap:14px">${ph('Activity log','')}<section class="card"><div class="empty">No activity for Blk 9 Lot 3 in this period.<br><button class="btn sm" type="button" style="margin-top:8px">Clear filters</button></div></section>${callout('Other state: error')}<div class="alert bad" role="alert"><div class="grow">We couldn't load the activity log. Check your connection and try again.</div><button class="btn sm" type="button">Try again</button></div>${callout('Other state: loading')}<section class="card"><div class="sk"></div><div class="sk" style="width:85%"></div><div class="sk" style="width:70%"></div></section></div>`},
+
+/* ---------- REQ-007 ---------- */
+{id:'7A',req:'REQ-007',dev:'desk',opt:'rec',title:'Settings: dues and payment (treasurer)',scn:'"A new rate applies from the next billing run only", "An invalid rate is not saved" and "Uploading the real QR code".',note:'The success toast says what will happen next. The dues error keeps everything else that was typed.',html:()=>staffTop('Carmela Cruz')+shell(nav('Administration',STAFFNAV,'Settings'),ph('Settings','Dues, payment details and invitations.')+`<div class="grid g2"><section class="card"><h2>Dues and payment</h2><form class="f" onsubmit="return false"><label class="fl" for="sD">Monthly dues per household (₱)<input id="sD" type="text" inputmode="decimal" class="bad" value=""><span class="hint">Applies to the next billing run. Bills already created keep their amount.</span></label><span class="ferr" role="alert">Enter the monthly dues in pesos, more than ₱0</span><label class="fl" for="sP">Payee name shown to homeowners<input id="sP" type="text" value="Greenfield Homes HOA"></label><label class="fl" for="sA">Account label<input id="sA" type="text" value="E-wallet collection account"></label><label class="fl" for="sI">Payment instructions<textarea id="sI">Pay the exact amount. Keep the screenshot of your confirmation.</textarea></label><button class="btn primary" type="button">Save settings</button></form>${callout('Other state: after saving 2,000')}<div class="toastin">Saved. The next billing run (December 2026) will bill ₱2,000.00 per household.</div></section><section class="card"><h2>Payment QR code</h2>${qrBlock()}<p class="hint">Last replaced Dec 2, 2026 by Carmela Cruz.</p><button class="btn" type="button">Replace QR code</button></section></div>`)},
+{id:'7B',req:'REQ-007',dev:'desk',opt:'rec',title:'A large change is confirmed first',scn:'"A large change is confirmed first".',note:'Shown when the new rate differs from the old by more than 25%. Catches an extra zero before 623 households are billed.',html:()=>staffTop('Carmela Cruz')+shell(nav('Administration',STAFFNAV,'Settings'),ph('Settings','')+`<section class="card" style="min-height:360px"></section>`)+`<div class="modal-wrap"><div class="modal" role="dialog" aria-modal="true" aria-label="Confirm dues change"><div class="modal-h"><h2>Check the new monthly dues</h2></div><div class="modal-b"><p>You're changing monthly dues from <b>₱1,800.00</b> to <b>₱18,000.00</b>. Is that right?</p></div><div class="modal-f"><button class="btn" type="button">Go back</button><button class="btn primary" type="button">Yes, save ₱18,000.00</button></div></div></div>`},
+{id:'7C',req:'REQ-007',dev:'desk',opt:'rec',title:'Replace the QR code',scn:'"Replacing the QR code alerts the other officers" and "Shows what the QR code pays to (if decision 3 is yes)".',note:'Typed confirmation. The read-back line exists only if Sol Arch confirms it is cheap (decision 3). The dialog does not close on a click outside it.',html:()=>staffTop('Carmela Cruz')+shell(nav('Administration',STAFFNAV,'Settings'),ph('Settings','')+`<section class="card" style="min-height:460px"></section>`)+`<div class="modal-wrap"><div class="modal" role="dialog" aria-modal="true" aria-label="Replace the payment QR code"><div class="modal-h"><h2>Replace the payment QR code?</h2><button class="x" aria-label="Close" type="button">×</button></div><div class="modal-b"><div class="qrwrap"><div class="qrbox">${fakeQr(29)}<div class="qrtag">NEW</div></div><div class="payee"><span class="hint">Payee name you entered</span><b>Greenfield Homes HOA</b><span class="okline">This QR code pays: GREENFIELD HOMES HOA</span></div></div><p>Every homeowner will pay into the account in the new code. The other treasurers and the board will be told.</p><label class="fl" for="rp">Type REPLACE to confirm<input id="rp" type="text" value="REPLACE" autocomplete="off"></label>${callout('Other state')}<span class="ferr" role="alert">We couldn't find a QR code in this image. Upload the QR image from your bank or e-wallet.</span></div><div class="modal-f"><button class="btn" type="button">Cancel</button><button class="btn primary" type="button">Use this QR code</button></div></div></div>`},
+{id:'7D',req:'REQ-007',dev:'phone',opt:'rec',title:'Homeowner: QR code not set up yet',scn:'"Before any QR code is set up".',note:'No sample QR is ever shown to real homeowners. The payment form is hidden.',html:()=>homeTop()+`<div style="padding:16px;display:flex;flex-direction:column;gap:14px">${ph('Dues & Payments','Blk 4 Lot 12 · Monthly dues ₱1,800.00')}<section class="card"><h2>Pay with QR</h2><div class="alert info"><div class="grow">Online payment isn't set up yet. Pay at the admin office for now.</div></div></section></div>`},
+{id:'7E',req:'REQ-007',dev:'desk',opt:'rec',title:'Admin office sees settings read-only · stale edit',scn:'"The admin office sees the settings read-only" and "Two treasurers edit at once".',note:'Two states. Fields are read-only for the admin office; rules refuse the write as well.',html:()=>staffTop('Paolo Aquino')+shell(nav('Administration',STAFFNAV,'Settings'),ph('Settings','')+`<section class="card"><h2>Dues and payment</h2><div class="alert info"><div class="grow">Only the treasurer can change dues and payment settings.</div></div><dl class="kv"><dt>Monthly dues</dt><dd>₱1,800.00</dd><dt>Payee name</dt><dd>Greenfield Homes HOA</dd><dt>Account label</dt><dd>E-wallet collection account</dd></dl>${callout('Other state: treasurer, stale edit')}<div class="alert warn" role="alert"><div class="grow">Someone else changed these settings since you opened them. Reload to see the latest, then make your change again.</div><button class="btn sm" type="button">Reload</button></div></section>`)},
+
+/* ---------- REQ-008 ---------- */
+{id:'8A',req:'REQ-008',dev:'desk',opt:'rec',title:'Generate billing: preview',scn:'"Preview, then bill the next period".',note:'The preview states count, rate, total and due date before anything is created, and that bills can\'t be changed afterwards (decision 5).',html:()=>staffTop('Carmela Cruz')+shell(nav('Administration',STAFFNAV,'Collections'),ph('Collections','Monthly billing. Delinquent accounts arrive in R2.')+`<section class="card soft"><div class="card-h"><div><h2>Monthly billing</h2><p>Last billed: November 2026 · Rate ₱1,800.00 per household · 623 active households</p></div><button class="btn primary" type="button">Generate December 2026 billing</button></div></section>`)+`<div class="modal-wrap"><div class="modal" role="dialog" aria-modal="true" aria-label="Generate December 2026 billing"><div class="modal-h"><h2>Generate December 2026 billing?</h2></div><div class="modal-b"><p>This creates <b>623 bills of ₱1,800.00</b> each, a total of <b>₱1,121,400.00</b>, due <b>Dec 31, 2026</b>. 2 deactivated households are not billed.</p><p class="hint">Bills can't be changed after they're created.</p></div><div class="modal-f"><button class="btn" type="button">Cancel</button><button class="btn primary" type="button">Generate billing</button></div></div></div>`},
+{id:'8B',req:'REQ-008',dev:'desk',opt:'rec',title:'Billing card states',scn:'"Preview, then bill the next period", "An interrupted run is finished, not repeated", "Too early to bill a period", "A household added after the period was billed".',note:'Four states stacked. The progress line takes the button\'s place, so nothing jumps.',html:()=>staffTop('Carmela Cruz')+shell(nav('Administration',STAFFNAV,'Collections'),ph('Collections','')+`${callout('Running')}<section class="card soft"><h2>Monthly billing</h2><p aria-live="polite">Billing December 2026… 410 of 623</p><div class="prog"><i style="width:66%"></i></div></section>${callout('Stopped')}<section class="card soft"><h2>Monthly billing</h2><div class="alert warn"><div class="grow">December 2026 billing stopped at 410 of 623. Press Continue to finish it. Bills already created won't be made again.</div><button class="btn primary sm" type="button">Continue billing</button></div></section>${callout('Done, next period too early')}<section class="card soft"><div class="card-h"><div><h2>Monthly billing</h2><p>December 2026 billed: 623 bills, ₱1,121,400.00. Done Dec 1, 2026 at 9:05 AM by Carmela Cruz.</p></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><button class="btn primary" type="button" disabled>Generate January 2027 billing</button><span class="hint">Available from Jan 1, 2027</span></div></div><div class="alert info"><div class="grow"><b>1 household added since December 2026 was billed: Blk 8 Lot 2</b></div><div class="actions"><button class="btn sm" type="button">Don't bill</button><button class="btn sm primary" type="button">Bill for December 2026</button></div></div></section>`)},
+{id:'8C',req:'REQ-008',dev:'desk',opt:'rec',title:'Opening balances: check the file',scn:'"Load opening balances from a spreadsheet", "Problem rows are explained" and "Commit the opening balances".',note:'Same check-then-load pattern as the household import (REQ-003). Nothing is saved until "Load 610 opening balances". Shown only before the first billing run.',html:()=>staffTop('Carmela Cruz')+shell(nav('Administration',STAFFNAV,'Collections'),ph('Collections','')+`<section class="card"><div class="card-h"><div><h2>Opening balances</h2><p>Load what each household owed before the portal, once, before the first billing.</p></div></div><p><b>623 rows: 610 ready, 13 with problems</b></p><div class="tbl"><table><thead><tr><th>Row</th><th>Lot</th><th class="money">Amount</th><th>Problem</th></tr></thead><tbody><tr><td>14</td><td>Blk 99 Lot 1</td><td class="money">5,400.00</td><td>Blk 99 Lot 1 isn't in the directory.</td></tr><tr><td>87</td><td>Blk 3 Lot 9</td><td class="money">1,8OO</td><td>Amount must be a number, like 5400.00</td></tr><tr><td>212</td><td>Blk 6 Lot 4</td><td class="money">3,600.00</td><td>Blk 6 Lot 4 appears twice in the file.</td></tr></tbody></table></div><div class="actions"><button class="btn" type="button">Upload a corrected file</button><button class="btn primary" type="button">Load 610 opening balances</button></div></section>`)},
+{id:'8D',req:'REQ-008',dev:'desk',opt:'alt',title:'Option B: automatic billing on the 1st',scn:'Option B only. Shown for comparison (D8).',note:'No check moment before 623 bills are created. Recommended only once bills can be corrected.',html:()=>staffTop('Carmela Cruz')+shell(nav('Administration',STAFFNAV,'Collections'),ph('Collections','')+`<section class="card soft"><div class="card-h"><div><h2>Monthly billing</h2><p>Bills automatically on the 1st of each month at 12:10 AM. Next: January 2027 at ₱1,800.00 per household.</p></div></div><p class="hint">To change the rate for January, save it in Settings before Jan 1.</p></section>`)},
+
+/* ---------- REQ-009 ---------- */
+{id:'9A',req:'REQ-009',dev:'phone',opt:'rec',title:'Statement on a phone',scn:'"Payments apply to the oldest period first", "A payment waiting for approval does not lower the balance", "Readable on a phone".',note:'Balance first, then one card per period, newest first. No sideways scrolling.',html:()=>homeTop(2)+`<div style="padding:16px;display:flex;flex-direction:column;gap:14px">${ph('Dues & Payments','Blk 3 Lot 9 · Monthly dues ₱1,800.00, due on the last day of each month')}${summary}<div class="alert info"><div class="grow"><b>₱1,800.00 awaiting approval.</b> Your balance updates once the treasurer has checked it.</div></div><button class="btn" type="button" style="min-height:44px">Download PDF</button><section class="card"><div><h2>Statement of account</h2><p class="hint">As of Dec 5, 2026</p></div>${pcards(PER)}</section></div>`},
+{id:'9B',req:'REQ-009',dev:'desk',opt:'rec',title:'Statement on desktop, staff view',scn:'"Staff open a household\'s statement".',note:'From 760 px the periods show as a table. Staff see the same statement, with no way to change a bill or payment.',html:()=>staffTop('Paolo Aquino')+shell(nav('Administration',STAFFNAV,'Homeowners'),ph('Blk 3 Lot 9 · Statement','As of Dec 5, 2026',`<button class="btn" type="button">Download PDF</button>`)+`<div class="tiles"><div class="tile hero"><span class="tile-l">Balance</span><span class="tile-v">₱5,400.00</span><span class="tile-s">3 periods overdue</span></div></div><section class="card"><h2>Statement of account</h2>${ptable(PER)}</section>`)},
+{id:'9C',req:'REQ-009',dev:'phone',opt:'rec',title:'Empty, loading, credit and partly paid',scn:'"Nothing billed yet", "Paying more than is billed leaves credit", "A partly paid period", "The opening balance is the first line".',note:'Loading never shows ₱0.00, which would look like good news.',html:()=>homeTop()+`<div style="padding:16px;display:flex;flex-direction:column;gap:14px">${callout('Empty')}<section class="card"><h2>Statement of account</h2><div class="empty">No bills yet. Your first statement appears when the HOA bills the next period.</div></section>${callout('Loading')}<section class="card"><div class="sk tall"></div><div class="sk"></div><div class="sk" style="width:70%"></div></section>${callout('Credit')}<div class="sumbox ok"><span class="tile-l">Balance</span><span class="tile-v">₱1,200.00 credit</span><span>Nothing overdue</span></div>${callout('Partly paid, and the opening line')}${pcards([['January 2027','Jan 31, 2027','1,800.00','1,200.00','warn','Partly paid · ₱600.00 left'],['Balance before December 2026','Nov 30, 2026','9,000.00','0.00','bad','Overdue']])}</div>`},
+{id:'9D',req:'REQ-009',dev:'paper',opt:'rec',title:'Statement PDF',scn:'"Download the statement".',note:'Every period, the same figures as the screen. No email, mobile or reference numbers.',html:()=>`<div class="pdf"><div class="lh"><div><b>${HOA}</b><small>Statement of account</small></div><div style="text-align:right"><b>Blk 3 Lot 9</b><small>As of Dec 5, 2026</small></div></div>${ptable(PER)}<small>As of Dec 5, 2026. This statement is not an official receipt.</small></div>`},
+
+/* ---------- REQ-010 ---------- */
+{id:'10A',req:'REQ-010',dev:'phone',opt:'rec',title:'Submit a payment',scn:'"Submit a payment".',note:'Amount is filled with what is due; date paid is today. Labels are visible, not placeholders. The submit button is full width, at the bottom.',html:()=>payPage(payForm())},
+{id:'10B',req:'REQ-010',dev:'phone',opt:'rec',title:'Missing screenshot · duplicate reference',scn:'"A missing screenshot keeps what was typed" and "A reference number already submitted and approved".',note:'Both errors shown at once for review; everything typed is kept.',html:()=>payPage(payForm({shot:false,shotErr:'Attach the screenshot of your payment confirmation',refErr:'This reference number was already submitted on Nov 25, 2026. Check the number on your screenshot.'}))},
+{id:'10C',req:'REQ-010',dev:'phone',opt:'rec',title:'After submitting: payment list',scn:'"Submit a payment" and "A new owner sees the lot\'s balance but not the previous owner\'s payment details" (decision 3, option b).',note:'The toast says "submitted for checking", never "paid". The last row is how a payment from before the viewer joined looks under decision 3 (b).',html:()=>homeTop()+`<div style="padding:16px;display:flex;flex-direction:column;gap:14px"><div class="toastin">Payment submitted for checking. We'll notify you when the treasurer has checked it.</div><div class="alert info"><div class="grow"><b>₱1,800.00 awaiting approval.</b> Your balance updates once the treasurer has checked it.</div></div><section class="card"><h2>Payments</h2><ul class="pcards"><li class="pcard"><span class="p">₱1,800.00</span>${pill('warn','Pending approval')}<span class="sub" style="grid-column:1/-1">Dec 3, 2026 · ref …9554 · Waiting for the treasurer</span></li><li class="pcard"><span class="p">₱1,800.00</span>${pill('ok','Approved')}<span class="sub" style="grid-column:1/-1">Nov 4, 2026 · ref …2210 · OR-00071</span></li><li class="pcard"><span class="p">₱1,800.00</span>${pill('ok','Approved')}<span class="sub" style="grid-column:1/-1">Oct 2, 2026 · Made before you joined</span></li></ul></section></div>`},
+{id:'10D',req:'REQ-010',dev:'phone',opt:'rec',title:'Saving, offline and over-payment',scn:'"Pressing twice creates one payment", "The connection drops while sending", "Paying more than is owed".',note:'While uploading the button shows progress and is disabled. Offline keeps everything typed.',html:()=>payPage(payForm({saving:'Uploading screenshot… 60%'}),`<div class="alert warn" role="alert"><div class="grow">You're offline. Your details are kept. Press Submit again when you're back online.</div></div><p class="hint">That's ₱1,800.00 more than you owe. Once approved, the extra is kept as credit for your next bills.</p>`)},
+{id:'10E',req:'REQ-010',dev:'phone',opt:'alt',title:'Option B: screenshot optional',scn:'Option B only. Shown for comparison.',note:'Faster and stores fewer screenshots, but the treasurer has nothing to check when a reference is mistyped.',html:()=>payPage(payForm({shot:false,optional:true}))},
+
+/* ---------- REQ-011 ---------- */
+{id:'11A',req:'REQ-011',dev:'phone',opt:'rec',title:'Bell panel on a phone',scn:'"Unread notifications are counted", "Opening a notification marks it read and goes to the page", "On a phone the panel fills the screen".',note:'Fills the screen with Close at the top. Unread items are highlighted and marked "Unread" for screen readers, not only by colour.',html:()=>`<div style="position:relative;min-height:640px">${homeTop(2)}<div class="bellfull" role="dialog" aria-modal="true" aria-label="Notifications"><header><h2>Notifications</h2><div class="actions"><button class="btn sm" type="button">Mark all read</button><button class="btn sm" type="button">Close</button></div></header>${notifItems(NOTIFS)}<p class="hint" style="padding:12px 16px">Showing your 30 most recent notifications.</p></div></div>`},
+{id:'11B',req:'REQ-011',dev:'desk',opt:'rec',title:'Bell dropdown on desktop (treasurer)',scn:'"Staff get notifications for their role" and "Many unread".',note:'The mock-up\'s 360 px dropdown. Each treasurer has their own copy.',html:()=>`<div style="position:relative">${staffTop('Carmela Cruz','9+')}<div class="bellpanel" style="position:absolute;top:58px" role="region" aria-label="Notifications"><header><b>Notifications</b><button class="btn sm" type="button">Mark all read</button></header>${notifItems([[1,'Blk 5 Lot 1 submitted a payment of ₱1,800.00.','Today · 8:52 AM'],[1,'Blk 2 Lot 7 submitted a payment of ₱3,600.00.','Today · 8:31 AM'],[1,'January 2027 isn\'t billed yet. Open Collections to generate it.','Jan 1, 2027 · 9:00 AM'],[0,'The payment QR code was replaced by Rafael Gomez on Dec 2, 2026. If you didn\'t expect this, contact the board.','Dec 2, 2026 · 4:30 PM']])}</div>${shell(nav('Administration',STAFFNAV,'Dashboard'),ph('Dashboard','')+'<section class="card" style="min-height:380px"></section>')}</div>`},
+{id:'11C',req:'REQ-011',dev:'phone',opt:'rec',title:'Empty and error',scn:'"Nothing yet" and "Notifications fail to load".',note:'Two states stacked. The rest of the page keeps working when the bell fails.',html:()=>`<div style="position:relative;min-height:520px">${homeTop()}<div class="bellfull" role="dialog" aria-modal="true" aria-label="Notifications"><header><h2>Notifications</h2><button class="btn sm" type="button">Close</button></header><div class="empty">No notifications yet. We'll let you know here when something about your account changes.</div><div style="padding:16px;display:flex;flex-direction:column;gap:10px">${callout('Other state: error')}<div class="alert bad" role="alert"><div class="grow">We couldn't load your notifications. Try again.</div><button class="btn sm" type="button">Try again</button></div></div></div></div>`},
+{id:'11D',req:'REQ-011',dev:'phone',opt:'alt',title:'Option C: phone push permission',scn:'Option C only. Shown for comparison.',note:'Reaches the lock screen, but many people refuse the prompt, and on iPhones it needs the portal added to the home screen (unverified).',html:()=>homeTop()+`<div style="padding:16px;display:flex;flex-direction:column;gap:14px"><section class="card"><h2>Get notified on this phone?</h2><p>We'll tell you when your statement is ready or a payment is checked. You can turn this off in your phone's settings.</p><div class="actions"><button class="btn" type="button">Not now</button><button class="btn primary" type="button">Turn on notifications</button></div></section></div>`}
+];
+
+const REQS=[['REQ-005','Privacy notice'],['REQ-006','Activity log'],['REQ-007','Dues and QR settings'],['REQ-008','Billing run'],['REQ-009','Statement'],['REQ-010','Submit payment'],['REQ-011','Notifications']];
+let cur=0;
+function draw(){
+  const s=S[cur];
+  document.getElementById('mkreq').innerHTML=REQS.map(([r,l])=>`<button type="button" data-req="${r}" aria-pressed="${s.req===r}">${r} · ${l}</button>`).join('');
+  document.getElementById('mksel').innerHTML=S.map((x,i)=>`<option value="${i}" ${i===cur?'selected':''}>${x.id} · ${x.title}</option>`).join('');
+  document.getElementById('mkinfo').innerHTML=`<span class="k">${s.req} · Screen ${s.id}</span><h2>${s.title}</h2><div><span class="mkopt ${s.opt}">${s.opt==='rec'?'Recommended option':'Alternative option, for comparison'}</span></div><p><b>Shows:</b> ${s.scn}</p><p class="mknote">${s.note}</p>`;
+  document.getElementById('mkstage').innerHTML=`<div class="frame ${s.dev}">${s.html()}</div>`;
+  document.getElementById('mkprev').disabled=cur===0;document.getElementById('mknext').disabled=cur===S.length-1;
+  try{history.replaceState(null,'','#s'+s.id)}catch(e){}
+}
+document.addEventListener('click',e=>{
+  const r=e.target.closest('[data-req]');if(r){cur=S.findIndex(x=>x.req===r.dataset.req);draw();return}
+  if(e.target.id==='mkprev'&&cur>0){cur--;draw()}
+  if(e.target.id==='mknext'&&cur<S.length-1){cur++;draw()}
+});
+document.getElementById('mksel').addEventListener('change',e=>{cur=+e.target.value;draw()});
+const h=(location.hash||'').replace('#s','');const hi=S.findIndex(x=>x.id===h);if(hi>=0)cur=hi;
+draw();
+})();
+</script>
+
+</html>

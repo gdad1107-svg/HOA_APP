@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Payments and Announcements Mockup</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap">
+<style>
+/* Layout: sticky top bar with role switch, left nav rail (horizontal strip on phones), content column of cards and tables. */
+:root{
+  --bg:#FFFFFF; --surface:#F4F8F5; --surface-2:#E9F2EC; --line:#DAE6DE; --fg:#13241B; --muted:#5A6D62;
+  --accent:#1C7A4A; --accent-strong:#135B36; --accent-soft:#E2F1E8; --on-accent:#FFFFFF;
+  --ok:#1C7A4A; --ok-bg:#E2F1E8; --warn:#8F5B00; --warn-bg:#FCF0D6; --bad:#B42318; --bad-bg:#FDE7E4; --info:#1F5E8C; --info-bg:#E3EEF8;
+  --chart-2:#A9CDB8; --paper:#FFFFFF; --scrim:rgba(10,25,17,.45);
+  --shadow:0 1px 2px rgba(19,36,27,.05),0 6px 20px rgba(19,36,27,.06);
+  --f-head:"Plus Jakarta Sans",Inter,system-ui,sans-serif; --f-body:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:10px; color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--accent)}
+h1,h2,h3{font-family:var(--f-head);text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:1.6rem;font-weight:800}
+h2{font-size:1.1rem;font-weight:700}
+h3{font-size:.98rem;font-weight:700}
+p{margin:0}
+.num,td.money,.money{font-variant-numeric:tabular-nums}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:var(--accent)}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--accent);color:var(--on-accent)}
+.top .logo{background:var(--on-accent)} .top .logo svg{stroke:var(--accent)}
+.top .brand small,.top .who,.top .who-admin{color:rgba(255,255,255,.8)}
+.top .seg{background:rgba(255,255,255,.16)} .top .seg button{color:rgba(255,255,255,.85)}
+.top .seg button[aria-pressed="true"]{background:var(--on-accent);color:var(--accent-strong)}
+.top .bell{background:transparent;border-color:rgba(255,255,255,.4)} .top .bell svg{stroke:var(--on-accent)}
+.top .who select{border-color:transparent}
+.top .bellpanel{color:var(--fg)}
+.top-in{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.logo{width:34px;height:34px;border-radius:9px;background:var(--accent);display:grid;place-items:center;flex:none}
+.logo svg{width:20px;height:20px;stroke:var(--on-accent)}
+.brand b{font-family:var(--f-head);font-size:1rem;display:block;line-height:1.1}
+.brand small{color:var(--muted);font-size:.75rem}
+.seg{display:inline-flex;background:var(--surface-2);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;padding:6px 14px;border-radius:999px;cursor:pointer;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--bg);color:var(--accent-strong);box-shadow:var(--shadow)}
+.top-r{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.who{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--muted)}
+.who select{max-width:220px}
+.who-admin{font-size:.85rem;color:var(--muted)}
+.bell{position:relative;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--bg);cursor:pointer;display:grid;place-items:center}
+.bell svg{width:18px;height:18px;stroke:var(--fg)}
+.bell .dot{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;border-radius:9px;background:var(--bad);color:#fff;font-size:.68rem;font-weight:700;display:grid;place-items:center;padding:0 4px}
+.bellpanel{position:absolute;right:max(16px,env(safe-area-inset-right,0px));top:calc(100% + 6px);width:min(360px,calc(100vw - 32px));background:var(--bg);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 12px 32px rgba(0,0,0,.14);max-height:420px;overflow:auto}
+.bellpanel header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.notif{padding:10px 14px;border-bottom:1px solid var(--line);font-size:.85rem}
+.notif.unread{background:var(--accent-soft)}
+.notif small{display:block;color:var(--muted)}
+
+/* shell */
+.shell{display:grid;grid-template-columns:220px minmax(0,1fr);gap:28px;padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:1320px;margin:0 auto}
+nav.side{display:flex;flex-direction:column;gap:2px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 80px);align-self:start}
+nav.side .navlbl{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:0 12px 6px}
+nav.side button{display:flex;justify-content:space-between;align-items:center;text-align:left;border:0;background:transparent;padding:9px 12px;border-radius:8px;cursor:pointer;font-weight:500;color:var(--fg)}
+nav.side button:hover{background:var(--surface)}
+nav.side button[aria-current="page"]{background:var(--accent-soft);color:var(--accent-strong);font-weight:700}
+.badge{background:var(--accent);color:var(--on-accent);border-radius:999px;font-size:.7rem;font-weight:700;padding:1px 7px}
+main{min-width:0;display:flex;flex-direction:column;gap:20px}
+.menu-btn{display:none;width:38px;height:38px;border-radius:8px;border:1px solid rgba(255,255,255,.4);background:transparent;cursor:pointer;place-items:center;flex:none}
+.menu-btn svg{width:20px;height:20px;stroke:var(--on-accent)}
+.navscrim{position:fixed;inset:0;background:var(--scrim);z-index:39}
+@media (max-width:860px){
+  .shell{grid-template-columns:172px minmax(0,1fr);gap:16px;padding-block:16px 40px}
+  nav.side button{padding:8px 10px;font-size:.88rem}
+  .who span{display:none}
+}
+@media (max-width:640px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .menu-btn{display:grid}
+  nav.side{position:fixed;top:0;bottom:0;left:0;width:min(280px,82vw);z-index:40;background:var(--bg);padding:calc(env(safe-area-inset-top,0px) + 18px) 12px 18px max(12px,env(safe-area-inset-left,0px));box-shadow:4px 0 24px rgba(0,0,0,.18);transform:translateX(-105%);transition:transform .2s ease;overflow-y:auto;align-self:stretch}
+  nav.side button{padding:11px 12px;font-size:.95rem}
+  body.nav-open nav.side{transform:none}
+}
+@media (prefers-reduced-motion:reduce){nav.side{transition:none}}
+
+/* building blocks */
+.ph{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.ph p{color:var(--muted);margin-top:4px}
+.card{background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:18px;min-width:0;display:flex;flex-direction:column;gap:14px}
+.card.soft{background:var(--surface);border-color:transparent}
+.card-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.card-h p{color:var(--muted);font-size:.85rem}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g-73{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr)}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:1060px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){.g2,.g-73{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:420px){.tiles{grid-template-columns:minmax(0,1fr)}}
+.tile{background:var(--surface);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.tile.hero{background:var(--accent);color:var(--on-accent)}
+.tile.hero .tile-l,.tile.hero .tile-s{color:var(--on-accent);opacity:.85}
+.tile-l{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+.tile-v{font-family:var(--f-head);font-size:1.55rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.2}
+.tile-s{font-size:.82rem;color:var(--muted)}
+.tile .btn{margin-top:8px;align-self:flex-start}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:8px 14px;border-radius:8px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--surface)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.primary:hover{background:var(--accent-strong);border-color:var(--accent-strong)}
+.btn.onhero{background:var(--on-accent);color:var(--accent-strong);border-color:transparent}
+.btn.danger{color:var(--bad);border-color:var(--bad-bg)}
+.btn.danger:hover{background:var(--bad-bg)}
+.btn.sm{padding:5px 10px;font-size:.8rem}
+.btn.link{border:0;background:none;padding:0;color:var(--accent);font-weight:600}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.actions{display:flex;gap:6px;flex-wrap:wrap}
+
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;font-size:.75rem;font-weight:600;white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.p-ok{background:var(--ok-bg);color:var(--ok)} .p-warn{background:var(--warn-bg);color:var(--warn)}
+.p-bad{background:var(--bad-bg);color:var(--bad)} .p-info{background:var(--info-bg);color:var(--info)}
+.p-muted{background:var(--surface-2);color:var(--muted)}
+
+.alert{display:flex;gap:12px;align-items:flex-start;padding:12px 16px;border-radius:var(--r);border:1px solid}
+.alert.warn{background:var(--warn-bg);border-color:transparent;color:var(--fg)}
+.alert.bad{background:var(--bad-bg);border-color:transparent}
+.alert.info{background:var(--info-bg);border-color:transparent}
+.alert b{display:block}
+.alert .grow{flex:1;min-width:0}
+
+.tbl{overflow-x:auto;margin:0 -4px}
+table{width:100%;border-collapse:collapse;font-size:.86rem}
+th{text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td.money,th.money{text-align:right;white-space:nowrap}
+tfoot td{font-weight:700;border-top:2px solid var(--line);border-bottom:0}
+tr.click{cursor:pointer} tr.click:hover td{background:var(--surface)}
+.sub{color:var(--muted);font-size:.78rem;display:block}
+.empty{color:var(--muted);text-align:center;padding:24px 8px;font-size:.9rem}
+
+form.f{display:flex;flex-direction:column;gap:12px}
+label.fl{display:flex;flex-direction:column;gap:5px;font-size:.8rem;font-weight:600;color:var(--muted)}
+input[type=text],input[type=number],input[type=date],input[type=search],select,textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:8px 10px;font-weight:400;color:var(--fg)}
+input[type=file]{font-size:.8rem;color:var(--muted);max-width:100%}
+textarea{min-height:84px;resize:vertical}
+.row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:480px){.row2{grid-template-columns:minmax(0,1fr)}}
+.check{display:flex;gap:8px;align-items:center;font-size:.88rem}
+.hint{font-size:.78rem;color:var(--muted);font-weight:400}
+
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{border:0;background:none;padding:10px 14px;cursor:pointer;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;display:flex;gap:6px;align-items:center}
+.tabs button[aria-selected="true"]{color:var(--accent-strong);border-bottom-color:var(--accent)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--bg);padding:5px 12px;border-radius:999px;cursor:pointer;font-weight:600;font-size:.8rem}
+.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-strong)}
+
+/* QR pay */
+.qrwrap{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.qrbox{background:var(--paper);padding:10px;border-radius:12px;border:1px solid var(--line);width:180px;flex:none}
+.qrbox canvas,.qrbox img{display:block;width:100%;height:auto;image-rendering:pixelated}
+.qrbox .qrtag{color:#13241B;text-align:center;font-size:.68rem;font-weight:700;letter-spacing:.08em;margin-top:6px}
+.payee{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.payee b{font-family:var(--f-head)}
+.steps{margin:0;padding-left:18px;color:var(--muted);font-size:.82rem;display:flex;flex-direction:column;gap:2px}
+
+/* amenities */
+.amen{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:760px){.amen{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.amen button{text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:var(--r);padding:12px 14px;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+.amen button b{font-family:var(--f-head)}
+.amen button span{font-size:.8rem;color:var(--muted)}
+.amen button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.cal-h{display:flex;justify-content:space-between;align-items:center}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cal .dow{font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;text-align:center;color:var(--muted);padding:4px 0}
+.cal button{aspect-ratio:1/1;max-width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-variant-numeric:tabular-nums;font-weight:600;font-size:.85rem;padding:0}
+.cal button:disabled{opacity:.35;cursor:not-allowed}
+.cal button .bar{width:60%;height:4px;border-radius:2px;background:var(--surface-2);overflow:hidden}
+.cal button .bar i{display:block;height:100%;background:var(--accent)}
+.cal button.full .bar i{background:var(--bad)}
+.cal button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.cal button[aria-pressed="true"] .bar{background:rgba(255,255,255,.35)}
+.cal button.today{border-color:var(--accent)}
+.legend{display:flex;gap:14px;font-size:.75rem;color:var(--muted);flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:4px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media (max-width:480px){.slots{grid-template-columns:minmax(0,1fr)}}
+.slot{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:8px;padding:9px 12px;cursor:pointer;position:relative}
+.slot input{position:absolute;opacity:0;pointer-events:none}
+.slot-t{font-weight:700;font-variant-numeric:tabular-nums}
+.slot-s{font-size:.75rem;color:var(--ok)}
+.slot.taken{background:var(--surface);cursor:not-allowed}
+.slot.taken .slot-s{color:var(--muted)}
+.slot:has(input:checked){border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.slot:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
+.feebox{background:var(--surface);border-radius:8px;padding:10px 12px;font-size:.84rem}
+
+/* vehicles */
+.vlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.vcard{border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:10px}
+.plate{background:var(--paper);color:#13241B;border:2px solid #13241B;border-radius:6px;padding:4px 10px 6px;text-align:center;align-self:flex-start;min-width:150px}
+.plate small{display:block;font-size:.56rem;letter-spacing:.3em;font-weight:700;color:#1C7A4A}
+.plate b{font-family:var(--f-head);font-size:1.3rem;letter-spacing:.08em}
+.vmeta{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+
+/* tickets */
+details.tk{border:1px solid var(--line);border-radius:var(--r)}
+details.tk summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+details.tk summary::-webkit-details-marker{display:none}
+details.tk[open] summary{border-bottom:1px solid var(--line)}
+.tk-body{padding:12px 14px;display:flex;flex-direction:column;gap:12px}
+.timeline{display:flex;flex-direction:column;gap:10px;border-left:2px solid var(--line);margin-left:4px;padding-left:14px}
+.timeline div{position:relative;font-size:.85rem}
+.timeline div::before{content:"";position:absolute;left:-20px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid var(--bg)}
+.timeline small{color:var(--muted);display:block}
+.thumb{max-width:220px;border-radius:8px;border:1px solid var(--line)}
+
+/* announcements */
+.news{display:flex;flex-direction:column;gap:2px}
+.news article{padding:12px 0;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:4px}
+.news article:last-child{border-bottom:0}
+.news time{font-size:.75rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+
+/* chart */
+.chart{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font-size:11px;font-family:var(--f-body)}
+.chart .grid line{stroke:var(--line)}
+.hbar{display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr) auto;gap:10px;align-items:center;font-size:.84rem}
+.hbar .track{height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden}
+.hbar .track i{display:block;height:100%;background:var(--accent);border-radius:5px}
+
+.fund{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.fund div{padding:14px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.fund div:last-child{border-right:0;background:var(--accent-soft)}
+.fund span{font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+.fund b{font-family:var(--f-head);font-size:1.1rem;font-variant-numeric:tabular-nums}
+@media (max-width:760px){.fund{grid-template-columns:minmax(0,1fr)}.fund div{border-right:0;border-bottom:1px solid var(--line)}}
+
+/* letter */
+.letter{background:var(--paper);color:#1d1d1d;padding:36px 40px;border-radius:4px;border:1px solid var(--line);font-family:Georgia,"Times New Roman",serif;font-size:.92rem;line-height:1.6;display:flex;flex-direction:column;gap:12px}
+.letter .lh{display:flex;justify-content:space-between;gap:12px;border-bottom:2px solid #1C7A4A;padding-bottom:10px;flex-wrap:wrap}
+.letter .lh b{font-family:var(--f-head);color:#135B36;font-size:1.05rem}
+.letter .lh small{display:block;color:#555;font-family:var(--f-body);font-size:.75rem}
+.letter h4{margin:4px 0 0;font-family:var(--f-head);letter-spacing:.06em;text-transform:uppercase;font-size:.95rem;color:#135B36}
+.letter h4.final{color:#B42318}
+.letter table{font-family:var(--f-body);font-size:.8rem;color:#1d1d1d}
+.letter th{color:#555;border-color:#ddd}.letter td{border-color:#eee}
+@media (max-width:560px){.letter{padding:20px}}
+
+/* modal + toast */
+.modal-wrap{position:fixed;inset:0;background:var(--scrim);z-index:50;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding-block:calc(env(safe-area-inset-top,0px) + 40px) 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.modal{background:var(--bg);border-radius:14px;width:min(560px,100%);box-shadow:0 20px 60px rgba(0,0,0,.25);display:flex;flex-direction:column}
+.modal.wide{width:min(760px,100%)}
+.modal-h{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line);gap:10px}
+.modal-b{padding:18px 20px;display:flex;flex-direction:column;gap:14px}
+.modal-f{padding:14px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.x{border:0;background:none;font-size:1.4rem;line-height:1;cursor:pointer;color:var(--muted)}
+.proof{max-width:100%;max-height:70vh;margin:0 auto;display:block;border-radius:8px}
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 16px;font-size:.88rem}
+.kv dt{color:var(--muted)} .kv dd{margin:0;font-weight:600}
+#toasts{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);left:50%;transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;gap:8px;align-items:center;width:min(420px,calc(100vw - 32px))}
+.toast{background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:.88rem;box-shadow:0 8px 24px rgba(0,0,0,.2);animation:tin .2s ease-out}
+.toast.bad{background:var(--bad);color:#fff}
+@keyframes tin{from{transform:translateY(8px);opacity:.4}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.toast{animation:none}}
+.ann{display:flex;gap:14px;align-items:flex-start;padding:14px 16px;border-radius:var(--r);background:var(--accent-soft);border:1px solid var(--accent)}
+.ann .grow{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.ann-k{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--accent-strong)}
+.ann b{font-family:var(--f-head);font-size:1rem}
+.ann p{font-size:.88rem}
+.ann-ic{width:36px;height:36px;border-radius:50%;background:var(--accent);display:grid;place-items:center;flex:none}
+.ann-ic svg{width:18px;height:18px;stroke:var(--on-accent)}
+.ann .actions{align-items:center;flex-wrap:nowrap}
+.ann.imp{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.ann.imp .ann-k,.ann.imp .x{color:var(--on-accent)}
+.ann.imp .ann-ic{background:var(--on-accent)} .ann.imp .ann-ic svg{stroke:var(--accent)}
+@media (max-width:640px){.ann{flex-wrap:wrap}.ann .actions{width:100%;justify-content:space-between}}
+.tipline{display:flex;justify-content:space-between;gap:14px}
+#tip{position:fixed;z-index:70;pointer-events:none;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.8rem;box-shadow:0 8px 24px rgba(19,36,27,.14);min-width:160px;font-variant-numeric:tabular-nums}
+#tip b{display:block;margin-bottom:4px;font-family:var(--f-head)}
+#tip .sw{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
+.viz{--s1:#1C7A4A;--s2:#257de0}
+.chart .hit{fill:transparent;cursor:pointer} .chart .hit:hover,.chart .hit:focus{fill:var(--surface-2)} .chart .hit:focus{outline:none}
+.chart .tot{fill:var(--fg);font-weight:600;font-size:11px}
+.insight{font-size:.85rem;color:var(--fg);background:var(--surface);border-radius:8px;padding:8px 12px}
+.insight b{color:var(--accent-strong)}
+.heat{width:100%;border-collapse:separate;border-spacing:3px;font-size:.82rem}
+.heat th{border:0;padding:4px 6px;text-align:right}.heat th:first-child{text-align:left}
+.heat td{border:0;border-radius:4px;padding:8px 6px;text-align:right;font-variant-numeric:tabular-nums;cursor:default}
+.heat td.rowh{text-align:left;font-weight:700;background:none;padding-left:0;white-space:nowrap}
+.heat td.tot{font-weight:700;background:var(--surface)}
+.heat tr.sum td{font-weight:700;background:var(--surface)}
+.heat td.na{color:var(--muted);background:var(--surface)}
+.split{display:flex;height:28px;border-radius:6px;overflow:hidden;gap:2px}
+.split i{display:block;height:100%}
+.split-l{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:.85rem}
+.split-l span{display:flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:10px;height:10px;border-radius:3px;flex:none}
+.hero-n{font-family:var(--f-head);font-size:1.9rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+.hbars{display:flex;flex-direction:column;gap:10px}
+@media (max-width:640px){.hbars .hbar{grid-template-columns:minmax(0,1fr) auto!important;row-gap:4px}.hbars .hbar .track{grid-column:1/-1;grid-row:2}}
+.hbar .track i.alt{background:var(--chart-2)}
+.note{font-size:.78rem;color:var(--muted)}
+details.tv summary{cursor:pointer;font-size:.82rem;font-weight:600;color:var(--accent)}
+.rtypes{display:flex;flex-direction:column;gap:6px}
+.rtype{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:9px 12px;cursor:pointer}
+.rtype input{margin-top:3px;accent-color:var(--accent)}
+.rtype:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.rtype b{display:block;font-size:.88rem}
+.rtype span{font-size:.78rem;color:var(--muted)}
+.rtype .auto{color:var(--accent-strong);font-weight:600}
+.rr{border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:10px}
+.rr-h{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.stepper{display:flex;gap:4px}
+.stepper span{flex:1;font-size:.72rem;font-weight:600;color:var(--muted);border-top:3px solid var(--surface-2);padding-top:5px}
+.stepper span.on{color:var(--accent-strong);border-color:var(--accent)}
+.stepper span.bad{color:var(--bad);border-color:var(--bad)}
+.dyn{display:flex;gap:8px;align-items:center}
+.dyn input{flex:1;min-width:0}
+.dyn .x{flex:none;width:28px}
+.passes{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.pass{border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;gap:12px;align-items:flex-start}
+.pass.dim{opacity:.6}
+.pass img.qr{width:84px;height:84px;flex:none;border-radius:6px;border:1px solid var(--line);background:#fff;image-rendering:pixelated}
+.pass .grow{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.qrbig{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;align-self:center;width:min(280px,100%)}
+.qrbig img{display:block;width:100%;image-rendering:pixelated}
+.code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:1.3rem;font-weight:700;letter-spacing:.12em;text-align:center}
+.verdict{border-radius:var(--r);padding:16px 18px;display:flex;gap:14px;align-items:center}
+.verdict b{font-family:var(--f-head);font-size:1.4rem;display:block}
+.verdict.ok{background:var(--accent);color:var(--on-accent)}
+.verdict.bad{background:var(--bad);color:#fff}
+.verdict.warn{background:var(--warn-bg);color:var(--fg)}
+.verdict .ic{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.2);display:grid;place-items:center;font-size:1.5rem;font-weight:800;flex:none}
+.gst{border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.gst-h{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+.gst-h b{font-size:1rem}
+.gst form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:10px;align-items:end}
+@media (max-width:760px){.gst form{grid-template-columns:minmax(0,1fr)}}
+.bigbtn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:2px dashed var(--accent);border-radius:14px;padding:28px 16px;cursor:pointer;background:var(--accent-soft);color:var(--accent-strong);font-weight:700;font-size:1.05rem;text-align:center}
+.bigbtn small{font-weight:500;color:var(--muted);font-size:.8rem}
+.bigbtn input{position:absolute;opacity:0;width:1px;height:1px}
+.bigbtn:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.idthumb{width:56px;height:36px;object-fit:cover;border-radius:4px;border:1px solid var(--line);cursor:pointer}
+.steplbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--accent-strong);margin:0}
+.req{color:var(--bad)}
+.demo-note{font-size:.75rem;color:var(--muted)}
+</style>
+<style>
+/* Mockup viewer: a review bar on top, then one screen at a time in a phone or desktop frame, using the mock-up's own styles above. */
+.mk{--mk-bg:#EEF3F0;--mk-ink:#13241B;--mk-muted:#5A6D62;--mk-line:#D2DFD7}
+html,body{background:#EEF3F0}
+body::before{display:none}
+.mkbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:80;background:#13241B;color:#fff;padding-block:12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:10px}
+.mkbar h1{font-size:1.05rem;color:#fff}
+.mkbar p{font-size:.8rem;color:rgba(255,255,255,.75)}
+.mkrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.mkrow select{width:auto;max-width:100%;background:#fff;color:#13241B}
+.mkrow .btn{background:transparent;color:#fff;border-color:rgba(255,255,255,.35)}
+.mkrow .btn:hover{background:rgba(255,255,255,.1)}
+.mkreq{display:flex;gap:6px;flex-wrap:wrap}
+.mkreq button{border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:999px;padding:4px 12px;font-weight:600;font-size:.8rem;cursor:pointer}
+.mkreq button[aria-pressed="true"]{background:#fff;color:#13241B}
+.mkwrap{max-width:1180px;margin:0 auto;padding-block:20px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+.mkinfo{background:#fff;border:1px solid #D2DFD7;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.mkinfo .k{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:#135B36}
+.mkinfo h2{font-size:1.15rem}
+.mkinfo p{font-size:.86rem;color:#3d4f45}
+.mkopt{display:inline-flex;gap:6px;align-items:center;font-size:.75rem;font-weight:700;border-radius:999px;padding:2px 10px}
+.mkopt.rec{background:#E2F1E8;color:#135B36}.mkopt.alt{background:#FCF0D6;color:#8F5B00}
+.frame{background:#fff;border:1px solid #C9D8CF;border-radius:14px;overflow:hidden;box-shadow:0 10px 30px rgba(19,36,27,.08);position:relative;align-self:center;width:100%}
+.frame.phone{max-width:390px;border-radius:28px;border:8px solid #13241B}
+.frame.desk{max-width:1180px}
+.frame.paper{max-width:720px;border-radius:4px;background:#fff}
+.frame .shell{max-width:none}
+.frame .modal-wrap{position:absolute}
+.frame.phone .shell{grid-template-columns:minmax(0,1fr);padding-block:16px 24px}
+.frame.phone nav.side{display:none}
+.frame.phone .top-in{gap:10px}
+.frame.phone .menu-btn{display:grid}
+.mknav{display:flex;justify-content:space-between;gap:8px}
+.signbox{max-width:400px;margin:0 auto;display:flex;flex-direction:column;gap:16px;padding-block:28px 32px}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;border:1px solid #747775;background:#fff;color:#1F1F1F;border-radius:8px;padding:11px 14px;font-weight:600;min-height:44px;width:100%;cursor:pointer}
+.gbtn svg{width:18px;height:18px}
+.or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.8rem}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+.f input[type=email],.f input[type=password],.f input[type=tel]{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:10px 12px;font-weight:400;color:var(--fg);min-height:44px}
+.f .btn.primary.big{padding:12px 14px;min-height:44px;width:100%}
+.ferr{color:var(--bad);font-size:.78rem;font-weight:600}
+input.bad{border-color:var(--bad)!important;box-shadow:0 0 0 1px var(--bad)}
+.pwrow{display:flex;gap:8px;align-items:center}
+.pwrow input{flex:1}
+.codein{font-family:ui-monospace,SFMono-Regular,Menlo,monospace!important;font-size:1.3rem!important;letter-spacing:.14em;text-transform:uppercase;text-align:center}
+.mail{font-family:var(--f-body);background:#fff;display:flex;flex-direction:column}
+.mail .mh{padding:14px 16px;border-bottom:1px solid #e5e5e5;font-size:.82rem;color:#555;display:flex;flex-direction:column;gap:2px}
+.mail .mh b{color:#111;font-size:.95rem}
+.mail .mb{padding:22px 18px;display:flex;flex-direction:column;gap:14px;font-size:.92rem}
+.mail .brandline{display:flex;align-items:center;gap:10px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;padding:18px}
+.rolecol{border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:2px}
+.rolecol h3{margin-bottom:6px}
+.rolecol .it{padding:6px 8px;border-radius:6px;font-size:.86rem}
+.rolecol .it.on{background:var(--accent-soft);color:var(--accent-strong);font-weight:700}
+.rolecol .ro{font-size:.72rem;color:var(--muted);margin-top:6px}
+.hocards{display:flex;flex-direction:column;gap:10px}
+.hocard{border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.hocard .r{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.slip{border:2px dashed #9fb5a8;border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:8px}
+.slips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:24px}
+@media (max-width:640px){.slips{grid-template-columns:minmax(0,1fr)}}
+.membr{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--line)}
+.membr:last-child{border-bottom:0}
+.errlist{display:flex;flex-direction:column;gap:10px}
+.callout{font-size:.75rem;font-weight:700;color:#8F5B00;background:#FCF0D6;border-radius:6px;padding:4px 8px;align-self:flex-start}
+.mknote{font-size:.8rem;color:#3d4f45}
+/* REQ-012 to REQ-017 additions */
+.mkcopy{background:#fff;border:1px solid #D2DFD7;border-radius:10px;padding:14px 16px}
+.mkcopy summary{cursor:pointer;font-weight:700;color:#135B36}
+.mkcopy table{margin-top:10px}
+.shot{background:linear-gradient(#0a5ad6,#0a5ad6 64px,#fff 64px);border:1px solid var(--line);border-radius:14px;width:220px;max-width:100%;padding:14px;display:flex;flex-direction:column;gap:8px;align-items:center;color:#13241B;font-size:.8rem;margin:0 auto}
+.shot .wl{color:#fff;font-weight:800;font-size:.95rem;align-self:flex-start}
+.shot .ok{width:40px;height:40px;border-radius:50%;background:#1C7A4A;color:#fff;display:grid;place-items:center;font-weight:800;margin-top:14px}
+.shot b{font-size:1.3rem}
+.shot .ln{display:flex;justify-content:space-between;width:100%;border-top:1px dashed #ccd;padding-top:6px}
+.shotbox{background:var(--surface);border-radius:var(--r);padding:16px;min-height:340px;display:flex;align-items:center;justify-content:center}
+.rv{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:760px){.rv{grid-template-columns:minmax(0,1fr)}}
+.frame.phone .rv{grid-template-columns:minmax(0,1fr)}
+.paycard{border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.paycard .r{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.paycard .amt{font-family:var(--f-head);font-weight:800;font-size:1.05rem;font-variant-numeric:tabular-nums}
+.paycard .amt.strike{text-decoration:line-through;color:var(--muted)}
+.bottombar{position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding:12px 16px;display:flex;gap:8px}
+.bottombar .btn{flex:1;min-height:44px}
+.rcpt{padding:34px 38px;font-family:Inter,system-ui,sans-serif;color:#13241B;display:flex;flex-direction:column;gap:14px;position:relative;overflow:hidden}
+.rcpt .rh{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1C7A4A;padding-bottom:10px;gap:12px;flex-wrap:wrap}
+.rcpt .rh b{font-family:var(--f-head);color:#135B36;font-size:1.05rem}
+.rcpt .rh small{display:block;color:#5A6D62;font-size:.72rem}
+.rcpt .t{font-family:var(--f-head);font-weight:800;letter-spacing:.08em;color:#135B36;font-size:1rem}
+.rcpt .meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;font-size:.8rem}
+.rcpt .meta span{display:block;font-size:.66rem;color:#5A6D62;letter-spacing:.06em;text-transform:uppercase}
+.rcpt .orno{color:#B42318;font-weight:800;font-size:1.15rem}
+.rcpt .amtbox{background:#E2F1E8;border-radius:6px;padding:12px 14px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.rcpt .amtbox b{font-size:1.4rem;font-family:var(--f-head)}
+.rcpt .sig{align-self:flex-end;border-top:1px solid #13241B;padding-top:6px;min-width:220px;font-size:.82rem}
+.rcpt .fine{font-size:.72rem;color:#5A6D62}
+.voidstamp{position:absolute;top:40%;left:50%;transform:translate(-50%,-50%) rotate(-18deg);border:5px solid #B42318;color:#B42318;font-family:var(--f-head);font-weight:800;font-size:3.2rem;letter-spacing:.2em;padding:6px 26px;border-radius:10px;opacity:.85;text-align:center;line-height:1.1;background:rgba(255,255,255,.6)}
+.voidstamp small{display:block;font-size:.8rem;letter-spacing:.04em;font-weight:700}
+.skel{background:linear-gradient(90deg,var(--surface-2),var(--surface),var(--surface-2));border-radius:8px;min-height:18px}
+.tile.skelt{min-height:120px}
+.stickyimp{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:var(--r);background:var(--accent);color:var(--on-accent)}
+</style>
+
+<div class="mk">
+  <div class="mkbar">
+    <div><h1>Payments and announcements mockup · REQ-012 to REQ-017</h1><p>Draft for owner review. Sample HOA and invented people only. Each screen names the REQ scenario it shows. Comment on any screen.</p></div>
+    <div class="mkrow">
+      <div class="mkreq" id="mkreq" role="group" aria-label="Requirement"></div>
+    </div>
+    <div class="mkrow">
+      <label for="mksel" style="font-size:.8rem;color:rgba(255,255,255,.8)">Screen</label>
+      <select id="mksel"></select>
+      <button class="btn sm" id="mkprev" type="button">‹ Previous</button>
+      <button class="btn sm" id="mknext" type="button">Next ›</button>
+    </div>
+  </div>
+  <div class="mkwrap">
+    <div class="mkinfo" id="mkinfo"></div>
+    <div id="mkstage" style="display:flex;flex-direction:column"></div>
+    <details class="mkcopy" id="mkcopy"><summary>Copy of record for this requirement</summary><div class="tbl" id="mkcopyb"></div></details>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const HOA='Greenfield Homes HOA';
+const HOUSE='<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>';
+const BELL='<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1112 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 004 0"/></svg>';
+const MEGA='<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 001 1h3l5 4V6L7 10H4a1 1 0 00-1 1z"/><path d="M16 8a5 5 0 010 8"/></svg>';
+const MENU='<button class="menu-btn" aria-label="Open menu" type="button"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>';
+
+function appTop(opts){
+  const o=opts||{};const menu=!!o.menu,seg=o.seg||'',right=o.right||'',sub=o.sub||'Resident portal';
+  return `<header class="top"><div class="top-in">${menu?MENU:''}<div class="brand"><span class="logo">${HOUSE}</span><div><b>${HOA}</b><small>${sub}</small></div></div>${seg}<div class="top-r">${right}</div></div></header>`;
+}
+const bell=n=>`<button class="bell" aria-label="Notifications" type="button">${BELL}${n?`<span class="dot">${n}</span>`:''}</button>`;
+function nav(lbl,items,cur){return `<nav class="side" aria-label="Sections"><div class="navlbl">${lbl}</div>${items.map(i=>{const nm=Array.isArray(i)?i[0]:i,b=Array.isArray(i)?i[1]:0;return `<button type="button" ${nm===cur?'aria-current="page"':''}><span>${nm}</span>${b?`<span class="badge">${b}</span>`:''}</button>`}).join('')}</nav>`}
+const shell=(n,m)=>`<div class="shell">${n}<main>${m}</main></div>`;
+const ph=(t,s,r)=>`<div class="ph"><div><h1>${t}</h1>${s?`<p>${s}</p>`:''}</div>${r?`<div class="actions">${r}</div>`:''}</div>`;
+const pill=(k,t)=>`<span class="pill p-${k}">${t}</span>`;
+const modal=(title,body,foot,wide)=>`<div class="modal-wrap"><div class="modal ${wide?'wide':''}" role="dialog" aria-modal="true" aria-label="${title}"><div class="modal-h"><h2>${title}</h2><button class="x" aria-label="Close" type="button">×</button></div><div class="modal-b">${body}</div>${foot?`<div class="modal-f">${foot}</div>`:''}</div></div>`;
+const toast=(t,bad)=>`<div style="position:absolute;left:50%;bottom:20px;transform:translateX(-50%);width:min(420px,calc(100% - 32px));z-index:55"><div class="toast ${bad?'bad':''}" role="status">${t}</div></div>`;
+const TNAV=[['Dashboard'],['Approvals',3],['Homeowners'],['Announcements'],['Settings']];
+const TNAV0=[['Dashboard'],['Approvals',0],['Homeowners'],['Announcements'],['Settings']];
+const ANAV=['Dashboard','Homeowners','Announcements','Settings'];
+const BNAV=['Dashboard','Announcements'];
+const HNAV=['Dashboard','Dues & Payments','Announcements'];
+const tTop=(n)=>appTop({right:`<span class="who-admin">Signed in as <b>Liza Santos</b> · Treasurer</span>${bell(n||0)}`});
+const aTop=()=>appTop({right:`<span class="who-admin">Signed in as <b>Paolo Aquino</b> · Admin office</span>${bell(0)}`});
+const hTop=(n)=>appTop({menu:true,right:bell(n||0)});
+const shot=(amt,ref)=>`<div class="shot" role="img" aria-label="Payment screenshot from Blk 2 Lot 7, submitted Nov 27, 2026"><span class="wl">e-Wallet</span><span class="ok">✓</span><span>Payment successful</span><b>${amt}</b><div class="ln"><span>To</span><span>GREENFIELD HOMES HOA</span></div><div class="ln"><span>Ref No.</span><span>${ref}</span></div><div class="ln"><span>Date</span><span>Nov 27, 2026 8:14 PM</span></div></div>`;
+
+const PEND=[['Blk 2 Lot 7','₱1,800.00','4012883219554','Nov 27, 2026'],['Blk 6 Lot 3','₱3,600.00','7720019384410','Nov 27, 2026'],['Blk 1 Lot 15','₱1,800.00','5108832750012','Nov 28, 2026']];
+function apprList(phone){
+  const cards=`<div class="hocards">${PEND.map(p=>`<div class="paycard"><div class="r"><b>${p[0]}</b><span class="amt">${p[1]}</span></div><span class="sub">Ref ${p[2]} · Submitted ${p[3]}</span><button class="btn sm primary" type="button" style="align-self:flex-start;min-height:44px">Review</button></div>`).join('')}</div>`;
+  const table=`<div class="tbl"><table><thead><tr><th>Submitted</th><th>Lot</th><th>Reference no.</th><th class="money">Amount</th><th></th></tr></thead><tbody>${PEND.map(p=>`<tr><td>${p[3]}</td><td><b>${p[0]}</b></td><td class="num">${p[2]}</td><td class="money"><b>${p[1]}</b></td><td><button class="btn sm primary" type="button">Review</button></td></tr>`).join('')}</tbody></table></div>`;
+  return ph('Payments to approve','Check each reference number in the collection account before you approve.')+`<section class="card"><div class="card-h"><h2>Pending approval</h2>${pill('info','3 waiting · oldest first')}</div>${phone?cards:table}</section>`;
+}
+function review(opts){
+  const o=opts||{};
+  const buttons=o.own?`<div class="alert info"><div class="grow"><b>This is your own household's payment.</b>Another treasurer must decide it.</div></div>`:`<div class="actions"><button class="btn primary" type="button" ${o.busy?'disabled':''} style="min-height:44px;min-width:140px">${o.busy?'Approving…':'Approve'}</button><button class="btn danger" type="button" ${o.busy?'disabled':''} style="min-height:44px">Reject</button></div>`;
+  const lot=o.own?'Blk 9 Lot 3':'Blk 2 Lot 7',by=o.own?'Liza Santos':'Carlo Reyes';
+  return ph('Review payment','1 of 3 waiting',`<button class="btn" type="button">‹ Back to list</button>`)+`<div class="rv"><section class="card"><h2>Screenshot</h2><div class="shotbox">${o.noshot?`<div class="alert bad" role="alert"><div class="grow"><b>Couldn't load the screenshot.</b><button class="btn sm" type="button" style="margin-top:6px">Try again</button></div></div>`:shot('₱1,800.00','4012 883 219554')}</div></section>
+  <section class="card"><h2>Details</h2><dl class="kv"><dt>Lot</dt><dd>${lot}</dd><dt>Submitted by</dt><dd>${by}</dd><dt>Amount</dt><dd>₱1,800.00</dd><dt>Reference number</dt><dd class="num">4012883219554</dd><dt>Date paid</dt><dd>Nov 27, 2026</dd><dt>Balance before this payment</dt><dd>₱1,800.00</dd></dl><p class="hint">Find this reference number in the collection account. The screenshot alone is not proof.</p><div style="min-height:52px">${buttons}</div></section></div>`;
+}
+function rPaper(o){
+  const x=o||{};
+  return `<div class="rcpt">${x.void?`<div class="voidstamp" aria-label="Void">VOID<small>Dec 2, 2026 · Duplicate of OR-00090</small></div>`:''}
+  <div class="rh"><div style="display:flex;gap:10px;align-items:center"><span class="logo">${HOUSE}</span><div><b>${HOA}</b><small>Blk 1, Greenfield Ave., Sample City</small></div></div><span class="t">OFFICIAL RECEIPT</span></div>
+  <div class="meta"><div><span>Official Receipt No.</span><b class="orno">${x.or||'OR-00093'}</b></div><div><span>Date of payment</span><b>Nov 27, 2026</b></div><div><span>Date issued</span><b>Nov 28, 2026</b></div></div>
+  <div><span class="hint">RECEIVED FROM</span><div><b>${x.name||'Ana Reyes'}</b> · ${x.lot||'Blk 2 Lot 7'}</div></div>
+  <div class="amtbox"><div><span class="hint">AMOUNT RECEIVED</span><br><b>${x.amt||'₱1,800.00'}</b></div><div style="flex:1;min-width:200px">The sum of ${x.words||'One Thousand Eight Hundred Pesos Only'}</div></div>
+  <div class="tbl"><table><thead><tr><th>Applied to</th><th class="money">Amount</th></tr></thead><tbody>${(x.lines||[['Association dues · October 2026','₱1,800.00']]).map(l=>`<tr><td>${l[0]}</td><td class="money">${l[1]}</td></tr>`).join('')}</tbody><tfoot><tr><td>Total</td><td class="money">${x.amt||'₱1,800.00'}</td></tr></tfoot></table></div>
+  <div class="tbl"><table><thead><tr><th>Payment method</th><th>Reference no.</th><th>Paid to</th></tr></thead><tbody><tr><td>QR Ph transfer</td><td class="num">4012883219554</td><td>Greenfield Homes HOA Collection</td></tr></tbody></table></div>
+  <p style="font-size:.84rem">Account balance after this payment, as of Nov 28, 2026: <b>${x.after||'Fully paid'}</b></p>
+  <div class="sig"><b>Approved by Liza Santos, Treasurer</b></div>
+  <p class="fine">This receipt was issued electronically by the ${HOA} portal after the treasurer matched the reference number with the collection account. Keep it for your records.</p>
+  <p class="fine" style="border-top:1px solid #DAE6DE;padding-top:6px">${HOA} · ${x.or||'OR-00093'} · ${x.lot||'Blk 2 Lot 7'}</p></div>`;
+}
+function hPays(rows){
+  return `<section class="card"><div class="card-h"><h2>Payment history</h2></div><div class="hocards">${rows.map(r=>`<div class="paycard"><div class="r"><span class="${r.strike?'amt strike':'amt'}">${r.amt}</span>${r.pill}</div><span class="sub">${r.sub}</span>${r.extra||''}</div>`).join('')}</div></section>`;
+}
+const rcptBtn=`<button class="btn sm" type="button" aria-label="Download receipt OR-00093" style="align-self:flex-start;min-height:44px">Receipt PDF</button>`;
+const prepBtn=`<button class="btn sm" type="button" disabled style="align-self:flex-start;min-height:44px">Preparing receipt…</button>`;
+function banner(imp,title,body,date){
+  return `<div class="ann ${imp?'imp':''}" role="region" aria-label="Latest announcement"><span class="ann-ic" aria-hidden="true">${MEGA}</span><div class="grow"><span class="ann-k">${imp?'Important':'Announcement'} · ${date}</span><b>${title}</b><p>${body}</p></div><div class="actions"><button class="btn sm ${imp?'onhero':''}" type="button">All announcements</button><button class="x" type="button" aria-label="Dismiss announcement">×</button></div></div>`;
+}
+const XMAS=['Christmas party sign-ups are open','Sign up at the clubhouse office by Dec 12. The party is on Dec 20 at 6 PM in the function room.','Nov 28, 2026'];
+const WATER=['Water interruption, Phase 2 on Dec 1','Main line repair from 9 AM to 3 PM. Please store water the night before.','Nov 26, 2026'];
+const GUARD=['New guard shift schedule','From Dec 1 the gate changes shifts at 6 AM and 6 PM.','Nov 20, 2026'];
+const newsList=(items,staff)=>`<div class="news">${items.map(a=>`<article><time>${a[2]}</time><div class="card-h"><h3>${a[0]}</h3>${staff?`<div class="actions"><button class="btn sm" type="button">Edit</button><button class="btn sm danger" type="button">Delete</button></div>`:''}</div>${a[3]||''}<p>${a[1]}</p></article>`).join('')}</div>`;
+function annForm(o){
+  const x=o||{};
+  return `<section class="card"><h2>Post an announcement</h2><form class="f" onsubmit="return false"><label class="fl" for="nT${x.k}">Title<input id="nT${x.k}" type="text" ${x.bad?'class="bad"':''} value="${x.title||''}" maxlength="100"></label>${x.bad?`<span class="ferr" role="alert">Add a title</span>`:'<span class="hint">0 of 100 characters</span>'}<label class="fl" for="nB${x.k}">Message<textarea id="nB${x.k}" maxlength="2000">${x.body||''}</textarea></label><span class="hint">${(x.body||'').length} of 2,000 characters · Don't include residents' names, balances or contact details.</span><label class="fl" for="nU${x.k}">Show banner until<input id="nU${x.k}" type="date" value="2026-12-12"></label><label class="check" for="nI${x.k}"><input id="nI${x.k}" type="checkbox" ${x.imp?'checked':''}> Important: show as a pop-up when homeowners sign in</label><span class="hint">Use for water, power, road or safety notices. Every homeowner must press Got it.</span><button class="btn primary" type="button" ${x.busy?'disabled':''} style="min-height:44px">${x.busy?'Posting…':'Post to all homeowners'}</button></form></section>`;
+}
+function dash(o){
+  const x=o||{};
+  const alertH=x.overdue?`<div class="alert bad" role="alert"><div class="grow"><b>2 months overdue · ₱3,600.00</b>Please settle your balance to avoid further notices.</div><button class="btn primary sm" type="button" style="min-height:44px">Pay now</button></div>`:'';
+  const tile=x.err?`<div class="tile"><span class="tile-l">Balance due</span><div class="alert bad" role="alert"><div class="grow">Couldn't load your balance. Check your connection and try again.</div></div><button class="btn sm" type="button">Try again</button></div>`:x.loading?`<div class="tile skelt skel" aria-label="Loading balance"></div>`:`<div class="tile hero"><span class="tile-l">Balance due</span><span class="tile-v">${x.bal}</span><span class="tile-s">${x.sub}</span>${x.pend?`<span class="tile-s"><b>${x.pend}</b></span>`:''}<button class="btn onhero sm" type="button" style="min-height:44px">Pay with QR</button></div>`;
+  const pays=x.loading?`<div class="skel" style="min-height:60px"></div><div class="skel" style="min-height:60px"></div>`:x.pays&&x.pays.length?`<div class="hocards">${x.pays.map(r=>`<div class="paycard"><div class="r"><span class="amt">${r[1]}</span>${r[2]}</div><span class="sub">${r[0]}</span>${r[3]||''}</div>`).join('')}</div><button class="btn link sm" type="button" style="align-self:flex-start">See all payments</button>`:`<div class="empty">No payments yet.</div>`;
+  const news=x.nonews?`<div class="empty">No announcements yet.</div>`:newsList([XMAS,GUARD].slice(0,2));
+  return ph(`Welcome back, ${x.first||'Juan'}`,`${x.lot||'Blk 4 Lot 12'} · ${HOA}`)+alertH+`<div class="tiles">${tile}</div><section class="card"><div class="card-h"><h2>Recent payments</h2></div>${pays}</section><section class="card"><div class="card-h"><h2>Announcements</h2><button class="btn link sm" type="button">See all</button></div>${news}</section>`;
+}
+const hShell=(cur,m,n)=>hTop(n)+shell(nav('Homeowner',HNAV,cur),m);
+
+const S=[
+/* ---------- REQ-012 ---------- */
+{id:'12A',req:'REQ-012',dev:'desk',opt:'rec',title:'Approvals: payments waiting, oldest first',scn:'"The treasurer sees what is waiting".',note:'Only the treasurer has Approvals in R1 (REQ-002 decision 3). The badge counts pending payments.',html:()=>tTop()+shell(nav('Administration',TNAV,'Approvals'),apprList(false))},
+{id:'12B',req:'REQ-012',dev:'phone',opt:'rec',title:'Approvals on a phone: cards, not a table',scn:'"The treasurer sees what is waiting", at 375 px.',note:'Each card has one Review button, 44 px tall. No sideways scrolling.',html:()=>appTop({menu:true,right:bell(0)})+shell('',apprList(true))},
+{id:'12C',req:'REQ-012',dev:'desk',opt:'rec',title:'Review one payment: screenshot beside the details',scn:'"Approve a payment".',note:'Approve has no second confirmation: it can be voided (REQ-014), and a confirm on every approval slows batch work. After approving, the next pending payment opens.',html:()=>tTop()+shell(nav('Administration',TNAV,'Approvals'),review())},
+{id:'12D',req:'REQ-012',dev:'phone',opt:'rec',title:'Approving… then the toast',scn:'"Approve a payment", "Pressing Approve twice issues one receipt".',note:'Both buttons are disabled while the server answers. The toast names the receipt number and the lot.',html:()=>appTop({menu:true,right:bell(0)})+`<div style="position:relative">`+shell('',review({busy:true}))+toast('Approved. Receipt OR-00093 issued to Blk 2 Lot 7.')+`</div>`},
+{id:'12E',req:'REQ-012',dev:'desk',opt:'rec',title:'Reject: a reason is required',scn:'"Rejecting needs a reason", "Other reason, typed", "A typed rejection reason is not lost".',note:'The dialog does not close on a click outside or Escape. "Reject payment" stays disabled until a reason is picked, or "Other" has text.',html:()=>tTop()+shell(nav('Administration',TNAV,'Approvals'),review())+modal('Reject this payment?',`<p>Blk 2 Lot 7 · ₱1,800.00 · Ref 4012883219554</p><fieldset style="border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:6px"><legend class="fl" style="font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:6px">Reason the homeowner will see</legend>${['Reference number not found in the collection account','Amount does not match the screenshot','Screenshot is unreadable','Other'].map((r,i)=>`<label class="rtype"><input type="radio" name="rr" ${i===3?'checked':''}><b>${r}</b></label>`).join('')}</fieldset><label class="fl" for="rrO">Other reason<textarea id="rrO">Paid to the old GCash number</textarea></label><span class="hint">28 of 200 characters</span>`,`<button class="btn" type="button">Cancel</button><button class="btn primary" type="button" style="background:var(--bad);border-color:var(--bad)">Reject payment</button>`)},
+{id:'12F',req:'REQ-012',dev:'desk',opt:'rec',title:'Conflicts and errors',scn:'"Two treasurers approve the same payment at once", "A payment rejected by someone else while it was open", "The screenshot won\'t load", "The save fails".',note:'Each message says what happened and that nothing changed. If the screenshot won\'t load, Approve still works: the collection account is the proof.',html:()=>tTop()+shell(nav('Administration',TNAV,'Approvals'),review({noshot:true})+`<div class="errlist">${["This payment was already approved by Liza Santos. Nothing was changed.","This payment was rejected by Liza Santos while you had it open. Nothing was changed.","Couldn't save. Nothing was approved. Check your connection and try again."].map(e=>`<div class="alert bad" role="alert"><div class="grow">${e}</div></div>`).join('')}</div>`)},
+{id:'12G',req:'REQ-012',dev:'desk',opt:'rec',title:'Own household, and nothing waiting',scn:'"The treasurer can\'t approve their own household\'s payment", "Nothing waiting".',note:'The note takes the buttons\' place, so the layout doesn\'t move. The server refuses self-approval too (owner decision 3).',html:()=>tTop()+shell(nav('Administration',TNAV0,'Approvals'),review({own:true})+`<section class="card"><div class="empty">All payments are reviewed. New ones appear here as homeowners submit them.</div></section>`)},
+{id:'12H',req:'REQ-012',dev:'desk',opt:'alt',title:'Option B: the mock-up\'s table with buttons on each row',scn:'Option B only. Shown for comparison.',note:'Approve sits beside the screenshot button on every row, which invites approving without looking. Scrolls sideways on a phone.',html:()=>tTop()+shell(nav('Administration',TNAV,'Approvals'),ph('Approvals','')+`<section class="card"><div class="tbl"><table><thead><tr><th>Submitted</th><th>Household</th><th>Reference no.</th><th class="money">Amount</th><th class="money">Balance</th><th>Proof</th><th></th></tr></thead><tbody>${PEND.map(p=>`<tr><td>${p[3]}</td><td><b>${p[0]}</b></td><td>${p[2]}</td><td class="money">${p[1]}</td><td class="money">${p[1]}</td><td><button class="btn sm" type="button">View</button></td><td><div class="actions"><button class="btn sm primary" type="button">Approve</button><button class="btn sm danger" type="button">Reject</button></div></td></tr>`).join('')}</tbody></table></div></section>`)},
+/* ---------- REQ-013 ---------- */
+{id:'13A',req:'REQ-013',dev:'paper',opt:'rec',title:'Official receipt PDF',scn:'"Download a receipt", "The same receipt every time".',note:'The title "Official Receipt", the prefix and the first number are settings, pending the board\'s accountant (D5, owner decision 2). "Received from" is the owner on file at approval, frozen into the receipt.',html:()=>rPaper()},
+{id:'13B',req:'REQ-013',dev:'phone',opt:'rec',title:'Payment history: receipt ready, preparing, none',scn:'"The PDF is still being prepared", "No receipt for a payment that isn\'t approved".',note:'"Preparing receipt…" keeps the button\'s place and becomes "Receipt PDF" without a reload.',html:()=>hShell('Dues & Payments',ph('Dues & Payments','Blk 2 Lot 7')+hPays([{amt:'₱1,800.00',pill:pill('ok','Approved · OR-00094'),sub:'Paid Nov 28, 2026 · Ref 6601928374655',extra:prepBtn},{amt:'₱1,800.00',pill:pill('ok','Approved · OR-00093'),sub:'Paid Nov 27, 2026 · Ref 4012883219554',extra:rcptBtn},{amt:'₱1,800.00',pill:pill('info','Pending approval'),sub:'Paid Nov 28, 2026 · Waiting for the treasurer'},{amt:'₱1,500.00',pill:pill('bad','Rejected'),sub:'Rejected: Amount does not match the screenshot'}]))},
+{id:'13C',req:'REQ-013',dev:'paper',opt:'rec',title:'Several months and an advance payment',scn:'"One payment covers several months, oldest first", "An overpayment becomes a credit".',note:'Lines are worked out at approval, oldest bill first, and stored with the receipt, so they never change afterwards.',html:()=>rPaper({or:'OR-00101',name:'Juan dela Paz',lot:'Blk 4 Lot 12',amt:'₱3,800.00',words:'Three Thousand Eight Hundred Pesos Only',lines:[['Association dues · October 2026','₱1,800.00'],['Association dues · November 2026','₱1,800.00'],['Advance payment (credit)','₱200.00']],after:'₱200.00 credit'})},
+{id:'13D',req:'REQ-013',dev:'phone',opt:'rec',title:'Receipt errors',scn:'"The PDF can\'t be prepared", "Another household\'s receipt", "Download on a weak connection".',note:'The receipt number is always shown, even when the file isn\'t ready.',html:()=>hShell('Dues & Payments',ph('Dues & Payments','')+`<div class="errlist">${["Your receipt OR-00093 is issued, but the file isn't ready yet. Try again later, or contact the admin office.","You don't have access to this receipt.","Couldn't download the receipt. Check your connection and try again."].map(e=>`<div class="alert bad" role="alert"><div class="grow">${e}</div></div>`).join('')}</div>`)},
+{id:'13E',req:'REQ-013',dev:'phone',opt:'rec',title:'A new owner after a sale (if owner decision 5 is accepted)',scn:'"A new owner after a sale".',note:'Same rule as REQ-010 decision 3 option (b): Ben sees the full balance; payments from before he joined show date, amount and status only, with no receipt and no screenshot. Data Protection Officer to confirm.',html:()=>hShell('Dues & Payments',ph('Dues & Payments','Blk 2 Lot 7')+`<div class="tiles"><div class="tile hero"><span class="tile-l">Balance due</span><span class="tile-v">₱1,800.00</span><span class="tile-s">Due Dec 31, 2026</span></div></div>`+hPays([{amt:'₱1,800.00',pill:pill('ok','Approved'),sub:'Nov 27, 2026 · Before you joined on Dec 10, 2026'},{amt:'₱1,800.00',pill:pill('ok','Approved'),sub:'Oct 27, 2026 · Before you joined on Dec 10, 2026'}]))},
+/* ---------- REQ-014 ---------- */
+{id:'14A',req:'REQ-014',dev:'desk',opt:'rec',title:'Void: the dialog states the money effect',scn:'"Void a payment approved by mistake", "Voiding needs a reason", "The dialog says what will happen".',note:'"Void payment" stays disabled until a reason is typed. The dialog doesn\'t close on a click outside.',html:()=>tTop()+shell(nav('Administration',TNAV,'Homeowners'),ph('OR-00093','Blk 2 Lot 7 · Approved Nov 28, 2026 by Liza Santos')+`<section class="card"><dl class="kv"><dt>Amount</dt><dd>₱1,800.00</dd><dt>Reference number</dt><dd>4012883219554</dd><dt>Status</dt><dd>${pill('ok','Approved')}</dd></dl><div class="actions"><button class="btn" type="button">Receipt PDF</button><button class="btn danger" type="button">Void</button></div></section>`)+modal('Void OR-00093 for ₱1,800.00?',`<p>The balance of Blk 2 Lot 7 goes back up by ₱1,800.00. The receipt number is kept and never reused. <b>The homeowner will see this reason.</b></p><label class="fl" for="vr">Reason<textarea id="vr">Duplicate of OR-00090</textarea></label><span class="hint">21 of 200 characters</span>`,`<button class="btn" type="button">Cancel</button><button class="btn primary" type="button" style="background:var(--bad);border-color:var(--bad)">Void payment</button>`)},
+{id:'14B',req:'REQ-014',dev:'phone',opt:'rec',title:'After a void: the homeowner\'s history and bell',scn:'"Void a payment approved by mistake", "A voided receipt is marked".',note:'Void is a pill with words and a struck-through amount, never colour alone.',html:()=>hShell('Dues & Payments',ph('Dues & Payments','Blk 2 Lot 7')+`<div class="alert info"><div class="grow"><b>Payment voided: ₱1,800.00, OR-00093.</b>Reason: Duplicate of OR-00090.</div></div>`+hPays([{amt:'₱1,800.00',strike:true,pill:pill('muted','Void · OR-00093'),sub:'Void: Duplicate of OR-00090',extra:rcptBtn},{amt:'₱1,800.00',pill:pill('ok','Approved · OR-00090'),sub:'Paid Nov 25, 2026',extra:rcptBtn}]),1)},
+{id:'14C',req:'REQ-014',dev:'paper',opt:'rec',title:'Voided receipt PDF',scn:'"A voided receipt is marked".',note:'Everything printed at issue stays; the stamp adds the date and reason. Whether the BIR accepts this is with the accountant (owner decision 6).',html:()=>rPaper({void:true})},
+/* ---------- REQ-015 ---------- */
+{id:'15A',req:'REQ-015',dev:'phone',opt:'rec',title:'Dashboard: amount due, and a payment awaiting approval',scn:'"An account with an amount due", "A payment waiting for approval", "Recent payments", "Only tiles for released features".',note:'"₱1,800.00 awaiting approval" stops people paying twice. No booking, request or vehicle tiles until those ship.',html:()=>hShell('Dashboard',dash({first:'Carlo',lot:'Blk 2 Lot 7',bal:'₱1,800.00',sub:'Due Nov 30, 2026',pend:'₱1,800.00 awaiting approval',pays:[['Nov 28, 2026','₱1,800.00',pill('info','Pending approval')],['Oct 27, 2026','₱1,800.00',pill('ok','Approved · OR-00071'),rcptBtn]]}))},
+{id:'15B',req:'REQ-015',dev:'phone',opt:'rec',title:'Overdue',scn:'"An account with overdue dues".',note:'The warning is words plus colour. What counts as overdue follows REQ-009 and the board\'s D2.',html:()=>hShell('Dashboard',dash({first:'Roberto',lot:'Blk 6 Lot 3',overdue:true,bal:'₱3,600.00',sub:'Due Nov 30, 2026',pays:[['Aug 30, 2026','₱1,800.00',pill('ok','Approved · OR-00041'),rcptBtn]]}),2)},
+{id:'15C',req:'REQ-015',dev:'phone',opt:'rec',title:'Fully paid, or in credit',scn:'"A fully paid account", "A credit".',note:'A credit shows as ₱0.00 due with the credit underneath, as on the statement.',html:()=>hShell('Dashboard',dash({first:'Juan',bal:'₱0.00',sub:'₱200.00 credit',pays:[['Nov 2, 2026','₱2,000.00',pill('ok','Approved · OR-00080'),rcptBtn]]}))},
+{id:'15D',req:'REQ-015',dev:'phone',opt:'rec',title:'Nothing yet',scn:'"Nothing billed yet", "No announcements".',note:'Each empty card says what it is and what will appear.',html:()=>hShell('Dashboard',dash({first:'Ana',lot:'Blk 8 Lot 2',bal:'₱0.00',sub:'No dues billed yet',pays:[],nonews:true}))},
+{id:'15E',req:'REQ-015',dev:'phone',opt:'rec',title:'Loading, and the balance can\'t load',scn:'"Loading", "The balance can\'t load".',note:'No figure is shown when loading fails, never a false ₱0.00.',html:()=>hShell('Dashboard',dash({loading:true})+`<hr style="border:0;border-top:1px dashed var(--line)">`+`<div class="tiles">${'<div class="tile"><span class="tile-l">Balance due</span><div class="alert bad" role="alert"><div class="grow">Couldn\'t load your balance. Check your connection and try again.</div></div><button class="btn sm" type="button" style="align-self:flex-start">Try again</button></div>'}</div>`)},
+{id:'15F',req:'REQ-015',dev:'phone',opt:'alt',title:'Option B: no dashboard, sign-in lands on Dues & Payments',scn:'Option B only. Shown for comparison.',note:'Cheaper now; announcements are one tap further away, and REQ-001/REQ-004\'s landing page changes.',html:()=>hTop()+shell(nav('Homeowner',['Dues & Payments','Announcements'],'Dues & Payments'),ph('Dues & Payments','Blk 2 Lot 7')+`<div class="tiles"><div class="tile hero"><span class="tile-l">Balance due</span><span class="tile-v">₱1,800.00</span><span class="tile-s">Due Nov 30, 2026</span><button class="btn onhero sm" type="button">Pay with QR</button></div></div><section class="card"><h2>Statement of account</h2><div class="skel" style="min-height:120px"></div></section>`)},
+/* ---------- REQ-016 ---------- */
+{id:'16A',req:'REQ-016',dev:'desk',opt:'rec',title:'Staff: post an announcement',scn:'"Post an announcement", "Edit a typo", "Deleting asks first".',note:'Banner end date defaults to 14 days after posting (owner decision 2). The privacy hint is under the message.',html:()=>aTop()+shell(nav('Administration',ANAV,'Announcements'),ph('Announcements','News for every homeowner. Shown as a banner until dismissed or until its end date.')+`<div class="grid g-73"><section class="card">${newsList([[XMAS[0],XMAS[1],XMAS[2],'<span class="sub">Banner until Dec 12, 2026</span>'],[WATER[0],WATER[1],WATER[2],`<div class="actions">${pill('bad','Pop-up on sign-in')}<span class="sub">Seen by 120 of 340 linked households (623 in total)</span></div>`],[GUARD[0],GUARD[1],GUARD[2],'<span class="sub">Edited Nov 21, 2026</span>']],true)}</section>${annForm({k:'a',title:'Christmas party sign-ups are open',body:XMAS[1]})}</div>`)},
+{id:'16B',req:'REQ-016',dev:'desk',opt:'rec',title:'Validation, posting, and a failed post',scn:'"Title and message are required", "Pressing twice posts once", "Posting fails".',note:'The message typed is kept in every case.',html:()=>aTop()+`<div style="position:relative">`+shell(nav('Administration',ANAV,'Announcements'),`<div class="grid g2">${annForm({k:'b',bad:true,body:'Sign up at the clubhouse office by Dec 12.'})}${annForm({k:'c',busy:true,title:'Christmas party sign-ups are open',body:'Sign up at the clubhouse office by Dec 12.'})}</div>`)+toast("Couldn't post. Check your connection and try again. Your text is still here.",true)+`</div>`},
+{id:'16C',req:'REQ-016',dev:'phone',opt:'rec',title:'Homeowner: banner and the Announcements page',scn:'"Post an announcement", "The newest live announcement is the banner", "A homeowner dismisses the banner".',note:'Dismissing is per person, on every device. The list keeps every announcement. Text shows as typed, never as HTML.',html:()=>hShell('Announcements',banner(false,XMAS[0],XMAS[1],XMAS[2])+ph('Announcements','News from the HOA board and admin office.')+`<section class="card">${newsList([XMAS,WATER,GUARD])}</section>`)},
+{id:'16D',req:'REQ-016',dev:'desk',opt:'rec',title:'Delete confirm',scn:'"Deleting asks first", "A deleted announcement disappears for homeowners but stays on record".',note:'The shared confirm dialog. Deleting is a soft delete with an activity log entry.',html:()=>aTop()+shell(nav('Administration',ANAV,'Announcements'),`<section class="card" style="min-height:300px">${newsList([XMAS],true)}</section>`)+modal('Delete this announcement?',`<p>Homeowners will no longer see it.</p>`,`<button class="btn" type="button">Cancel</button><button class="btn primary" type="button" style="background:var(--bad);border-color:var(--bad)">Delete</button>`)},
+{id:'16E',req:'REQ-016',dev:'phone',opt:'rec',title:'Nothing posted yet',scn:'"Nothing posted yet".',note:'No banner, and the empty list says what will appear.',html:()=>hShell('Announcements',ph('Announcements','News from the HOA board and admin office.')+`<section class="card"><div class="empty">No announcements yet. News from the HOA will appear here.</div></section>`)},
+{id:'16F',req:'REQ-016',dev:'desk',opt:'rec',title:'Board member: read only',scn:'"Board members read only", "Homeowners can\'t post".',note:'No form and no Edit or Delete. The server refuses writes from anyone but admin and treasurer.',html:()=>appTop({right:`<span class="who-admin">Signed in as <b>Rosa Mendoza</b> · Board</span>${bell(0)}`})+shell(nav('Board',BNAV,'Announcements'),ph('Announcements','View only. Board members can\'t change records.')+`<section class="card">${newsList([XMAS,WATER,GUARD])}</section>`)},
+/* ---------- REQ-017 ---------- */
+{id:'17A',req:'REQ-017',dev:'phone',opt:'rec',title:'Important announcement pop-up',scn:'"A must-read pop-up", "Keyboard and screen reader".',note:'Only "Got it" closes it; no ×, no backdrop or Escape close. It closes at once and saves in the background, so a slow connection never blocks the homeowner.',html:()=>hShell('Dashboard',dash({bal:'₱1,800.00',sub:'Due Nov 30, 2026',pays:[]}))+`<div class="modal-wrap"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="imp1"><div class="modal-h"><h2 id="imp1">Important announcement</h2></div><div class="modal-b"><p class="hint">Hi Juan, please read before continuing.</p><div class="news"><article><time>${WATER[2]}</time><h3>${WATER[0]}</h3><p>${WATER[1]}</p></article></div></div><div class="modal-f"><button class="btn primary" type="button" style="min-height:44px;width:100%">Got it</button></div></div></div>`},
+{id:'17B',req:'REQ-017',dev:'phone',opt:'rec',title:'Several important announcements',scn:'"Several important announcements at once".',note:'One pop-up, newest first; one "Got it" marks both seen. Long text scrolls inside; the button stays visible.',html:()=>hShell('Dashboard',dash({bal:'₱0.00',sub:'You are fully paid',pays:[]}))+`<div class="modal-wrap"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="imp2"><div class="modal-h"><h2 id="imp2">2 important announcements</h2></div><div class="modal-b" style="max-height:340px;overflow:auto"><p class="hint">Hi Elena, please read before continuing.</p><div class="news"><article><time>Nov 28, 2026</time><h3>Road closure on Acacia St., Nov 30</h3><p>Resurfacing from 7 AM to 5 PM. Use the Molave St. gate.</p></article><article><time>${WATER[2]}</time><h3>${WATER[0]}</h3><p>${WATER[1]}</p></article></div></div><div class="modal-f"><button class="btn primary" type="button" style="min-height:44px;width:100%">Got it</button></div></div></div>`},
+{id:'17C',req:'REQ-017',dev:'desk',opt:'rec',title:'Staff: seen-by count against linked households',scn:'"The admin sees who has read it", "Two people in one household count once".',note:'Owner decision 2: the count is of linked households, with the total alongside, so the office can see both reach and read rate.',html:()=>aTop()+shell(nav('Administration',ANAV,'Announcements'),ph(WATER[0],'Posted Nov 26, 2026 by Paolo Aquino · Banner and pop-up until Dec 1, 2026')+`<div class="tiles"><div class="tile"><span class="tile-l">Seen by</span><span class="tile-v">120</span><span class="tile-s">of 340 linked households (623 in total)</span></div><div class="tile"><span class="tile-l">Read rate</span><span class="tile-v">35%</span><span class="tile-s">of linked households</span></div></div><section class="card"><div class="actions">${pill('bad','Pop-up on sign-in')}</div><p>${WATER[1]}</p><div class="alert warn"><div class="grow"><b>The pop-up only reaches people who open the portal.</b>For urgent notices, also post in the group chats and on the gate board.</div></div></section>`)},
+{id:'17D',req:'REQ-017',dev:'phone',opt:'alt',title:'Option B: a banner that stays until "Got it"',scn:'Option B only. Shown for comparison.',note:'Same cost. Easier to ignore, and it scrolls away on a phone.',html:()=>hShell('Dashboard',`<div class="stickyimp" role="region" aria-label="Important announcement"><div style="flex:1"><span class="ann-k" style="color:#fff">Important · ${WATER[2]}</span><b style="display:block">${WATER[0]}</b><p>${WATER[1]}</p></div><button class="btn onhero sm" type="button" style="min-height:44px">Got it</button></div>`+dash({bal:'₱1,800.00',sub:'Due Nov 30, 2026',pays:[]}))},
+{id:'17E',req:'REQ-017',dev:'desk',opt:'rec',title:'Marking an announcement Important',scn:'"A must-read pop-up" (the staff side), "No pop-up after the end date".',note:'The hint keeps "Important" for water, power, road or safety notices, so people keep reading the pop-up. It stops popping up after the banner end date.',html:()=>aTop()+shell(nav('Administration',ANAV,'Announcements'),annForm({k:'e',imp:true,title:WATER[0],body:WATER[1]}))}
+];
+
+const COPY={
+'REQ-012':[['Page heading','Payments to approve · Check each reference number in the collection account before you approve.'],['Buttons','Approve · Reject · Approving… · Rejecting…'],['Approve toast','Approved. Receipt {OR no.} issued to {lot}.'],['Reject dialog','Reject this payment? · Reason the homeowner will see · Reference number not found in the collection account · Amount does not match the screenshot · Screenshot is unreadable · Other · Cancel · Reject payment'],['Reject toast','Payment rejected. {lot} has been notified in the portal.'],['Notifications','Payment approved: {amount}, {OR no.} · Payment not approved: {amount}. Reason: {reason}. Please submit it again.'],['Conflict','This payment was already approved by {name}. Nothing was changed. · This payment was rejected by {name} while you had it open. Nothing was changed.'],['Own household','This is your own household\'s payment. Another treasurer must decide it.'],['Empty','All payments are reviewed. New ones appear here as homeowners submit them.'],['Errors','Couldn\'t load the screenshot. Try again. · Couldn\'t save. Nothing was approved. Check your connection and try again.']],
+'REQ-013':[['Button','Receipt PDF · Preparing receipt…'],['PDF title','{receipt title setting}, default "Official Receipt"'],['PDF lines','Association dues · {Period} · Advance payment (credit)'],['PDF balance line','Account balance after this payment, as of {date issued}: {₱x due / ₱x credit / Fully paid}'],['PDF signature','Approved by {name}, Treasurer'],['PDF note','This receipt was issued electronically by the {HOA name} portal after the treasurer matched the reference number with the collection account. Keep it for your records.'],['Errors','Your receipt {OR no.} is issued, but the file isn\'t ready yet. Try again later, or contact the admin office. · You don\'t have access to this receipt. · Couldn\'t download the receipt. Check your connection and try again.']],
+'REQ-014':[['Buttons','Void · Void payment · Voiding…'],['Dialog','Void {OR no.} for {amount}? · The balance of {lot} goes back up by {amount}. The receipt number is kept and never reused. The homeowner will see this reason.'],['Toast','{OR no.} is void. {lot}\'s balance is back to {balance}.'],['History','Void: {reason}'],['Notification','Payment voided: {amount}, {OR no.}. Reason: {reason}.'],['PDF stamp','VOID · {date voided} · {reason}'],['Conflict','{OR no.} was already voided by {name}. Nothing was changed.'],['Error','Couldn\'t void. Nothing was changed. Check your connection and try again.']],
+'REQ-015':[['Heading','Welcome back, {first name} · {lot} · {HOA name}'],['Overdue alert','{n} month(s) overdue · {amount} · Please settle your balance to avoid further notices. · Pay now'],['Balance tile','Balance due · Due {date} / You are fully paid / {amount} credit / No dues billed yet · {amount} awaiting approval · Pay with QR'],['Recent payments','See all payments · No payments yet.'],['Announcements','See all · No announcements yet.'],['Error','Couldn\'t load your balance. Check your connection and try again. · Try again']],
+'REQ-016':[['Form','Title · Message · Show banner until · Don\'t include residents\' names, balances or contact details. · Post to all homeowners · Posting…'],['Validation','Add a title · Add a message · Title can be up to 100 characters · Message can be up to 2,000 characters'],['Toast','Posted. Homeowners see it the next time they open the portal.'],['Delete confirm','Delete this announcement? Homeowners will no longer see it. · Cancel · Delete'],['Empty','No announcements yet. News from the HOA will appear here.'],['Error','Couldn\'t post. Check your connection and try again. Your text is still here.']],
+'REQ-017':[['Pop-up title','Important announcement · {n} important announcements'],['Pop-up intro','Hi {first name}, please read before continuing.'],['Button','Got it'],['Staff pill','Pop-up on sign-in'],['Staff count','Seen by {n} of {linked} linked households ({total} in total)'],['Form hint','Use for water, power, road or safety notices. Every homeowner must press Got it.']]
+};
+const REQS=[['REQ-012','Approve or reject'],['REQ-013','Receipt PDF'],['REQ-014','Void'],['REQ-015','Dashboard'],['REQ-016','Announcements'],['REQ-017','Important pop-up']];
+let cur=0;
+function draw(){
+  const s=S[cur];
+  document.getElementById('mkreq').innerHTML=REQS.map(([r,l])=>`<button type="button" data-req="${r}" aria-pressed="${s.req===r}">${r} · ${l}</button>`).join('');
+  document.getElementById('mksel').innerHTML=S.map((x,i)=>`<option value="${i}" ${i===cur?'selected':''}>${x.id} · ${x.title}</option>`).join('');
+  document.getElementById('mkinfo').innerHTML=`<span class="k">${s.req} · Screen ${s.id}</span><h2>${s.title}</h2><div><span class="mkopt ${s.opt}">${s.opt==='rec'?'Recommended option':'Alternative option, for comparison'}</span></div><p><b>Shows:</b> ${s.scn}</p><p class="mknote">${s.note}</p>`;
+  document.getElementById('mkstage').innerHTML=`<div class="frame ${s.dev}" style="position:relative">${s.html()}</div>`;
+  document.getElementById('mkcopyb').innerHTML=`<table><thead><tr><th>Where</th><th>Text</th></tr></thead><tbody>${(COPY[s.req]||[]).map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td></tr>`).join('')}</tbody></table>`;
+  document.getElementById('mkprev').disabled=cur===0;document.getElementById('mknext').disabled=cur===S.length-1;
+  try{history.replaceState(null,'','#s'+s.id)}catch(e){}
+}
+document.addEventListener('click',e=>{
+  const r=e.target.closest('[data-req]');if(r){cur=S.findIndex(x=>x.req===r.dataset.req);draw();return}
+  if(e.target.id==='mkprev'&&cur>0){cur--;draw()}
+  if(e.target.id==='mknext'&&cur<S.length-1){cur++;draw()}
+});
+document.getElementById('mksel').addEventListener('change',e=>{cur=+e.target.value;draw()});
+const hs=(location.hash||'').replace('#s','');const hi=S.findIndex(x=>x.id===hs);if(hi>=0)cur=hi;
+draw();
+})();
+</script>
+
+</html>

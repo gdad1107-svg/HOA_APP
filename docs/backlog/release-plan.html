@@ -1,0 +1,197 @@
+<title>HOA Portal Release Plan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&display=swap">
+<style>
+/* Layout: a roadmap ledger. Releases as bands, sprints as rows with a 7-stage track, then a 45-cell requirement grid. */
+:root{
+  --bg:#f6f7f4; --surface:#ffffff; --fg:#1d2420; --muted:#5d6a62; --line:#dfe4de;
+  --accent:#2f6b4f; --accent-soft:#dcebe2;
+  --ok:#2f7d4f; --ok-soft:#d8efe0; --wait:#a86a12; --wait-soft:#f6e7cc; --block:#b23b3b; --block-soft:#f5dcdc; --todo:#c9d0ca;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141917; --surface:#1c2320; --fg:#e6ece8; --muted:#9aa8a0; --line:#2d3732;
+  --accent:#7cc49d; --accent-soft:#243a2f;
+  --ok:#6fcf97; --ok-soft:#1f3a2a; --wait:#e2a54a; --wait-soft:#3d2f17; --block:#ef8080; --block-soft:#432222; --todo:#3a4540; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141917; --surface:#1c2320; --fg:#e6ece8; --muted:#9aa8a0; --line:#2d3732;
+  --accent:#7cc49d; --accent-soft:#243a2f;
+  --ok:#6fcf97; --ok-soft:#1f3a2a; --wait:#e2a54a; --wait-soft:#3d2f17; --block:#ef8080; --block-soft:#432222; --todo:#3a4540; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:28px}
+h1,h2{font-family:var(--display);text-wrap:balance;margin:0}
+h1{font-size:2rem;letter-spacing:-.01em}
+h2{font-size:1.2rem}
+.sub{color:var(--muted);margin:.3rem 0 0}
+.eyebrow{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.kpi b{display:block;font-family:var(--display);font-size:1.6rem;font-variant-numeric:tabular-nums}
+.kpi span{color:var(--muted);font-size:.85rem}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.85rem;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.release{display:grid;gap:8px}
+.relhead{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;border-bottom:2px solid var(--accent);padding-bottom:6px}
+.relhead .tag{font-family:var(--mono);background:var(--accent);color:var(--bg);padding:1px 8px;border-radius:4px;font-size:.85rem}
+.relhead .goal{color:var(--muted)}
+.sprint{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;display:grid;grid-template-columns:150px minmax(0,1fr) 220px;gap:16px;align-items:start}
+.sprint.blocked{border-left:4px solid var(--block)}
+.sprint.active{border-left:4px solid var(--wait)}
+.sname{font-family:var(--display);font-weight:700;font-size:1.15rem}
+.sreqs{font-family:var(--mono);font-size:.85rem;color:var(--muted)}
+.ssize{font-size:.82rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.stories{margin:0 0 10px;font-size:.9rem;min-width:0}
+.track{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.stage{height:8px;border-radius:2px;background:var(--todo)}
+.stage.done{background:var(--ok)}
+.stage.now{background:var(--wait)}
+.stage.stop{background:var(--block)}
+.stagelbl{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:4px;font-size:.68rem;color:var(--muted);line-height:1.2}
+.now-txt{font-size:.88rem;font-weight:500}
+.blk{font-size:.85rem;color:var(--muted)}
+.blk strong{color:var(--block);font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px}
+.cell{border-radius:6px;padding:6px 4px;text-align:center;font-family:var(--mono);font-size:.8rem;border:1px solid transparent;cursor:default}
+.cell small{display:block;font-family:var(--body);font-size:.65rem;opacity:.85}
+.c-approved{background:var(--ok-soft);color:var(--ok);border-color:var(--ok)}
+.c-draft{background:var(--wait-soft);color:var(--wait)}
+.c-blocked{background:var(--block-soft);color:var(--block)}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+td.code{font-family:var(--mono);white-space:nowrap}
+.tbl{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.two>section{min-width:0;display:grid;gap:10px;align-content:start}
+footer{color:var(--muted);font-size:.8rem}
+@media (max-width:820px){.sprint{grid-template-columns:1fr}.two{grid-template-columns:1fr}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">HOA Portal · Release plan</div>
+    <h1>Releases and sprints</h1>
+    <p class="sub">46 requirements in 4 releases and 7 sprints. R1 requirements approved except REQ-046. Updated 2026-11-28.</p>
+  </header>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="legend">
+    <span><i style="background:var(--ok)"></i>Done</span>
+    <span><i style="background:var(--wait)"></i>In progress or waiting on review</span>
+    <span><i style="background:var(--block)"></i>Blocked by a decision</span>
+    <span><i style="background:var(--todo)"></i>Not started</span>
+  </div>
+
+  <div id="releases" style="display:grid;gap:24px"></div>
+
+  <section style="display:grid;gap:10px">
+    <h2>Every requirement</h2>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <div class="two">
+    <section>
+      <h2>Decisions open</h2>
+      <div class="tbl"><table><thead><tr><th>#</th><th>Decision</th><th>Blocks</th></tr></thead><tbody id="decisions"></tbody></table></div>
+    </section>
+    <section>
+      <h2>Conflicts between drafts (reconciled)</h2>
+      <div class="tbl"><table><thead><tr><th>#</th><th>Conflict</th><th>REQs</th></tr></thead><tbody id="conflicts"></tbody></table></div>
+    </section>
+  </div>
+
+  <footer>Sizes are build days with Claude Code. S2 and S3 use Sol Arch's estimates; the other sprints use the backlog sizes (S 0.5–1, M 2–3, L 4–6), not yet confirmed. Sol Arch's S2 and S3 estimates came in well above the backlog, so expect the same for later sprints. Source: docs/backlog/RELEASE-PLAN.md.</footer>
+</div>
+
+<script>
+(function(){
+  var STAGES=["Drafted","Owner approved","Sol Arch","QA plan","Built","Tested","Released"];
+  var RELEASES=[
+    {id:"R1",name:"Pay dues online",goal:"Homeowners pay dues and get a receipt"},
+    {id:"R2",name:"Collect and account",goal:"Chase overdue accounts and keep the books"},
+    {id:"R3",name:"Community services and records",goal:"Vehicles, amenities, records and reports"},
+    {id:"R4",name:"Gate add-on",goal:"Guest passes and the guardhouse"}
+  ];
+  // stage: index of the stage now being worked on (0-based); done = stages before it
+  var SPRINTS=[
+    {s:"S1",r:"R1",reqs:"001–004",size:"6–10 days",stage:3,stop:false,stories:"Sign in · roles and permissions · household directory · invitations",now:"QA test plans in progress (TC-01 to TC-04 are stubs)",blk:""},
+    {s:"S2",r:"R1",reqs:"005–011, 046",size:"23–27.5 days (Sol Arch, incl. REQ-046)",stage:3,stop:false,stories:"Privacy notice · activity log · dues and QR settings · billing run · statement · submit payment · notifications · adjust or cancel a bill (046)",now:"005–011 approved with Sol Arch's changes. Next: QA test plans. REQ-046 still a draft",blk:"REQ-046 approval and Sol Arch review; treasurer: do e-wallet reference numbers repeat (before build); DPO confirms P1 and notice text"},
+    {s:"S3",r:"R1",reqs:"012–017",size:"12.5–16.5 days (Sol Arch)",stage:3,stop:false,stories:"Approve or reject payment · official receipt · void · homeowner dashboard · announcements · sign-in pop-up",now:"Approved with Sol Arch's changes. Next: QA test plans",blk:"6 new questions for you; board names 2nd treasurer; D5 before go-live"},
+    {s:"S4",r:"R2",reqs:"018–027",size:"11–18 days",stage:1,stop:false,stories:"Delinquent list · email · notices · bulk notices · expenses · collections · fund summary · admin dashboard · requests",now:"Drafted, waiting on your review. Largest sprint: may split into S4a and S4b",blk:"D2, email provider, board-approved letter texts"},
+    {s:"S5",r:"R3",reqs:"028–034",size:"8.5–14 days",stage:1,stop:false,stories:"Register vehicle · stickers · amenities · book · approve booking · cancel · pause for overdue",now:"Drafted, waiting on your review",blk:"D7 amenity fee timing"},
+    {s:"S6",r:"R3",reqs:"035–039",size:"7–11 days",stage:1,stop:false,stories:"Reports and CSV · request a record · fulfil · good standing certificate · board financial report",now:"Drafted, waiting on your review",blk:"D6 board report"},
+    {s:"S7",r:"R4",reqs:"040–045",size:"9.5–15 days",stage:1,stop:true,stories:"Guest pass · cancel pass · guard verifies · check in and out · logs · ID photo deletion",now:"Drafted. Whole release blocked",blk:"D9 gate add-on in scope, DPO on ID photos"}
+  ];
+  var REQS=[
+    ["001","Sign in"],["002","Roles"],["003","Directory"],["004","Invite"],
+    ["005","Privacy"],["006","Activity log"],["007","Dues/QR"],["008","Billing run","D2 D8"],["009","Statement"],["010","Submit pay","P1"],["011","Notifications"],
+    ["012","Approve pay"],["013","Receipt","D5"],["014","Void","D5"],["015","Dashboard"],["016","Announce"],["017","Pop-up"],
+    ["018","Delinquent"],["019","Email"],["020","Notice"],["021","Bulk notice"],["022","Expense"],["023","Collections"],["024","Fund/close"],["025","Admin dash"],["026","Log request"],["027","Manage req"],
+    ["028","Vehicle"],["029","Sticker"],["030","Amenities"],["031","Book","D7"],["032","Approve bk","D7"],["033","Cancel bk"],["034","Pause bk"],
+    ["035","Reports"],["036","Record req"],["037","Fulfil"],["038","Good stand"],["039","Board rpt","D6"],
+    ["040","Guest pass","D9"],["041","Cancel pass","D9"],["042","Verify","D9"],["043","Check in","D9"],["044","Logs","D9"],["045","ID photos","D9"],["046","Fix a bill"]
+  ];
+  var APPROVED={"001":1,"002":1,"003":1,"004":1,"005":1,"006":1,"007":1,"008":1,"009":1,"010":1,"011":1,"012":1,"013":1,"014":1,"015":1,"016":1,"017":1};
+  function isApproved(r){return !!APPROVED[r[0]]}
+  var DECISIONS=[
+    ["P1","Privacy after a lot sale","S2 (REQ-010), S3"],
+    ["D2","Late penalty, interest, grace period","S2, S3, S4"],
+    ["D5","BIR official receipt or invoice for dues","S3 (013, 014)"],
+    ["D6","Board report typed in or calculated","S6 (039)"],
+    ["D7","Amenity fee with request or after approval","S5 (031, 032)"],
+    ["D8","Billing run manual or automatic","S2 (008)"],
+    ["D9","Gate add-on in scope","S7"],
+    ["DPO","Name a Data Protection Officer","S2, S5, S7"]
+  ];
+  var CONFLICTS=[
+    ["C1","Reconciled: a void is a minus line in the month it is made. Needs you and the accountant","014 023 024"],
+    ["C2","Reconciled: payments get a kind (dues only in R1); REQ-031 adds amenity fees. Needs you and Sol Arch","010 031"],
+    ["C3","Reconciled: a fee counts when its payment is approved, not the booking. Needs you and Sol Arch","023 031 032"],
+    ["C4","Reconciled: overdue standing worked out when read, Manila time. Needs you and Sol Arch","018 034"],
+    ["C5","Kept: notices treasurer only, expenses via a server function. Sol Arch to confirm","020 022"]
+  ];
+
+  function el(t,c,h){var e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e}
+  var approved=REQS.filter(isApproved).length;
+  var blocked=REQS.filter(function(r){return r[2]&&!isApproved(r)}).length;
+  var kp=[[REQS.length,"requirements drafted"],[approved,"approved by you"],[REQS.length-approved,"waiting on your review"],[blocked,"of those blocked by a decision"],[0,"built or released"]];
+  var k=document.getElementById("kpis");
+  kp.forEach(function(x){k.appendChild(el("div","kpi","<b>"+x[0]+"</b><span>"+x[1]+"</span>"))});
+
+  var R=document.getElementById("releases");
+  RELEASES.forEach(function(rel){
+    var box=el("section","release");
+    box.appendChild(el("div","relhead",'<span class="tag">'+rel.id+'</span><h2>'+rel.name+'</h2><span class="goal">'+rel.goal+'</span>'));
+    SPRINTS.filter(function(s){return s.r===rel.id}).forEach(function(s){
+      var row=el("div","sprint"+(s.stop?" blocked":(s.stage===3?" active":"")));
+      row.appendChild(el("div","",'<div class="sname">'+s.s+'</div><div class="sreqs">REQ-'+s.reqs+'</div><div class="ssize">'+s.size+'</div>'));
+      var mid=el("div","");mid.style.minWidth="0";
+      mid.appendChild(el("p","stories",s.stories));
+      var tr=el("div","track");
+      STAGES.forEach(function(_,i){var c="stage";if(i<s.stage||(s.sa&&i===2))c+=" done";else if(i===s.stage)c+=s.stop?" stop":" now";tr.appendChild(el("div",c))});
+      mid.appendChild(tr);
+      var lb=el("div","stagelbl");STAGES.forEach(function(n){lb.appendChild(el("span","",n))});mid.appendChild(lb);
+      row.appendChild(mid);
+      row.appendChild(el("div","",'<div class="now-txt">'+s.now+'</div>'+(s.blk?'<div class="blk"><strong>Waits on:</strong> '+s.blk+'</div>':'')));
+      box.appendChild(row);
+    });
+    R.appendChild(box);
+  });
+
+  var G=document.getElementById("grid");
+  REQS.forEach(function(r){
+    var ok=isApproved(r);
+    var cls=ok?"c-approved":(r[2]?"c-blocked":"c-draft");
+    var c=el("div","cell "+cls,r[0]+"<small>"+r[1]+"</small>");
+    c.title="REQ-"+r[0]+" "+r[1]+(r[2]?" · waits on "+r[2]:"")+(ok?" · approved":" · draft");
+    G.appendChild(c);
+  });
+  var D=document.getElementById("decisions");
+  DECISIONS.forEach(function(d){D.appendChild(el("tr","",'<td class="code">'+d[0]+'</td><td>'+d[1]+'</td><td>'+d[2]+'</td>'))});
+  var C=document.getElementById("conflicts");
+  CONFLICTS.forEach(function(d){C.appendChild(el("tr","",'<td class="code">'+d[0]+'</td><td>'+d[1]+'</td><td class="code">'+d[2]+'</td>'))});
+})();
+</script>

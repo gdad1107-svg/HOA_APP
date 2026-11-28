@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vehicles and Amenities Mockup</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap">
+<style>
+/* Layout: sticky top bar with role switch, left nav rail (horizontal strip on phones), content column of cards and tables. */
+:root{
+  --bg:#FFFFFF; --surface:#F4F8F5; --surface-2:#E9F2EC; --line:#DAE6DE; --fg:#13241B; --muted:#5A6D62;
+  --accent:#1C7A4A; --accent-strong:#135B36; --accent-soft:#E2F1E8; --on-accent:#FFFFFF;
+  --ok:#1C7A4A; --ok-bg:#E2F1E8; --warn:#8F5B00; --warn-bg:#FCF0D6; --bad:#B42318; --bad-bg:#FDE7E4; --info:#1F5E8C; --info-bg:#E3EEF8;
+  --chart-2:#A9CDB8; --paper:#FFFFFF; --scrim:rgba(10,25,17,.45);
+  --shadow:0 1px 2px rgba(19,36,27,.05),0 6px 20px rgba(19,36,27,.06);
+  --f-head:"Plus Jakarta Sans",Inter,system-ui,sans-serif; --f-body:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:10px; color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--accent)}
+h1,h2,h3{font-family:var(--f-head);text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:1.6rem;font-weight:800}
+h2{font-size:1.1rem;font-weight:700}
+h3{font-size:.98rem;font-weight:700}
+p{margin:0}
+.num,td.money,.money{font-variant-numeric:tabular-nums}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:var(--accent)}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--accent);color:var(--on-accent)}
+.top .logo{background:var(--on-accent)} .top .logo svg{stroke:var(--accent)}
+.top .brand small,.top .who,.top .who-admin{color:rgba(255,255,255,.8)}
+.top .seg{background:rgba(255,255,255,.16)} .top .seg button{color:rgba(255,255,255,.85)}
+.top .seg button[aria-pressed="true"]{background:var(--on-accent);color:var(--accent-strong)}
+.top .bell{background:transparent;border-color:rgba(255,255,255,.4)} .top .bell svg{stroke:var(--on-accent)}
+.top .who select{border-color:transparent}
+.top .bellpanel{color:var(--fg)}
+.top-in{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.logo{width:34px;height:34px;border-radius:9px;background:var(--accent);display:grid;place-items:center;flex:none}
+.logo svg{width:20px;height:20px;stroke:var(--on-accent)}
+.brand b{font-family:var(--f-head);font-size:1rem;display:block;line-height:1.1}
+.brand small{color:var(--muted);font-size:.75rem}
+.seg{display:inline-flex;background:var(--surface-2);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;padding:6px 14px;border-radius:999px;cursor:pointer;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--bg);color:var(--accent-strong);box-shadow:var(--shadow)}
+.top-r{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.who{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--muted)}
+.who select{max-width:220px}
+.who-admin{font-size:.85rem;color:var(--muted)}
+.bell{position:relative;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--bg);cursor:pointer;display:grid;place-items:center}
+.bell svg{width:18px;height:18px;stroke:var(--fg)}
+.bell .dot{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;border-radius:9px;background:var(--bad);color:#fff;font-size:.68rem;font-weight:700;display:grid;place-items:center;padding:0 4px}
+.bellpanel{position:absolute;right:max(16px,env(safe-area-inset-right,0px));top:calc(100% + 6px);width:min(360px,calc(100vw - 32px));background:var(--bg);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 12px 32px rgba(0,0,0,.14);max-height:420px;overflow:auto}
+.bellpanel header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.notif{padding:10px 14px;border-bottom:1px solid var(--line);font-size:.85rem}
+.notif.unread{background:var(--accent-soft)}
+.notif small{display:block;color:var(--muted)}
+
+/* shell */
+.shell{display:grid;grid-template-columns:220px minmax(0,1fr);gap:28px;padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:1320px;margin:0 auto}
+nav.side{display:flex;flex-direction:column;gap:2px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 80px);align-self:start}
+nav.side .navlbl{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:0 12px 6px}
+nav.side button{display:flex;justify-content:space-between;align-items:center;text-align:left;border:0;background:transparent;padding:9px 12px;border-radius:8px;cursor:pointer;font-weight:500;color:var(--fg)}
+nav.side button:hover{background:var(--surface)}
+nav.side button[aria-current="page"]{background:var(--accent-soft);color:var(--accent-strong);font-weight:700}
+.badge{background:var(--accent);color:var(--on-accent);border-radius:999px;font-size:.7rem;font-weight:700;padding:1px 7px}
+main{min-width:0;display:flex;flex-direction:column;gap:20px}
+.menu-btn{display:none;width:38px;height:38px;border-radius:8px;border:1px solid rgba(255,255,255,.4);background:transparent;cursor:pointer;place-items:center;flex:none}
+.menu-btn svg{width:20px;height:20px;stroke:var(--on-accent)}
+.navscrim{position:fixed;inset:0;background:var(--scrim);z-index:39}
+@media (max-width:860px){
+  .shell{grid-template-columns:172px minmax(0,1fr);gap:16px;padding-block:16px 40px}
+  nav.side button{padding:8px 10px;font-size:.88rem}
+  .who span{display:none}
+}
+@media (max-width:640px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .menu-btn{display:grid}
+  nav.side{position:fixed;top:0;bottom:0;left:0;width:min(280px,82vw);z-index:40;background:var(--bg);padding:calc(env(safe-area-inset-top,0px) + 18px) 12px 18px max(12px,env(safe-area-inset-left,0px));box-shadow:4px 0 24px rgba(0,0,0,.18);transform:translateX(-105%);transition:transform .2s ease;overflow-y:auto;align-self:stretch}
+  nav.side button{padding:11px 12px;font-size:.95rem}
+  body.nav-open nav.side{transform:none}
+}
+@media (prefers-reduced-motion:reduce){nav.side{transition:none}}
+
+/* building blocks */
+.ph{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.ph p{color:var(--muted);margin-top:4px}
+.card{background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:18px;min-width:0;display:flex;flex-direction:column;gap:14px}
+.card.soft{background:var(--surface);border-color:transparent}
+.card-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.card-h p{color:var(--muted);font-size:.85rem}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g-73{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr)}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:1060px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){.g2,.g-73{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:420px){.tiles{grid-template-columns:minmax(0,1fr)}}
+.tile{background:var(--surface);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.tile.hero{background:var(--accent);color:var(--on-accent)}
+.tile.hero .tile-l,.tile.hero .tile-s{color:var(--on-accent);opacity:.85}
+.tile-l{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+.tile-v{font-family:var(--f-head);font-size:1.55rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.2}
+.tile-s{font-size:.82rem;color:var(--muted)}
+.tile .btn{margin-top:8px;align-self:flex-start}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:8px 14px;border-radius:8px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--surface)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.primary:hover{background:var(--accent-strong);border-color:var(--accent-strong)}
+.btn.onhero{background:var(--on-accent);color:var(--accent-strong);border-color:transparent}
+.btn.danger{color:var(--bad);border-color:var(--bad-bg)}
+.btn.danger:hover{background:var(--bad-bg)}
+.btn.sm{padding:5px 10px;font-size:.8rem}
+.btn.link{border:0;background:none;padding:0;color:var(--accent);font-weight:600}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.actions{display:flex;gap:6px;flex-wrap:wrap}
+
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;font-size:.75rem;font-weight:600;white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.p-ok{background:var(--ok-bg);color:var(--ok)} .p-warn{background:var(--warn-bg);color:var(--warn)}
+.p-bad{background:var(--bad-bg);color:var(--bad)} .p-info{background:var(--info-bg);color:var(--info)}
+.p-muted{background:var(--surface-2);color:var(--muted)}
+
+.alert{display:flex;gap:12px;align-items:flex-start;padding:12px 16px;border-radius:var(--r);border:1px solid}
+.alert.warn{background:var(--warn-bg);border-color:transparent;color:var(--fg)}
+.alert.bad{background:var(--bad-bg);border-color:transparent}
+.alert.info{background:var(--info-bg);border-color:transparent}
+.alert b{display:block}
+.alert .grow{flex:1;min-width:0}
+
+.tbl{overflow-x:auto;margin:0 -4px}
+table{width:100%;border-collapse:collapse;font-size:.86rem}
+th{text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td.money,th.money{text-align:right;white-space:nowrap}
+tfoot td{font-weight:700;border-top:2px solid var(--line);border-bottom:0}
+tr.click{cursor:pointer} tr.click:hover td{background:var(--surface)}
+.sub{color:var(--muted);font-size:.78rem;display:block}
+.empty{color:var(--muted);text-align:center;padding:24px 8px;font-size:.9rem}
+
+form.f{display:flex;flex-direction:column;gap:12px}
+label.fl{display:flex;flex-direction:column;gap:5px;font-size:.8rem;font-weight:600;color:var(--muted)}
+input[type=text],input[type=number],input[type=date],input[type=search],select,textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:8px 10px;font-weight:400;color:var(--fg)}
+input[type=file]{font-size:.8rem;color:var(--muted);max-width:100%}
+textarea{min-height:84px;resize:vertical}
+.row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:480px){.row2{grid-template-columns:minmax(0,1fr)}}
+.check{display:flex;gap:8px;align-items:center;font-size:.88rem}
+.hint{font-size:.78rem;color:var(--muted);font-weight:400}
+
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{border:0;background:none;padding:10px 14px;cursor:pointer;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;display:flex;gap:6px;align-items:center}
+.tabs button[aria-selected="true"]{color:var(--accent-strong);border-bottom-color:var(--accent)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--bg);padding:5px 12px;border-radius:999px;cursor:pointer;font-weight:600;font-size:.8rem}
+.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-strong)}
+
+/* QR pay */
+.qrwrap{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.qrbox{background:var(--paper);padding:10px;border-radius:12px;border:1px solid var(--line);width:180px;flex:none}
+.qrbox canvas,.qrbox img{display:block;width:100%;height:auto;image-rendering:pixelated}
+.qrbox .qrtag{color:#13241B;text-align:center;font-size:.68rem;font-weight:700;letter-spacing:.08em;margin-top:6px}
+.payee{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.payee b{font-family:var(--f-head)}
+.steps{margin:0;padding-left:18px;color:var(--muted);font-size:.82rem;display:flex;flex-direction:column;gap:2px}
+
+/* amenities */
+.amen{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:760px){.amen{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.amen button{text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:var(--r);padding:12px 14px;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+.amen button b{font-family:var(--f-head)}
+.amen button span{font-size:.8rem;color:var(--muted)}
+.amen button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.cal-h{display:flex;justify-content:space-between;align-items:center}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cal .dow{font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;text-align:center;color:var(--muted);padding:4px 0}
+.cal button{aspect-ratio:1/1;max-width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-variant-numeric:tabular-nums;font-weight:600;font-size:.85rem;padding:0}
+.cal button:disabled{opacity:.35;cursor:not-allowed}
+.cal button .bar{width:60%;height:4px;border-radius:2px;background:var(--surface-2);overflow:hidden}
+.cal button .bar i{display:block;height:100%;background:var(--accent)}
+.cal button.full .bar i{background:var(--bad)}
+.cal button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.cal button[aria-pressed="true"] .bar{background:rgba(255,255,255,.35)}
+.cal button.today{border-color:var(--accent)}
+.legend{display:flex;gap:14px;font-size:.75rem;color:var(--muted);flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:4px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media (max-width:480px){.slots{grid-template-columns:minmax(0,1fr)}}
+.slot{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:8px;padding:9px 12px;cursor:pointer;position:relative}
+.slot input{position:absolute;opacity:0;pointer-events:none}
+.slot-t{font-weight:700;font-variant-numeric:tabular-nums}
+.slot-s{font-size:.75rem;color:var(--ok)}
+.slot.taken{background:var(--surface);cursor:not-allowed}
+.slot.taken .slot-s{color:var(--muted)}
+.slot:has(input:checked){border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.slot:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
+.feebox{background:var(--surface);border-radius:8px;padding:10px 12px;font-size:.84rem}
+
+/* vehicles */
+.vlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.vcard{border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:10px}
+.plate{background:var(--paper);color:#13241B;border:2px solid #13241B;border-radius:6px;padding:4px 10px 6px;text-align:center;align-self:flex-start;min-width:150px}
+.plate small{display:block;font-size:.56rem;letter-spacing:.3em;font-weight:700;color:#1C7A4A}
+.plate b{font-family:var(--f-head);font-size:1.3rem;letter-spacing:.08em}
+.vmeta{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+
+/* tickets */
+details.tk{border:1px solid var(--line);border-radius:var(--r)}
+details.tk summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+details.tk summary::-webkit-details-marker{display:none}
+details.tk[open] summary{border-bottom:1px solid var(--line)}
+.tk-body{padding:12px 14px;display:flex;flex-direction:column;gap:12px}
+.timeline{display:flex;flex-direction:column;gap:10px;border-left:2px solid var(--line);margin-left:4px;padding-left:14px}
+.timeline div{position:relative;font-size:.85rem}
+.timeline div::before{content:"";position:absolute;left:-20px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid var(--bg)}
+.timeline small{color:var(--muted);display:block}
+.thumb{max-width:220px;border-radius:8px;border:1px solid var(--line)}
+
+/* announcements */
+.news{display:flex;flex-direction:column;gap:2px}
+.news article{padding:12px 0;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:4px}
+.news article:last-child{border-bottom:0}
+.news time{font-size:.75rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+
+/* chart */
+.chart{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font-size:11px;font-family:var(--f-body)}
+.chart .grid line{stroke:var(--line)}
+.hbar{display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr) auto;gap:10px;align-items:center;font-size:.84rem}
+.hbar .track{height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden}
+.hbar .track i{display:block;height:100%;background:var(--accent);border-radius:5px}
+
+.fund{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.fund div{padding:14px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.fund div:last-child{border-right:0;background:var(--accent-soft)}
+.fund span{font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+.fund b{font-family:var(--f-head);font-size:1.1rem;font-variant-numeric:tabular-nums}
+@media (max-width:760px){.fund{grid-template-columns:minmax(0,1fr)}.fund div{border-right:0;border-bottom:1px solid var(--line)}}
+
+/* letter */
+.letter{background:var(--paper);color:#1d1d1d;padding:36px 40px;border-radius:4px;border:1px solid var(--line);font-family:Georgia,"Times New Roman",serif;font-size:.92rem;line-height:1.6;display:flex;flex-direction:column;gap:12px}
+.letter .lh{display:flex;justify-content:space-between;gap:12px;border-bottom:2px solid #1C7A4A;padding-bottom:10px;flex-wrap:wrap}
+.letter .lh b{font-family:var(--f-head);color:#135B36;font-size:1.05rem}
+.letter .lh small{display:block;color:#555;font-family:var(--f-body);font-size:.75rem}
+.letter h4{margin:4px 0 0;font-family:var(--f-head);letter-spacing:.06em;text-transform:uppercase;font-size:.95rem;color:#135B36}
+.letter h4.final{color:#B42318}
+.letter table{font-family:var(--f-body);font-size:.8rem;color:#1d1d1d}
+.letter th{color:#555;border-color:#ddd}.letter td{border-color:#eee}
+@media (max-width:560px){.letter{padding:20px}}
+
+/* modal + toast */
+.modal-wrap{position:fixed;inset:0;background:var(--scrim);z-index:50;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding-block:calc(env(safe-area-inset-top,0px) + 40px) 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.modal{background:var(--bg);border-radius:14px;width:min(560px,100%);box-shadow:0 20px 60px rgba(0,0,0,.25);display:flex;flex-direction:column}
+.modal.wide{width:min(760px,100%)}
+.modal-h{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line);gap:10px}
+.modal-b{padding:18px 20px;display:flex;flex-direction:column;gap:14px}
+.modal-f{padding:14px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.x{border:0;background:none;font-size:1.4rem;line-height:1;cursor:pointer;color:var(--muted)}
+.proof{max-width:100%;max-height:70vh;margin:0 auto;display:block;border-radius:8px}
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 16px;font-size:.88rem}
+.kv dt{color:var(--muted)} .kv dd{margin:0;font-weight:600}
+#toasts{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);left:50%;transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;gap:8px;align-items:center;width:min(420px,calc(100vw - 32px))}
+.toast{background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:.88rem;box-shadow:0 8px 24px rgba(0,0,0,.2);animation:tin .2s ease-out}
+.toast.bad{background:var(--bad);color:#fff}
+@keyframes tin{from{transform:translateY(8px);opacity:.4}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.toast{animation:none}}
+.ann{display:flex;gap:14px;align-items:flex-start;padding:14px 16px;border-radius:var(--r);background:var(--accent-soft);border:1px solid var(--accent)}
+.ann .grow{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.ann-k{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--accent-strong)}
+.ann b{font-family:var(--f-head);font-size:1rem}
+.ann p{font-size:.88rem}
+.ann-ic{width:36px;height:36px;border-radius:50%;background:var(--accent);display:grid;place-items:center;flex:none}
+.ann-ic svg{width:18px;height:18px;stroke:var(--on-accent)}
+.ann .actions{align-items:center;flex-wrap:nowrap}
+.ann.imp{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.ann.imp .ann-k,.ann.imp .x{color:var(--on-accent)}
+.ann.imp .ann-ic{background:var(--on-accent)} .ann.imp .ann-ic svg{stroke:var(--accent)}
+@media (max-width:640px){.ann{flex-wrap:wrap}.ann .actions{width:100%;justify-content:space-between}}
+.tipline{display:flex;justify-content:space-between;gap:14px}
+#tip{position:fixed;z-index:70;pointer-events:none;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.8rem;box-shadow:0 8px 24px rgba(19,36,27,.14);min-width:160px;font-variant-numeric:tabular-nums}
+#tip b{display:block;margin-bottom:4px;font-family:var(--f-head)}
+#tip .sw{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
+.viz{--s1:#1C7A4A;--s2:#257de0}
+.chart .hit{fill:transparent;cursor:pointer} .chart .hit:hover,.chart .hit:focus{fill:var(--surface-2)} .chart .hit:focus{outline:none}
+.chart .tot{fill:var(--fg);font-weight:600;font-size:11px}
+.insight{font-size:.85rem;color:var(--fg);background:var(--surface);border-radius:8px;padding:8px 12px}
+.insight b{color:var(--accent-strong)}
+.heat{width:100%;border-collapse:separate;border-spacing:3px;font-size:.82rem}
+.heat th{border:0;padding:4px 6px;text-align:right}.heat th:first-child{text-align:left}
+.heat td{border:0;border-radius:4px;padding:8px 6px;text-align:right;font-variant-numeric:tabular-nums;cursor:default}
+.heat td.rowh{text-align:left;font-weight:700;background:none;padding-left:0;white-space:nowrap}
+.heat td.tot{font-weight:700;background:var(--surface)}
+.heat tr.sum td{font-weight:700;background:var(--surface)}
+.heat td.na{color:var(--muted);background:var(--surface)}
+.split{display:flex;height:28px;border-radius:6px;overflow:hidden;gap:2px}
+.split i{display:block;height:100%}
+.split-l{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:.85rem}
+.split-l span{display:flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:10px;height:10px;border-radius:3px;flex:none}
+.hero-n{font-family:var(--f-head);font-size:1.9rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+.hbars{display:flex;flex-direction:column;gap:10px}
+@media (max-width:640px){.hbars .hbar{grid-template-columns:minmax(0,1fr) auto!important;row-gap:4px}.hbars .hbar .track{grid-column:1/-1;grid-row:2}}
+.hbar .track i.alt{background:var(--chart-2)}
+.note{font-size:.78rem;color:var(--muted)}
+details.tv summary{cursor:pointer;font-size:.82rem;font-weight:600;color:var(--accent)}
+.rtypes{display:flex;flex-direction:column;gap:6px}
+.rtype{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:9px 12px;cursor:pointer}
+.rtype input{margin-top:3px;accent-color:var(--accent)}
+.rtype:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.rtype b{display:block;font-size:.88rem}
+.rtype span{font-size:.78rem;color:var(--muted)}
+.rtype .auto{color:var(--accent-strong);font-weight:600}
+.rr{border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:10px}
+.rr-h{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.stepper{display:flex;gap:4px}
+.stepper span{flex:1;font-size:.72rem;font-weight:600;color:var(--muted);border-top:3px solid var(--surface-2);padding-top:5px}
+.stepper span.on{color:var(--accent-strong);border-color:var(--accent)}
+.stepper span.bad{color:var(--bad);border-color:var(--bad)}
+.dyn{display:flex;gap:8px;align-items:center}
+.dyn input{flex:1;min-width:0}
+.dyn .x{flex:none;width:28px}
+.passes{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.pass{border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;gap:12px;align-items:flex-start}
+.pass.dim{opacity:.6}
+.pass img.qr{width:84px;height:84px;flex:none;border-radius:6px;border:1px solid var(--line);background:#fff;image-rendering:pixelated}
+.pass .grow{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.qrbig{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;align-self:center;width:min(280px,100%)}
+.qrbig img{display:block;width:100%;image-rendering:pixelated}
+.code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:1.3rem;font-weight:700;letter-spacing:.12em;text-align:center}
+.verdict{border-radius:var(--r);padding:16px 18px;display:flex;gap:14px;align-items:center}
+.verdict b{font-family:var(--f-head);font-size:1.4rem;display:block}
+.verdict.ok{background:var(--accent);color:var(--on-accent)}
+.verdict.bad{background:var(--bad);color:#fff}
+.verdict.warn{background:var(--warn-bg);color:var(--fg)}
+.verdict .ic{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.2);display:grid;place-items:center;font-size:1.5rem;font-weight:800;flex:none}
+.gst{border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.gst-h{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+.gst-h b{font-size:1rem}
+.gst form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:10px;align-items:end}
+@media (max-width:760px){.gst form{grid-template-columns:minmax(0,1fr)}}
+.bigbtn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:2px dashed var(--accent);border-radius:14px;padding:28px 16px;cursor:pointer;background:var(--accent-soft);color:var(--accent-strong);font-weight:700;font-size:1.05rem;text-align:center}
+.bigbtn small{font-weight:500;color:var(--muted);font-size:.8rem}
+.bigbtn input{position:absolute;opacity:0;width:1px;height:1px}
+.bigbtn:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.idthumb{width:56px;height:36px;object-fit:cover;border-radius:4px;border:1px solid var(--line);cursor:pointer}
+.steplbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--accent-strong);margin:0}
+.req{color:var(--bad)}
+.demo-note{font-size:.75rem;color:var(--muted)}
+</style>
+<style>
+/* Mockup viewer: a review bar on top, then one screen at a time in a phone or desktop frame, using the mock-up's own styles above. */
+.mk{--mk-bg:#EEF3F0;--mk-ink:#13241B;--mk-muted:#5A6D62;--mk-line:#D2DFD7}
+html,body{background:#EEF3F0}
+body::before{display:none}
+.mkbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:80;background:#13241B;color:#fff;padding-block:12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:10px}
+.mkbar h1{font-size:1.05rem;color:#fff}
+.mkbar p{font-size:.8rem;color:rgba(255,255,255,.75)}
+.mkrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.mkrow select{width:auto;max-width:100%;background:#fff;color:#13241B}
+.mkrow .btn{background:transparent;color:#fff;border-color:rgba(255,255,255,.35)}
+.mkrow .btn:hover{background:rgba(255,255,255,.1)}
+.mkreq{display:flex;gap:6px;flex-wrap:wrap}
+.mkreq button{border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:999px;padding:4px 12px;font-weight:600;font-size:.8rem;cursor:pointer}
+.mkreq button[aria-pressed="true"]{background:#fff;color:#13241B}
+.mkwrap{max-width:1180px;margin:0 auto;padding-block:20px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+.mkinfo{background:#fff;border:1px solid #D2DFD7;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.mkinfo .k{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:#135B36}
+.mkinfo h2{font-size:1.15rem}
+.mkinfo p{font-size:.86rem;color:#3d4f45}
+.mkopt{display:inline-flex;gap:6px;align-items:center;font-size:.75rem;font-weight:700;border-radius:999px;padding:2px 10px}
+.mkopt.rec{background:#E2F1E8;color:#135B36}.mkopt.alt{background:#FCF0D6;color:#8F5B00}
+.frame{background:#fff;border:1px solid #C9D8CF;border-radius:14px;overflow:hidden;box-shadow:0 10px 30px rgba(19,36,27,.08);position:relative;align-self:center;width:100%}
+.frame.phone{max-width:390px;border-radius:28px;border:8px solid #13241B}
+.frame.desk{max-width:1180px}
+.frame.paper{max-width:720px;border-radius:4px;background:#fff}
+.frame .shell{max-width:none}
+.frame .modal-wrap{position:absolute}
+.frame.phone .shell{grid-template-columns:minmax(0,1fr);padding-block:16px 24px}
+.frame.phone nav.side{display:none}
+.frame.phone .top-in{gap:10px}
+.frame.phone .menu-btn{display:grid}
+.mknav{display:flex;justify-content:space-between;gap:8px}
+.signbox{max-width:400px;margin:0 auto;display:flex;flex-direction:column;gap:16px;padding-block:28px 32px}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;border:1px solid #747775;background:#fff;color:#1F1F1F;border-radius:8px;padding:11px 14px;font-weight:600;min-height:44px;width:100%;cursor:pointer}
+.gbtn svg{width:18px;height:18px}
+.or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.8rem}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+.f input[type=email],.f input[type=password],.f input[type=tel]{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:10px 12px;font-weight:400;color:var(--fg);min-height:44px}
+.f .btn.primary.big{padding:12px 14px;min-height:44px;width:100%}
+.ferr{color:var(--bad);font-size:.78rem;font-weight:600}
+input.bad{border-color:var(--bad)!important;box-shadow:0 0 0 1px var(--bad)}
+.pwrow{display:flex;gap:8px;align-items:center}
+.pwrow input{flex:1}
+.codein{font-family:ui-monospace,SFMono-Regular,Menlo,monospace!important;font-size:1.3rem!important;letter-spacing:.14em;text-transform:uppercase;text-align:center}
+.mail{font-family:var(--f-body);background:#fff;display:flex;flex-direction:column}
+.mail .mh{padding:14px 16px;border-bottom:1px solid #e5e5e5;font-size:.82rem;color:#555;display:flex;flex-direction:column;gap:2px}
+.mail .mh b{color:#111;font-size:.95rem}
+.mail .mb{padding:22px 18px;display:flex;flex-direction:column;gap:14px;font-size:.92rem}
+.mail .brandline{display:flex;align-items:center;gap:10px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;padding:18px}
+.rolecol{border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:2px}
+.rolecol h3{margin-bottom:6px}
+.rolecol .it{padding:6px 8px;border-radius:6px;font-size:.86rem}
+.rolecol .it.on{background:var(--accent-soft);color:var(--accent-strong);font-weight:700}
+.rolecol .ro{font-size:.72rem;color:var(--muted);margin-top:6px}
+.hocards{display:flex;flex-direction:column;gap:10px}
+.hocard{border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.hocard .r{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.slip{border:2px dashed #9fb5a8;border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:8px}
+.slips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:24px}
+@media (max-width:640px){.slips{grid-template-columns:minmax(0,1fr)}}
+.membr{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--line)}
+.membr:last-child{border-bottom:0}
+.errlist{display:flex;flex-direction:column;gap:10px}
+.callout{font-size:.75rem;font-weight:700;color:#8F5B00;background:#FCF0D6;border-radius:6px;padding:4px 8px;align-self:flex-start}
+.mknote{font-size:.8rem;color:#3d4f45}
+</style>
+
+<style>
+/* Extra pieces for REQ-028 to REQ-034 screens only. */
+.bkcards{display:flex;flex-direction:column;gap:10px}
+.bkcard{border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.bkcard .r{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.bkcard .acts{display:flex;gap:6px;min-height:30px}
+.bkcard .acts .ghost{visibility:hidden}
+.ph-skel{background:linear-gradient(90deg,var(--surface) 0%,var(--surface-2) 50%,var(--surface) 100%);border-radius:8px}
+.qrph{width:160px;height:160px;align-self:center;border:1px solid var(--line);border-radius:10px;padding:8px;background:#fff}
+.radio{display:flex;gap:8px;align-items:center;font-size:.9rem;border:1px solid var(--line);border-radius:8px;padding:9px 12px}
+.radio:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.crtbl td:first-child{white-space:nowrap;font-weight:600}
+</style>
+
+<div class="mk">
+  <div class="mkbar">
+    <div><h1>Vehicles and amenities mockup · REQ-028 to REQ-034</h1><p>Draft for owner review. Sample HOA and invented people only. Each screen names the REQ scenario it shows. Comment on any screen.</p></div>
+    <div class="mkrow">
+      <div class="mkreq" id="mkreq" role="group" aria-label="Requirement"></div>
+    </div>
+    <div class="mkrow">
+      <label for="mksel" style="font-size:.8rem;color:rgba(255,255,255,.8)">Screen</label>
+      <select id="mksel"></select>
+      <button class="btn sm" id="mkprev" type="button">‹ Previous</button>
+      <button class="btn sm" id="mknext" type="button">Next ›</button>
+    </div>
+  </div>
+  <div class="mkwrap">
+    <div class="mkinfo" id="mkinfo"></div>
+    <div id="mkstage" style="display:flex;flex-direction:column"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const HOA='Greenfield Homes HOA';
+const HOUSE='<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>';
+const BELL='<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1112 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 004 0"/></svg>';
+const MENU='<button class="menu-btn" aria-label="Open menu" type="button"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>';
+
+function appTop(opts={}){
+  const {menu=false,right='',sub='Resident portal'}=opts;
+  return `<header class="top"><div class="top-in">${menu?MENU:''}<div class="brand"><span class="logo">${HOUSE}</span><div><b>${HOA}</b><small>${sub}</small></div></div><div class="top-r">${right}</div></div></header>`;
+}
+const bell=n=>`<button class="bell" aria-label="Notifications" type="button">${BELL}${n?`<span class="dot">${n}</span>`:''}</button>`;
+function nav(lbl,items,cur){return `<nav class="side" aria-label="Sections"><div class="navlbl">${lbl}</div>${items.map(i=>`<button type="button" ${i===cur?'aria-current="page"':''}><span>${i}</span></button>`).join('')}</nav>`}
+const shell=(n,m)=>`<div class="shell">${n}<main>${m}</main></div>`;
+const ph=(t,s,r='')=>`<div class="ph"><div><h1>${t}</h1>${s?`<p>${s}</p>`:''}</div>${r?`<div class="actions">${r}</div>`:''}</div>`;
+const pill=(k,t)=>`<span class="pill p-${k}">${t}</span>`;
+const modal=(label,title,body,foot)=>`<div class="modal-wrap"><div class="modal" role="dialog" aria-modal="true" aria-label="${label}"><div class="modal-h"><h2>${title}</h2><button class="x" aria-label="Close" type="button">×</button></div><div class="modal-b">${body}</div><div class="modal-f">${foot}</div></div></div>`;
+const HOMENAV=['Dashboard','Dues & Payments','Book Amenities','My Vehicles','Announcements'];
+const STAFFNAV=['Dashboard','Approvals','Homeowners','Announcements','Settings'];
+const hoTop=()=>appTop({menu:true,right:bell(1)});
+const hoPage=(cur,body)=>hoTop()+shell(nav('Blk 4 Lot 12',HOMENAV,cur),body);
+const stTop=who=>appTop({right:`<span class="who-admin">Signed in as <b>${who}</b></span>${bell(0)}`});
+const stPage=(who,cur,body)=>stTop(who)+shell(nav('Administration',STAFFNAV,cur),body);
+const tabs=(cur)=>`<div class="tabs" role="tablist">${[['Payments',4],['Bookings',2],['Vehicles',3]].map(([t,n])=>`<button type="button" role="tab" aria-selected="${t===cur}">${t} <span class="badge">${n}</span></button>`).join('')}</div>`;
+
+/* ---------- vehicles ---------- */
+const plate=p=>`<div class="plate"><small>PILIPINAS</small><b>${p}</b></div>`;
+function vcard(p,make,sub,status,btn,reason){
+  return `<div class="vcard">${plate(p)}<div><b>${make}</b><span class="sub">${sub}</span></div><div class="vmeta">${status}<span style="min-width:84px;text-align:right">${btn||'<button class="btn sm danger" type="button" style="visibility:hidden">Withdraw</button>'}</span></div>${reason?`<span class="sub" style="color:var(--bad)">${reason}</span>`:''}</div>`;
+}
+const myVehicles=()=>`<div class="vlist">
+  ${vcard('ABC 1234','Toyota Vios','White · Car',`${pill('ok','Approved')}<span class="num">Sticker #0451</span>`,'<button class="btn sm danger" type="button">Remove</button>')}
+  ${vcard('PQR 5521','Honda Click','Red · Motorcycle',`${pill('warn','Pending approval')}<span class="sub">OR/CR attached</span>`,'<button class="btn sm danger" type="button">Withdraw</button>')}
+  ${vcard('XYZ 9087','Suzuki Ertiga','Gray · Van',pill('bad','Rejected'),'','Rejected: Plate does not match the OR/CR')}
+</div>`;
+function vehForm(err){
+  return `<section class="card"><h2>Register a vehicle</h2>
+  ${err?`<div class="alert bad" role="alert"><div class="grow"><b>This plate is already registered to another household.</b>Contact the admin office.</div></div>`:''}
+  <form class="f" onsubmit="return false">
+    <label class="fl" for="vPlate">Plate number<input id="vPlate" type="text" autocapitalize="characters" value="${err?'NFT 3390':''}" class="${err?'bad':''}" aria-describedby="vPlateHelp"><span id="vPlateHelp" class="hint">As it appears on the vehicle, for example ABC 1234. New vehicle? Use the conduction sticker number.</span></label>
+    <label class="fl" for="vType">Type<select id="vType"><option>Car</option><option>SUV</option><option>Van</option><option>Pickup</option><option>Motorcycle</option></select></label>
+    <div class="row2"><label class="fl" for="vMake">Make and model<input id="vMake" type="text" value="${err?'Toyota Innova':''}"></label>
+    <label class="fl" for="vColor">Colour<input id="vColor" type="text" value="${err?'Silver':''}"></label></div>
+    <label class="fl" for="vDoc">OR/CR photo (optional) <span class="hint">The admin office uses it to check ownership.</span><input id="vDoc" type="file" accept="image/*"></label>
+    ${err?'<span class="ferr">Choose a photo (JPG or PNG) of the OR/CR.</span>':''}
+    <button class="btn primary big" type="button">Submit for approval</button>
+  </form></section>`;
+}
+
+/* ---------- amenities ---------- */
+const AMEN=[['Swimming Pool','₱150 per slot','Up to 10 guests'],['Function Room','₱2,500 per slot + ₱1,000 deposit','Up to 80 guests'],['Pickleball Court','₱200 per slot','Up to 8 guests'],['Basketball Court','₱250 per slot','Up to 20 guests']];
+const amenBtns=cur=>`<p class="steplbl">1 · Choose an amenity</p><div class="amen" role="group" aria-label="Amenity">${AMEN.map(([n,f,g])=>`<button type="button" aria-pressed="${n===cur}"><b>${n}</b><span>${f}</span><span>${g}</span></button>`).join('')}</div>`;
+function cal(sel,opts={}){
+  const {full=[30],part={28:50,29:33,30:100}}=opts;
+  let c='';
+  for(let d=1;d<=30;d++){
+    const dis=d<27;const p=part[d]||0;
+    c+=`<button type="button" ${dis?'disabled':''} aria-pressed="${d===sel}" class="${d===27?'today':''} ${full.includes(d)?'full':''}" aria-label="Nov ${d}, 2026${dis?', past':''}">${d}<span class="bar"><i style="width:${p}%"></i></span></button>`;
+  }
+  return `<p class="steplbl">2 · Pick a date</p><div class="cal-h"><button class="btn sm" type="button" disabled aria-label="Previous month">‹</button><h2>November 2026</h2><button class="btn sm" type="button" aria-label="Next month">›</button></div>
+  <div class="cal">${['Su','Mo','Tu','We','Th','Fr','Sa'].map(d=>`<span class="dow">${d}</span>`).join('')}${c}</div>
+  <div class="legend"><span><i style="background:var(--accent)"></i>Slots taken</span><span><i style="background:var(--bad)"></i>Fully booked</span><span>Times are Manila time.</span></div>`;
+}
+function slots(list,checked){
+  return `<div class="slots" role="radiogroup" aria-label="Slot">${list.map(([t,s],i)=>{const taken=s!=='Available';return `<label class="slot ${taken?'taken':''}" for="sl${i}"><input id="sl${i}" type="radio" name="slot" ${taken?'disabled':''} ${i===checked?'checked':''}><span class="slot-t">${t}</span><span class="slot-s">${s}</span></label>`}).join('')}</div>`;
+}
+const PICKLE29=[['06:00–07:00','Available'],['07:00–08:00','Available'],['16:00–17:00','On hold'],['17:00–18:00','Booked'],['18:00–19:00','Your booking'],['19:00–20:00','Available']];
+const PICKLE28=[['06:00–07:00','Closed for requests'],['07:00–08:00','Closed for requests'],['16:00–17:00','Available'],['17:00–18:00','Booked'],['18:00–19:00','Available'],['19:00–20:00','On hold']];
+function bookForm(o={}){
+  const {date='Sunday, Nov 29, 2026',list=PICKLE29,checked=1,guests='4',gErr='',alert='',btn='Request booking',btnDis=false,fee='Fee ₱200.00. You pay after the admin office approves.',extra=''}=o;
+  return `<section class="card"><p class="steplbl">3 · Choose a slot and confirm</p><div class="card-h"><h2>Pickleball Court</h2><p>${date}</p></div>
+  ${alert}
+  <form class="f" onsubmit="return false">${slots(list,checked)}
+  <div class="row2"><label class="fl" for="bkG">Guests (up to 8)<input id="bkG" type="number" inputmode="numeric" min="1" max="8" value="${guests}" class="${gErr?'bad':''}">${gErr?`<span class="ferr">${gErr}</span>`:''}</label>
+  <label class="fl" for="bkP">Purpose (optional)<input id="bkP" type="text" value="Doubles"></label></div>
+  <div class="feebox">${fee}</div>${extra}
+  <button class="btn primary big" type="button" ${btnDis?'disabled':''}>${btn}</button></form></section>`;
+}
+function bkcard(a,when,meta,status,acts){
+  return `<div class="bkcard"><div class="r"><b>${a}</b>${status}</div><span class="sub">${when}</span><span class="sub">${meta}</span><div class="acts">${acts||'<button class="btn sm danger ghost" type="button" tabindex="-1" aria-hidden="true">Cancel</button>'}</div></div>`;
+}
+const CANCEL='<button class="btn sm danger" type="button">Cancel</button>';
+const QR=(()=>{let r='';let s=7;for(let y=0;y<21;y++)for(let x=0;x<21;x++){s=(s*73+19)%101;const corner=(x<7&&y<7)||(x>13&&y<7)||(x<7&&y>13);const on=corner?((x%6===0||y%6===0||(x>13&&(x===14||x===20)))||((x>1&&x<5||x>15&&x<19)&&(y>1&&y<5||y>15&&y<19))):s%2===0;if(on)r+=`<rect x="${x}" y="${y}" width="1" height="1"/>`}return `<svg class="qrph" viewBox="0 0 21 21" role="img" aria-label="Sample QR Ph code (not real)" fill="#13241B">${r}</svg>`})();
+
+/* ---------- screens ---------- */
+const S=[
+/* REQ-028 */
+{id:'28A',req:'REQ-028',dev:'phone',opt:'rec',title:'My Vehicles with the register form',scn:'"Register a vehicle", "A rejected vehicle can be registered again", "Remove an approved vehicle".',note:'One card per vehicle at 375 px. "Withdraw" only on pending, "Remove" only on approved; the button space is kept on every card so cards line up.',html:()=>hoPage('My Vehicles',ph('My Vehicles','Registered vehicles get an HOA sticker for gate entry.')+`<section class="card"><div class="card-h"><h2>Registered vehicles</h2><p>1 active</p></div>${myVehicles()}</section>`+vehForm(false))},
+{id:'28B',req:'REQ-028',dev:'phone',opt:'rec',title:'Plate already registered elsewhere; photo not an image',scn:'"A plate approved for another household" and "The photo is not an image".',note:'The message never names the other household. Everything typed stays in the form.',html:()=>hoPage('My Vehicles',ph('My Vehicles','Registered vehicles get an HOA sticker for gate entry.')+vehForm(true))},
+{id:'28C',req:'REQ-028',dev:'phone',opt:'rec',title:'Withdraw a pending registration',scn:'"Withdraw a pending registration".',note:'Focus starts on "Keep it". The record is kept as Withdrawn (soft delete) and hidden from the list; its OR/CR photo is deleted.',html:()=>hoPage('My Vehicles',`<section class="card" style="min-height:420px">${myVehicles()}</section>`)+modal('Withdraw registration','Withdraw PQR 5521?','<p>The admin office won’t review it.</p>','<button class="btn" type="button">Keep it</button><button class="btn primary" type="button" style="background:var(--bad);border-color:var(--bad)">Withdraw</button>')},
+{id:'28D',req:'REQ-028',dev:'phone',opt:'rec',title:'Remove an approved vehicle (decision 4)',scn:'"Remove an approved vehicle (decision 4)".',note:'Not in the backlog or the mock-up. Without it, a sold car keeps a valid sticker. The sticker number is retired and never reused.',html:()=>hoPage('My Vehicles',`<section class="card" style="min-height:420px">${myVehicles()}<details><summary class="btn link">Past vehicles</summary></details></section>`)+modal('Remove vehicle','Remove ABC 1234?','<p>Sticker #0451 stops being valid. Please return it to the admin office.</p>','<button class="btn" type="button">Keep it</button><button class="btn primary" type="button" style="background:var(--bad);border-color:var(--bad)">Remove</button>')},
+
+/* REQ-029 */
+{id:'29A',req:'REQ-029',dev:'desk',opt:'rec',title:'Approvals → Vehicles',scn:'"The queue", "The same plate pending at two households", "View the OR/CR".',note:'The same Approvals tabs and buttons as payments and bookings. At phone width each row becomes a card.',html:()=>stPage('Paolo Aquino','Approvals',ph('Approvals','Payments, bookings and vehicle registrations waiting for a decision.')+tabs('Vehicles')+`<section class="card"><div class="card-h"><h2>Vehicle registrations</h2><p>New stickers start at #0460.</p></div><div class="tbl"><table><thead><tr><th>Plate</th><th>Vehicle</th><th>Household</th><th>Submitted</th><th>OR/CR</th><th>Check</th><th></th></tr></thead><tbody>
+  <tr><td><b class="num">NFT 3390</b></td><td>Toyota Innova<span class="sub">Silver · Van</span></td><td>Rosa Bautista<span class="sub">Blk 6 Lot 3</span></td><td>Nov 24, 2026</td><td><button class="btn sm" type="button">View</button></td><td><span class="pill p-muted" style="visibility:hidden">—</span></td><td><div class="actions"><button class="btn sm primary" type="button">Approve</button><button class="btn sm danger" type="button">Reject</button></div></td></tr>
+  <tr><td><b class="num">312 QWE</b></td><td>Yamaha NMAX<span class="sub">Black · Motorcycle</span></td><td>Grace Lim<span class="sub">Blk 9 Lot 4</span></td><td>Nov 26, 2026</td><td><span class="sub">Not attached</span></td><td><span class="pill p-muted" style="visibility:hidden">—</span></td><td><div class="actions"><button class="btn sm primary" type="button">Approve</button><button class="btn sm danger" type="button">Reject</button></div></td></tr>
+  <tr><td><b class="num">KLM 2290</b></td><td>Honda City<span class="sub">Red · Car</span></td><td>Marco Santos<span class="sub">Blk 3 Lot 8</span></td><td>Nov 27, 2026</td><td><button class="btn sm" type="button">View</button></td><td>${pill('warn','Same plate pending at another lot')}</td><td><div class="actions"><button class="btn sm primary" type="button">Approve</button><button class="btn sm danger" type="button">Reject</button></div></td></tr>
+  </tbody></table></div></section>`)},
+{id:'29B',req:'REQ-029',dev:'desk',opt:'rec',title:'Approve with a new or an existing sticker (Option C)',scn:'"Approve with a new sticker", "Approve a vehicle that already has a sticker", "An existing sticker number already in use".',note:'"New sticker" is selected by default. Error shown here is the duplicate-number refusal. Option A would show only the first choice; Option B only the number field.',html:()=>stPage('Paolo Aquino','Approvals',ph('Approvals','')+tabs('Vehicles')+`<section class="card" style="min-height:380px"></section>`)+modal('Approve vehicle','Approve NFT 3390?',`<dl class="kv"><dt>Vehicle</dt><dd>Toyota Innova · Silver · Van</dd><dt>Household</dt><dd>Blk 6 Lot 3</dd></dl>
+  <fieldset style="border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:8px"><legend class="steplbl" style="margin-bottom:6px">Sticker</legend>
+  <label class="radio"><input type="radio" name="st"> New sticker #0460</label>
+  <label class="radio"><input type="radio" name="st" checked> Already has sticker</label>
+  <label class="fl" for="stNo">Sticker number<input id="stNo" type="text" inputmode="numeric" value="0137" class="bad"><span class="ferr">Sticker #0137 is already assigned to DAE 7781 (Blk 2 Lot 10).</span></label></fieldset>`,'<button class="btn" type="button">Cancel</button><button class="btn primary" type="button">Approve</button>')},
+{id:'29C',req:'REQ-029',dev:'desk',opt:'rec',title:'Reject with a reason',scn:'"Reject with a reason", "A reason is required", "The reject dialog keeps what was typed".',note:'Presets fill the field, which stays editable. Clicking outside does not close the dialog.',html:()=>stPage('Paolo Aquino','Approvals',ph('Approvals','')+tabs('Vehicles')+`<section class="card" style="min-height:380px"></section>`)+modal('Reject request','Reject 312 QWE?',`<div class="chips"><button type="button" class="chip">Plate does not match the OR/CR</button><button type="button" class="chip">OR/CR is not under a household member</button></div><label class="fl" for="rj">Reason shown to the homeowner<textarea id="rj" class="bad"></textarea><span class="ferr">Enter a reason. The homeowner will see it.</span></label>`,'<button class="btn" type="button">Cancel</button><button class="btn primary" type="button" style="background:var(--bad);border-color:var(--bad)">Reject</button>')},
+{id:'29D',req:'REQ-029',dev:'phone',opt:'rec',title:'What the homeowner sees after approval',scn:'"Approve with a new sticker" (homeowner side).',note:'The notification says where to collect the sticker. "Approved · Sticker #0460" is the card status.',html:()=>appTop({menu:true,right:bell(1)})+`<div style="padding:16px;display:flex;flex-direction:column;gap:12px"><div class="notif unread" style="border:1px solid var(--line);border-radius:10px">Vehicle NFT 3390 approved. Pick up sticker #0460 at the admin office.<small>Today, 10:42</small></div><section class="card"><div class="card-h"><h2>Registered vehicles</h2><p>1 active</p></div><div class="vlist">${vcard('NFT 3390','Toyota Innova','Silver · Van',`${pill('ok','Approved')}<span class="num">Sticker #0460</span>`,'<button class="btn sm danger" type="button">Remove</button>')}</div></section></div>`},
+
+/* REQ-030 */
+{id:'30A',req:'REQ-030',dev:'desk',opt:'rec',title:'Settings → Amenities (Option A)',scn:'"The settings page", "A price change applies to new bookings only", "Invalid values", "Booking window".',note:'Slots are read-only (changed by the developer on the board’s written request). For the admin office, only Bookable and the note are editable. At phone width each amenity becomes a card.',html:()=>stPage('Carmela Cruz','Settings',ph('Settings','Dues, QR payment details and amenities.')+`<section class="card"><div class="card-h"><h2>Amenities</h2><p>New fees apply to new booking requests. Existing bookings keep their fee.</p></div><form class="f" onsubmit="return false"><div class="tbl"><table><thead><tr><th>Amenity and slots</th><th>Fee per slot (₱)</th><th>Deposit (₱)</th><th>Max guests</th><th>Book up to (days ahead)</th><th>Requests close (hours before)</th><th>Bookable</th></tr></thead><tbody>
+  ${[['pool','Swimming Pool','08:00–10:00 · 10:00–12:00 · 14:00–16:00 · 16:00–18:00','-50','0','10','60','24',true],['hall','Function Room','08:00–12:00 · 13:00–17:00 · 18:00–22:00','3000','1000','80','180','24',true],['pick','Pickleball Court','06:00–07:00 · 07:00–08:00 · 16:00–17:00 · 17:00–18:00 · 18:00–19:00 · 19:00–20:00','200','0','8','60','24',true],['bb','Basketball Court','06:00–07:00 · 07:00–08:00 · 16:00–17:00 · 17:00–18:00 · 18:00–19:00 · 19:00–20:00','250','0','20','60','24',true]].map(([k,n,sl,f,d,m,ah,cl,b])=>`<tr><td><b>${n}</b><span class="sub">${sl}</span></td><td><label class="fl" for="f_${k}"><span class="sr" style="position:absolute;left:-9999px">${n} fee per slot (₱)</span><input id="f_${k}" type="number" inputmode="numeric" value="${f}" style="width:100px" class="${f.startsWith('-')?'bad':''}">${f.startsWith('-')?'<span class="ferr">Enter ₱0 or more.</span>':''}</label></td><td><input aria-label="${n} deposit (₱)" type="number" inputmode="numeric" value="${d}" style="width:100px"></td><td><input aria-label="${n} max guests" type="number" inputmode="numeric" value="${m}" style="width:70px"></td><td><input aria-label="${n} book up to (days ahead)" type="number" inputmode="numeric" value="${ah}" style="width:70px"></td><td><input aria-label="${n} requests close (hours before)" type="number" inputmode="numeric" value="${cl}" style="width:70px"></td><td><label class="check" for="b_${k}"><input id="b_${k}" type="checkbox" ${b?'checked':''}> Bookable</label></td></tr>`).join('')}
+  </tbody></table></div><label class="fl" for="nt">Note for homeowners · Swimming Pool<input id="nt" type="text" value="Lifeguard on duty 8 AM–6 PM."></label><p class="hint">To add or change slots, the board asks the developer in writing.</p><div><button class="btn primary" type="button">Save amenities</button></div></form></section>`)},
+{id:'30B',req:'REQ-030',dev:'desk',opt:'rec',title:'Close an amenity that has upcoming bookings',scn:'"Close an amenity for repairs".',note:'Closing stops new requests only. Existing bookings are listed so the office can contact the households or cancel them (REQ-033 office cancel).',html:()=>stPage('Paolo Aquino','Settings',ph('Settings','')+`<section class="card" style="min-height:420px"></section>`)+modal('Close amenity','Close the Swimming Pool?',`<p>The Swimming Pool has 3 upcoming bookings. Closing it stops new requests only. These bookings stay until you cancel them.</p><div class="tbl"><table><thead><tr><th>Date</th><th>Slot</th><th>Lot</th><th>Status</th></tr></thead><tbody><tr><td>Dec 5, 2026</td><td>14:00–16:00</td><td>Blk 4 Lot 12</td><td>${pill('ok','Approved')}</td></tr><tr><td>Dec 6, 2026</td><td>10:00–12:00</td><td>Blk 1 Lot 9</td><td>${pill('ok','Approved')}</td></tr><tr><td>Dec 12, 2026</td><td>08:00–10:00</td><td>Blk 8 Lot 2</td><td>${pill('warn','Pending approval')}</td></tr></tbody></table></div>`,'<button class="btn" type="button">Keep it open</button><button class="btn" type="button">Cancel bookings</button><button class="btn primary" type="button">Close for new bookings</button>')},
+
+/* REQ-031 */
+{id:'31A',req:'REQ-031',dev:'phone',opt:'rec',title:'Book Amenities: request an open slot',scn:'"Request an open slot", "Past dates, full days and the booking window", "Other households’ bookings stay private", "The fee is shown before requesting".',note:'Today is Nov 27 (Manila). Earlier days are disabled; Nov 30 is fully booked. Other households’ slots read only "On hold" or "Booked". With D7 Option B the fee is paid after approval.',html:()=>hoPage('Book Amenities',ph('Book Amenities','Pick an amenity, a date and an open slot. The admin office approves each request.')+amenBtns('Pickleball Court')+`<section class="card">${cal(29)}</section>`+bookForm())},
+{id:'31B',req:'REQ-031',dev:'phone',opt:'rec',title:'Slot just taken, closed for requests, too many guests',scn:'"Two homeowners request the same slot", "Requests close 24 hours before the slot", "Too many guests".',note:'Nov 28 slots starting within 24 hours read "Closed for requests". The taken slot now reads "On hold". Everything typed is kept.',html:()=>hoPage('Book Amenities',bookForm({date:'Saturday, Nov 28, 2026',list:PICKLE28,checked:2,guests:'12',gErr:'The Pickleball Court allows up to 8 guests.',alert:'<div class="alert bad" role="alert"><div class="grow"><b>Someone just requested this slot.</b>Pick another one.</div></div>'}))},
+{id:'31C',req:'REQ-031',dev:'phone',opt:'rec',title:'My bookings as cards, with fee states',scn:'"Pay the fee after approval", "The treasurer rejects the fee payment", "A free amenity needs no payment", "My bookings on a phone".',note:'Replaces the mock-up’s wide table, which scrolls sideways on phones (backlog finding 2). The Cancel space is kept on cards that can’t be cancelled.',html:()=>hoPage('Book Amenities',`<section class="card"><div class="card-h"><h2>My bookings</h2></div><div class="bkcards">
+  ${bkcard('Function Room','Sat, Dec 19, 2026 · 13:00–17:00','50 guests · ₱3,500.00',pill('ok','Approved'),'<button class="btn sm primary" type="button">Pay fee</button>'+CANCEL).replace('</span><div class="acts">','</span><span class="sub" style="color:var(--warn);font-weight:600">Pay ₱3,500.00 by Dec 9</span><div class="acts">')}
+  ${bkcard('Pickleball Court','Sun, Nov 29, 2026 · 07:00–08:00','4 guests · ₱200.00',pill('warn','Pending approval'),CANCEL)}
+  ${bkcard('Swimming Pool','Sat, Dec 5, 2026 · 14:00–16:00','6 guests · ₱150.00',`${pill('ok','Approved')} ${pill('info','Fee pending approval')}`,CANCEL)}
+  ${bkcard('Basketball Court','Sat, Dec 12, 2026 · 17:00–18:00','10 guests · ₱250.00',`${pill('ok','Approved')} ${pill('ok','Fee paid · OR-00123')}`,CANCEL)}
+  ${bkcard('Swimming Pool','Sun, Nov 15, 2026 · 14:00–16:00','5 guests','<span>'+pill('bad','Rejected')+'</span>','').replace('<div class="acts">','<span class="sub" style="color:var(--bad)">Rejected: Slot is reserved for an HOA event</span><div class="acts">')}
+  ${bkcard('Pickleball Court','Sat, Nov 14, 2026 · 07:00–08:00','4 guests',pill('muted','Cancelled'),'')}
+</div></section>`)},
+{id:'31D',req:'REQ-031',dev:'phone',opt:'rec',title:'Pay the booking fee (D7 Option B)',scn:'"Pay the fee after approval", "The amount can’t be changed".',note:'Reuses REQ-010’s payment screen and the HOA QR from REQ-007. The payment goes to the treasurer’s Approvals marked "Amenity fee". The QR here is a placeholder.',html:()=>hoTop()+`<div style="padding:16px"><section class="card"><h2>Pay the booking fee</h2><p class="sub">Function Room · Sat, Dec 19, 2026 · 13:00–17:00</p>${QR}<dl class="kv"><dt>Amount</dt><dd>₱3,500.00</dd><dt></dt><dd class="sub" style="font-weight:400">Fee ₱2,500.00 + refundable deposit ₱1,000.00</dd><dt>Pay by</dt><dd>Dec 9, 2026</dd></dl><form class="f" onsubmit="return false"><label class="fl" for="pRef">Reference number<input id="pRef" type="text" inputmode="numeric" value="4021 778 1190"></label><label class="fl" for="pShot">Screenshot of the confirmation<input id="pShot" type="file" accept="image/*"></label><button class="btn primary big" type="button">Submit payment</button><p class="hint">After you submit: "Fee submitted. The treasurer will confirm it."</p></form></section></div>`},
+{id:'31E',req:'REQ-031',dev:'phone',opt:'alt',title:'Option A for comparison: pay with the request',scn:'Option A only (the mock-up’s flow).',note:'Not recommended: a rejected or cancelled request means a refund by hand, and the admin office would be accepting money only the treasurer may check.',html:()=>hoPage('Book Amenities',bookForm({fee:'Fee ₱200.00. Pay with the HOA QR code on the Dues page, then enter the reference number here.',extra:'<label class="fl" for="aRef">Payment reference no.<input id="aRef" type="text"></label><label class="fl" for="aShot">Screenshot of the confirmation<input id="aShot" type="file" accept="image/*"></label>'}))},
+{id:'31F',req:'REQ-031',dev:'phone',opt:'rec',title:'Loading and offline',scn:'"Loading" and "Offline".',note:'No slot reads "Available" before availability has loaded. Offline, the button is disabled and says why.',html:()=>hoPage('Book Amenities',amenBtns('Pickleball Court')+`<section class="card"><p class="steplbl">2 · Pick a date</p><div class="ph-skel" style="height:240px" aria-label="Loading calendar"></div></section><section class="card"><p class="steplbl">3 · Choose a slot and confirm</p><div class="slots">${'<div class="ph-skel" style="height:52px"></div>'.repeat(4)}</div><div class="feebox">Fee ₱200.00. You pay after the admin office approves.</div><button class="btn primary big" type="button" disabled>Request booking</button><p class="hint" role="status">You're offline. Connect to request a booking.</p></section>`)},
+
+/* REQ-032 */
+{id:'32A',req:'REQ-032',dev:'desk',opt:'rec',title:'Approvals → Bookings, soonest first',scn:'"The queue", "Overdue account warning", "Approve a booking with a fee".',note:'No "Slot conflict" column: with the slot hold, two active bookings for one slot can’t exist. Standing is a pill with words.',html:()=>stPage('Paolo Aquino','Approvals',ph('Approvals','Payments, bookings and vehicle registrations waiting for a decision.')+tabs('Bookings')+`<div class="tabs" style="border:0"><button type="button" aria-selected="true">Requests</button><button type="button" aria-selected="false">Upcoming</button></div><section class="card"><div class="card-h"><h2>Booking requests</h2><p>Soonest first.</p></div><div class="tbl"><table><thead><tr><th>Amenity</th><th>Date &amp; slot</th><th>Household</th><th>Guests</th><th class="money">Fee + deposit</th><th>Account</th><th></th></tr></thead><tbody>
+  <tr><td><b>Basketball Court</b><span class="sub">Barkada game</span></td><td>Sat, Nov 28, 2026<span class="sub">17:00–18:00</span></td><td>Liza Ramos<span class="sub">Blk 5 Lot 1</span></td><td class="num">12</td><td class="money">₱250.00</td><td>${pill('bad','Delinquent · 2 months overdue')}</td><td><div class="actions"><button class="btn sm primary" type="button">Approve</button><button class="btn sm danger" type="button">Reject</button></div></td></tr>
+  <tr><td><b>Function Room</b><span class="sub">Christening reception</span></td><td>Sat, Dec 19, 2026<span class="sub">13:00–17:00</span></td><td>Rosa Bautista<span class="sub">Blk 6 Lot 3</span></td><td class="num">50</td><td class="money">₱3,500.00</td><td>${pill('ok','Good standing')}</td><td><div class="actions"><button class="btn sm primary" type="button">Approve</button><button class="btn sm danger" type="button">Reject</button></div></td></tr>
+  </tbody></table></div></section><div id="toasts" style="position:absolute"><div class="toast">Booking approved. The household has until Dec 9 to pay ₱3,500.00.</div></div>`)},
+{id:'32B',req:'REQ-032',dev:'desk',opt:'rec',title:'Reject a booking',scn:'"Reject with a reason", "A reason is required, and the dialog keeps it".',note:'Same dialog as vehicles and payments, with booking presets. The slot reopens on reject.',html:()=>stPage('Paolo Aquino','Approvals',ph('Approvals','')+tabs('Bookings')+`<section class="card" style="min-height:380px"></section>`)+modal('Reject request','Reject request',`<dl class="kv"><dt>Booking</dt><dd>Function Room · Dec 19, 13:00–17:00 · Blk 6 Lot 3</dd></dl><div class="chips"><button type="button" class="chip">Slot is reserved for an HOA event</button><button type="button" class="chip">Account has overdue dues</button><button type="button" class="chip">Guest count exceeds the limit</button></div><label class="fl" for="rb">Reason shown to the homeowner<textarea id="rb">Slot is reserved for an HOA event</textarea></label>`,'<button class="btn" type="button">Cancel</button><button class="btn primary" type="button" style="background:var(--bad);border-color:var(--bad)">Reject</button>')},
+{id:'32C',req:'REQ-032',dev:'desk',opt:'rec',title:'Upcoming approved bookings',scn:'"Upcoming approved bookings" and REQ-033 "The office cancels a booking for a household".',note:'For key handover and closures. Fee status shows whether the household still has to pay.',html:()=>stPage('Paolo Aquino','Approvals',ph('Approvals','')+tabs('Bookings')+`<div class="tabs" style="border:0"><button type="button" aria-selected="false">Requests</button><button type="button" aria-selected="true">Upcoming</button></div><section class="card"><div class="card-h"><h2>Upcoming bookings</h2><label class="fl" for="ua" style="flex-direction:row;align-items:center;gap:8px">Amenity<select id="ua" style="width:auto"><option>Function Room</option></select></label></div><div class="tbl"><table><thead><tr><th>Date &amp; slot</th><th>Household</th><th>Guests</th><th>Fee</th><th></th></tr></thead><tbody>
+  <tr><td>Sat, Dec 12, 2026<span class="sub">18:00–22:00</span></td><td>Noel Garcia<span class="sub">Blk 1 Lot 9</span></td><td class="num">60</td><td>${pill('ok','Fee paid · OR-00119')}</td><td><button class="btn sm danger" type="button">Cancel</button></td></tr>
+  <tr><td>Sat, Dec 19, 2026<span class="sub">13:00–17:00</span></td><td>Rosa Bautista<span class="sub">Blk 6 Lot 3</span></td><td class="num">50</td><td>${pill('warn','Fee due by Dec 9')}</td><td><button class="btn sm danger" type="button">Cancel</button></td></tr>
+  </tbody></table></div></section>`)},
+{id:'32D',req:'REQ-032',dev:'desk',opt:'rec',title:'Someone else decided first',scn:'"Two staff decide the same request" and "The homeowner cancelled meanwhile".',note:'The server refuses a decision on anything no longer pending; the row leaves the queue.',html:()=>stPage('Paolo Aquino','Approvals',ph('Approvals','')+tabs('Bookings')+`<div class="alert warn" role="alert"><div class="grow"><b>Already rejected by Carmela Cruz.</b>The list has been updated.</div></div><section class="card"><div class="card-h"><h2>Booking requests</h2><p>Soonest first.</p></div><div class="empty">No booking requests.</div></section>`)},
+
+/* REQ-033 */
+{id:'33A',req:'REQ-033',dev:'phone',opt:'rec',title:'Cancel a booking',scn:'"Cancel an upcoming booking", "Cancelling after paying", "Keep booking".',note:'The mock-up’s dialog had "Cancel" on both buttons. Here: "Keep booking" (focused) and "Cancel booking". The refund line appears only when a fee is paid or pending.',html:()=>hoPage('Book Amenities',`<section class="card" style="min-height:420px"><div class="bkcards">${bkcard('Function Room','Sat, Dec 19, 2026 · 13:00–17:00','50 guests · ₱3,500.00',`${pill('ok','Approved')} ${pill('ok','Fee paid · OR-00123')}`,CANCEL)}</div></section>`)+modal('Cancel booking','Cancel this booking?','<p>The slot opens up for other homeowners.</p><p>Refunds of paid fees and deposits are handled at the admin office.</p>','<button class="btn" type="button" autofocus>Keep booking</button><button class="btn primary" type="button" style="background:var(--bad);border-color:var(--bad)">Cancel booking</button>')},
+{id:'33B',req:'REQ-033',dev:'desk',opt:'rec',title:'The office cancels for a household (decision 2)',scn:'"The office cancels a booking for a household", "The office must give a reason".',note:'Opened from Approvals → Bookings → Upcoming. The homeowner sees the reason.',html:()=>stPage('Paolo Aquino','Approvals',ph('Approvals','')+tabs('Bookings')+`<section class="card" style="min-height:380px"></section>`)+modal('Cancel booking',"Cancel Blk 4 Lot 12's Swimming Pool booking on Dec 5?",'<label class="fl" for="oc">Reason shown to the homeowner<textarea id="oc">Pool closed for pump repair</textarea></label>','<button class="btn" type="button">Keep booking</button><button class="btn primary" type="button" style="background:var(--bad);border-color:var(--bad)">Cancel booking</button>')},
+
+/* REQ-034 */
+{id:'34A',req:'REQ-034',dev:'phone',opt:'rec',title:'Booking is paused for your account',scn:'"A delinquent household sees the pause" and "A payment waiting for approval".',note:'The calendar stays browsable; "Request booking" is disabled with the reason. The second line appears only while a payment is waiting.',html:()=>appTop({menu:true,right:bell(0)})+shell(nav('Blk 9 Lot 4',HOMENAV,'Book Amenities'),ph('Book Amenities','Pick an amenity, a date and an open slot. The admin office approves each request.')+`<div class="alert bad" role="status"><div class="grow"><b>Booking is paused for your account</b>Your account has overdue dues. Settle the balance to book amenities again.<span class="sub" style="margin-top:6px">Your payment is waiting for approval. Booking resumes once it's approved.</span></div></div><button class="btn primary big" type="button" style="width:100%">Go to Dues</button>`+amenBtns('Swimming Pool')+bookForm({btnDis:true,fee:'Fee ₱150.00. You pay after the admin office approves.'}))},
+{id:'34B',req:'REQ-034',dev:'desk',opt:'rec',title:'The pause setting',scn:'"Turn the pause on" and "Only the treasurer changes the setting".',note:'Renamed from the mock-up’s "Block amenity booking…" to match the glossary, and moved from Dues &amp; billing to its own card (REQ-007 leaves it out). Off at go-live; the board decides.',html:()=>stPage('Carmela Cruz','Settings',ph('Settings','Dues, QR payment details and amenities.')+`<section class="card"><h2>Amenity booking</h2><form class="f" onsubmit="return false"><label class="check" for="pz"><input id="pz" type="checkbox"> Pause amenity booking for households with overdue dues</label><p class="hint">Households with overdue dues can look at the calendar but can't request bookings. Existing bookings stay.</p><div><button class="btn primary" type="button">Save settings</button></div></form></section>`)},
+
+/* Copy of record */
+{id:'CR',req:'Copy',dev:'desk',opt:'rec',title:'Copy of record (key wording)',scn:'The exact wording used on these screens. Full tables are in each REQ.',note:'Wording follows the glossary: Booking, Slot, On hold, Fee, Deposit, Sticker, Booking pause.',html:()=>`<div style="padding:18px"><div class="tbl"><table class="crtbl"><thead><tr><th>REQ</th><th>Where</th><th>Text</th></tr></thead><tbody>${[
+  ['028','Success','Vehicle submitted. The admin office will review it.'],
+  ['028','Plate taken','This plate is already registered to another household. Contact the admin office.'],
+  ['028','Remove confirm','Remove {plate}? Sticker #{number} stops being valid. Please return it to the admin office.'],
+  ['029','Notification','Vehicle {plate} approved. Pick up sticker #{number} at the admin office.'],
+  ['029','Duplicate sticker','Sticker #{number} is already assigned to {plate} ({lot}).'],
+  ['030','Saved','Amenities saved. New fees apply to new booking requests.'],
+  ['030','Close confirm','The {amenity} has {n} upcoming bookings. Closing it stops new requests only. These bookings stay until you cancel them.'],
+  ['031','Success','Booking requested. The slot is on hold until the admin office approves it. You’ll pay the fee after approval.'],
+  ['031','Slot taken','Someone just requested this slot. Pick another one.'],
+  ['031','Fee box','Fee ₱{fee} + ₱{deposit} refundable deposit = ₱{total}. You pay after the admin office approves.'],
+  ['031','Fee submitted','Fee submitted. The treasurer will confirm it.'],
+  ['032','Approved notification','Booking approved: {amenity}, {date}, {slot}. Pay ₱{total} by {pay-by} to keep it.'],
+  ['032','Auto cancel','Your {amenity} booking on {date} was cancelled because the fee wasn’t submitted by {pay-by}.'],
+  ['033','Confirm','Cancel this booking? The slot opens up for other homeowners. · Keep booking · Cancel booking'],
+  ['034','Banner','Booking is paused for your account · Your account has overdue dues. Settle the balance to book amenities again. · Go to Dues']
+].map(([r,w,t])=>`<tr><td>REQ-${r}</td><td>${w}</td><td>${t}</td></tr>`).join('')}</tbody></table></div></div>`}
+];
+
+const REQS=[['REQ-028','Register vehicle'],['REQ-029','Approve vehicle'],['REQ-030','Amenity setup'],['REQ-031','Book'],['REQ-032','Approve booking'],['REQ-033','Cancel'],['REQ-034','Booking pause'],['Copy','Copy of record']];
+let cur=0;
+function draw(){
+  const s=S[cur];
+  document.getElementById('mkreq').innerHTML=REQS.map(([r,l])=>`<button type="button" data-req="${r}" aria-pressed="${s.req===r}">${r==='Copy'?l:r+' · '+l}</button>`).join('');
+  document.getElementById('mksel').innerHTML=S.map((x,i)=>`<option value="${i}" ${i===cur?'selected':''}>${x.id} · ${x.title}</option>`).join('');
+  document.getElementById('mkinfo').innerHTML=`<span class="k">${s.req==='Copy'?'All REQs':s.req+' · Screen '+s.id}</span><h2>${s.title}</h2><div><span class="mkopt ${s.opt}">${s.opt==='rec'?'Recommended option':'Alternative option, for comparison'}</span></div><p><b>Shows:</b> ${s.scn}</p><p class="mknote">${s.note}</p>`;
+  document.getElementById('mkstage').innerHTML=`<div class="frame ${s.dev}">${s.html()}</div>`;
+  document.getElementById('mkprev').disabled=cur===0;document.getElementById('mknext').disabled=cur===S.length-1;
+  try{history.replaceState(null,'','#s'+s.id)}catch(e){}
+}
+document.addEventListener('click',e=>{
+  const r=e.target.closest('[data-req]');if(r){cur=S.findIndex(x=>x.req===r.dataset.req);draw();return}
+  if(e.target.id==='mkprev'&&cur>0){cur--;draw()}
+  if(e.target.id==='mknext'&&cur<S.length-1){cur++;draw()}
+});
+document.getElementById('mksel').addEventListener('change',e=>{cur=+e.target.value;draw()});
+const hs=(location.hash||'').replace('#s','');const hi=S.findIndex(x=>x.id===hs);if(hi>=0)cur=hi;
+draw();
+})();
+</script>
+
+</html>

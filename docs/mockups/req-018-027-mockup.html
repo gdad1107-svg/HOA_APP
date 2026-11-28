@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Collect and Account Mockup (R2)</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap">
+<style>
+/* App styles: the subset of the mock-up's own CSS (index.html, and req-001-004-access-mockup.html) that these screens use, unchanged. */
+:root{
+  --bg:#FFFFFF; --surface:#F4F8F5; --surface-2:#E9F2EC; --line:#DAE6DE; --fg:#13241B; --muted:#5A6D62;
+  --accent:#1C7A4A; --accent-strong:#135B36; --accent-soft:#E2F1E8; --on-accent:#FFFFFF;
+  --ok:#1C7A4A; --ok-bg:#E2F1E8; --warn:#8F5B00; --warn-bg:#FCF0D6; --bad:#B42318; --bad-bg:#FDE7E4; --info:#1F5E8C; --info-bg:#E3EEF8;
+  --chart-2:#A9CDB8; --paper:#FFFFFF; --scrim:rgba(10,25,17,.45);
+  --shadow:0 1px 2px rgba(19,36,27,.05),0 6px 20px rgba(19,36,27,.06);
+  --f-head:"Plus Jakarta Sans",Inter,system-ui,sans-serif; --f-body:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:10px; color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.5;margin:0}
+h1,h2,h3{font-family:var(--f-head);text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:1.6rem;font-weight:800} h2{font-size:1.1rem;font-weight:700} h3{font-size:.98rem;font-weight:700}
+p{margin:0}
+.num,td.money,.money{font-variant-numeric:tabular-nums}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:var(--accent)}
+.top{position:relative;z-index:20;background:var(--accent);color:var(--on-accent)}
+.top-in{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:10px 16px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.logo{width:34px;height:34px;border-radius:9px;background:var(--on-accent);display:grid;place-items:center;flex:none}
+.logo svg{width:20px;height:20px;stroke:var(--accent)}
+.brand b{font-family:var(--f-head);font-size:1rem;display:block;line-height:1.1}
+.brand small{color:rgba(255,255,255,.8);font-size:.75rem}
+.top-r{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.who-admin{font-size:.85rem;color:rgba(255,255,255,.8)}
+.bell{position:relative;width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.4);background:transparent;cursor:pointer;display:grid;place-items:center}
+.bell svg{width:18px;height:18px;stroke:var(--on-accent)}
+.bell .dot{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;border-radius:9px;background:var(--bad);color:#fff;font-size:.68rem;font-weight:700;display:grid;place-items:center;padding:0 4px}
+.bellpanel{position:absolute;right:16px;top:calc(100% + 6px);width:min(340px,calc(100% - 32px));background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 12px 32px rgba(0,0,0,.14);z-index:30}
+.bellpanel header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.notif{padding:10px 14px;border-bottom:1px solid var(--line);font-size:.85rem}
+.notif.unread{background:var(--accent-soft)}
+.notif small{display:block;color:var(--muted)}
+.menu-btn{display:grid;width:38px;height:38px;border-radius:8px;border:1px solid rgba(255,255,255,.4);background:transparent;cursor:pointer;place-items:center;flex:none}
+.menu-btn svg{width:20px;height:20px;stroke:var(--on-accent)}
+.shell{display:grid;grid-template-columns:220px minmax(0,1fr);gap:28px;padding:24px 16px 48px}
+nav.side{display:flex;flex-direction:column;gap:2px;align-self:start}
+nav.side .navlbl{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:0 12px 6px}
+nav.side button{display:flex;justify-content:space-between;align-items:center;text-align:left;border:0;background:transparent;padding:9px 12px;border-radius:8px;cursor:pointer;font-weight:500;color:var(--fg)}
+nav.side button[aria-current="page"]{background:var(--accent-soft);color:var(--accent-strong);font-weight:700}
+.badge{background:var(--accent);color:var(--on-accent);border-radius:999px;font-size:.7rem;font-weight:700;padding:1px 7px}
+main{min-width:0;display:flex;flex-direction:column;gap:20px}
+@media (max-width:860px){.shell{grid-template-columns:minmax(0,1fr)}nav.side{display:none}}
+.ph{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.ph p{color:var(--muted);margin-top:4px}
+.card{background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:18px;min-width:0;display:flex;flex-direction:column;gap:14px}
+.card.soft{background:var(--surface);border-color:transparent}
+.card-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.card-h p{color:var(--muted);font-size:.85rem}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g-73{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr)}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:1060px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){.g2,.g-73{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:420px){.tiles{grid-template-columns:minmax(0,1fr)}}
+.tile{background:var(--surface);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:4px;min-width:0;min-height:138px}
+.tile.hero{background:var(--accent);color:var(--on-accent)}
+.tile.hero .tile-l,.tile.hero .tile-s{color:var(--on-accent);opacity:.85}
+.tile-l{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+.tile-v{font-family:var(--f-head);font-size:1.55rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.2}
+.tile-s{font-size:.82rem;color:var(--muted)}
+.tile .btn{margin-top:auto;align-self:flex-start}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:8px 14px;border-radius:8px;font-weight:600;cursor:pointer;white-space:nowrap;min-height:36px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.danger{color:var(--bad);border-color:var(--bad-bg)}
+.btn.dangerfill{background:var(--bad);border-color:var(--bad);color:#fff}
+.btn.sm{padding:5px 10px;font-size:.8rem;min-height:30px}
+.btn.big{padding:12px 14px;min-height:44px;width:100%}
+.btn.link{border:0;background:none;padding:0;color:var(--accent);font-weight:600;min-height:0}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;font-size:.75rem;font-weight:600;white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.p-ok{background:var(--ok-bg);color:var(--ok)} .p-warn{background:var(--warn-bg);color:var(--warn)}
+.p-bad{background:var(--bad-bg);color:var(--bad)} .p-info{background:var(--info-bg);color:var(--info)}
+.p-muted{background:var(--surface-2);color:var(--muted)}
+.alert{display:flex;gap:12px;align-items:flex-start;padding:12px 16px;border-radius:var(--r)}
+.alert.warn{background:var(--warn-bg)} .alert.bad{background:var(--bad-bg)} .alert.info{background:var(--info-bg)} .alert.ok{background:var(--ok-bg)}
+.alert b{display:block}
+.alert .grow{flex:1;min-width:0}
+.tbl{overflow-x:auto;margin:0 -4px}
+table{width:100%;border-collapse:collapse;font-size:.86rem}
+caption{text-align:left;font-size:.78rem;color:var(--muted);padding:0 8px 6px}
+th{text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td.money,th.money{text-align:right;white-space:nowrap}
+tfoot td{font-weight:700;border-top:2px solid var(--line);border-bottom:0}
+tr.void td{color:var(--muted)} tr.void td.strike{text-decoration:line-through}
+.sub{color:var(--muted);font-size:.78rem;display:block}
+.empty{color:var(--muted);text-align:center;padding:24px 8px;font-size:.9rem;display:flex;flex-direction:column;gap:10px;align-items:center}
+form.f{display:flex;flex-direction:column;gap:12px}
+label.fl{display:flex;flex-direction:column;gap:5px;font-size:.8rem;font-weight:600;color:var(--muted)}
+input[type=text],input[type=number],input[type=date],input[type=search],select,textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:8px 10px;font-weight:400;color:var(--fg);min-height:40px}
+textarea{min-height:84px;resize:vertical}
+.row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:480px){.row2{grid-template-columns:minmax(0,1fr)}}
+.check{display:flex;gap:8px;align-items:center;font-size:.88rem;min-height:32px}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.hint{font-size:.78rem;color:var(--muted);font-weight:400}
+.ferr{color:var(--bad);font-size:.78rem;font-weight:600}
+input.bad,textarea.bad,select.bad{border-color:var(--bad)!important;box-shadow:0 0 0 1px var(--bad)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{border:0;background:none;padding:10px 14px;cursor:pointer;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--accent-strong);border-bottom-color:var(--accent)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--bg);padding:5px 12px;border-radius:999px;cursor:pointer;font-weight:600;font-size:.8rem;min-height:32px}
+.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-strong)}
+details.tk{border:1px solid var(--line);border-radius:var(--r)}
+details.tk summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+details.tk summary::-webkit-details-marker{display:none}
+details.tk[open] summary{border-bottom:1px solid var(--line)}
+.tk-body{padding:12px 14px;display:flex;flex-direction:column;gap:12px}
+.timeline{display:flex;flex-direction:column;gap:10px;border-left:2px solid var(--line);margin-left:4px;padding-left:14px}
+.timeline div{position:relative;font-size:.85rem}
+.timeline div::before{content:"";position:absolute;left:-20px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid var(--bg)}
+.timeline div.office{background:var(--surface-2);border-radius:6px;padding:6px 8px}
+.timeline div.office::before{background:var(--muted)}
+.timeline small{color:var(--muted);display:block}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap}
+.thumb{width:84px;height:64px;border-radius:8px;border:1px solid var(--line);background:linear-gradient(135deg,#cfe3d6,#9fc3ad);display:grid;place-items:center;font-size:.7rem;color:#13241B;position:relative}
+.news{display:flex;flex-direction:column;gap:2px}
+.news article{padding:10px 0;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.news article:last-child{border-bottom:0}
+.news time{font-size:.75rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.hbar{display:grid;grid-template-columns:minmax(0,170px) minmax(0,1fr) auto;gap:10px;align-items:center;font-size:.84rem}
+.hbar .track{height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden}
+.hbar .track i{display:block;height:100%;background:var(--accent);border-radius:5px}
+.fund{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin:0}
+.fund div{padding:14px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.fund div:last-child{border-right:0;background:var(--accent-soft)}
+.fund dt{font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+.fund dd{margin:0;font-family:var(--f-head);font-size:1.1rem;font-weight:700;font-variant-numeric:tabular-nums}
+@media (max-width:760px){.fund{grid-template-columns:minmax(0,1fr)}.fund div{border-right:0;border-bottom:1px solid var(--line)}}
+.letter{background:var(--paper);color:#1d1d1d;padding:28px 32px;border-radius:4px;border:1px solid var(--line);font-family:Georgia,"Times New Roman",serif;font-size:.9rem;line-height:1.6;display:flex;flex-direction:column;gap:10px}
+.letter .lh{display:flex;justify-content:space-between;gap:12px;border-bottom:2px solid #1C7A4A;padding-bottom:10px;flex-wrap:wrap}
+.letter .lh b{font-family:var(--f-head);color:#135B36;font-size:1.05rem}
+.letter .lh small{display:block;color:#555;font-family:var(--f-body);font-size:.75rem}
+.letter h4{margin:4px 0 0;font-family:var(--f-head);letter-spacing:.06em;text-transform:uppercase;font-size:.95rem;color:#135B36}
+.letter h4.final{color:#B42318}
+.letter table{font-family:var(--f-body);font-size:.8rem;color:#1d1d1d}
+@media (max-width:560px){.letter{padding:18px}}
+.modal-wrap{position:absolute;inset:0;background:var(--scrim);z-index:50;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:40px 16px}
+.modal{background:var(--bg);border-radius:14px;width:min(560px,100%);box-shadow:0 20px 60px rgba(0,0,0,.25);display:flex;flex-direction:column}
+.modal.wide{width:min(760px,100%)}
+.modal-h{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line);gap:10px}
+.modal-b{padding:18px 20px;display:flex;flex-direction:column;gap:14px}
+.modal-f{padding:14px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;position:sticky;bottom:0;background:var(--bg);border-radius:0 0 14px 14px}
+.x{border:0;background:none;font-size:1.4rem;line-height:1;cursor:pointer;color:var(--muted);min-width:32px;min-height:32px}
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 16px;font-size:.88rem;margin:0}
+.kv dt{color:var(--muted)} .kv dd{margin:0;font-weight:600}
+.toast{background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:.88rem;box-shadow:0 8px 24px rgba(0,0,0,.2);align-self:center}
+.req{color:var(--bad)}
+</style>
+<style>
+/* Mockup viewer: review bar, then one screen at a time in a phone, desktop or paper frame. Same as req-001-004-access-mockup.html. */
+html,body{background:#EEF3F0}
+.mkbar{position:sticky;top:0;z-index:80;background:#13241B;color:#fff;padding:12px 16px;display:flex;flex-direction:column;gap:10px}
+.mkbar h1{font-size:1.05rem;color:#fff}
+.mkbar p{font-size:.8rem;color:rgba(255,255,255,.75)}
+.mkrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.mkrow select{width:auto;max-width:100%;background:#fff;color:#13241B}
+.mkrow .btn{background:transparent;color:#fff;border-color:rgba(255,255,255,.35)}
+.mkreq{display:flex;gap:6px;flex-wrap:wrap}
+.mkreq button{border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:999px;padding:4px 12px;font-weight:600;font-size:.8rem;cursor:pointer}
+.mkreq button[aria-pressed="true"]{background:#fff;color:#13241B}
+.mkwrap{max-width:1180px;margin:0 auto;padding:20px 16px 60px;display:flex;flex-direction:column;gap:14px}
+.mkinfo{background:#fff;border:1px solid #D2DFD7;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.mkinfo .k{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:#135B36}
+.mkinfo h2{font-size:1.15rem}
+.mkinfo p{font-size:.86rem;color:#3d4f45}
+.mkopt{display:inline-flex;gap:6px;align-items:center;font-size:.75rem;font-weight:700;border-radius:999px;padding:2px 10px}
+.mkopt.rec{background:#E2F1E8;color:#135B36}.mkopt.alt{background:#FCF0D6;color:#8F5B00}
+.frame{background:#fff;border:1px solid #C9D8CF;border-radius:14px;overflow:hidden;box-shadow:0 10px 30px rgba(19,36,27,.08);position:relative;align-self:center;width:100%;min-height:200px}
+.frame.phone{max-width:390px;border-radius:28px;border:8px solid #13241B}
+.frame.desk{max-width:1180px}
+.frame.paper{max-width:720px;border-radius:4px}
+.frame.phone .shell{grid-template-columns:minmax(0,1fr);padding:16px 14px 24px}
+.frame.phone nav.side{display:none}
+.frame.phone .tiles{grid-template-columns:minmax(0,1fr)}
+.frame.phone .fund{grid-template-columns:minmax(0,1fr)}
+.frame.phone .fund div{border-right:0;border-bottom:1px solid var(--line)}
+.frame.phone .row2{grid-template-columns:minmax(0,1fr)}
+.frame.phone .g2,.frame.phone .g-73{grid-template-columns:minmax(0,1fr)}
+.frame.phone .letter{padding:16px}
+.mail{font-family:var(--f-body);background:#fff;display:flex;flex-direction:column}
+.mail .mh{padding:14px 16px;border-bottom:1px solid #e5e5e5;font-size:.82rem;color:#555;display:flex;flex-direction:column;gap:2px}
+.mail .mh b{color:#111;font-size:.95rem}
+.mail .mb{padding:22px 18px;display:flex;flex-direction:column;gap:14px;font-size:1rem}
+.mail .mf{padding:14px 18px;border-top:1px solid #e5e5e5;font-size:.8rem;color:#666}
+.hocards{display:flex;flex-direction:column;gap:10px}
+.hocard{border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.hocard .r{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.hocard .flag{min-height:1.3em;font-size:.8rem;color:var(--warn);font-weight:600}
+.selbar{position:sticky;bottom:0;background:#13241B;color:#fff;border-radius:10px;padding:10px 14px;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+.selbar .btn{border-color:transparent}
+.membr{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--line)}
+.membr:last-child{border-bottom:0}
+.radios{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.radios label{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;gap:8px;align-items:center;font-weight:600;font-size:.88rem;min-height:44px}
+.radios label.on{border-color:var(--accent);background:var(--accent-soft)}
+.bars{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;align-items:end;height:180px;padding-top:10px}
+.bars .m{display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;font-size:.72rem;color:var(--muted)}
+.bars .pair{display:flex;gap:3px;align-items:flex-end;height:130px}
+.bars .pair i{display:block;width:14px;border-radius:3px 3px 0 0;background:var(--accent)}
+.bars .pair i.e{background:var(--chart-2);background-image:repeating-linear-gradient(45deg,transparent 0 3px,rgba(19,36,27,.18) 3px 5px)}
+.legend{display:flex;gap:14px;font-size:.78rem;color:var(--muted);flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.mknote{font-size:.8rem;color:#3d4f45}
+.callout{font-size:.75rem;font-weight:700;color:#8F5B00;background:#FCF0D6;border-radius:6px;padding:4px 8px;align-self:flex-start}
+.crt td:first-child{white-space:nowrap;font-weight:600;vertical-align:top}
+</style>
+
+<div class="mk">
+  <div class="mkbar">
+    <div><h1>Collect and account mockup · REQ-018 to REQ-027 (release R2)</h1><p>Draft for owner review. Sample HOA, invented people and figures only. Each screen names the REQ scenario it shows. Comment on any screen.</p></div>
+    <div class="mkrow"><div class="mkreq" id="mkreq" role="group" aria-label="Requirement"></div></div>
+    <div class="mkrow">
+      <label for="mksel" style="font-size:.8rem;color:rgba(255,255,255,.8)">Screen</label>
+      <select id="mksel"></select>
+      <button class="btn sm" id="mkprev" type="button">‹ Previous</button>
+      <button class="btn sm" id="mknext" type="button">Next ›</button>
+    </div>
+  </div>
+  <div class="mkwrap">
+    <div class="mkinfo" id="mkinfo"></div>
+    <div id="mkstage" style="display:flex;flex-direction:column"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const HOA='Greenfield Homes HOA';
+const HOUSE='<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>';
+const BELL='<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1112 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 004 0"/></svg>';
+const MENU='<button class="menu-btn" aria-label="Open menu" type="button"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>';
+
+/* ---------- builders ---------- */
+const bell=n=>`<button class="bell" aria-label="Notifications${n?', '+n+' unread':''}" type="button">${BELL}${n?`<span class="dot">${n}</span>`:''}</button>`;
+function appBar(o){const {menu=false,sub='Resident portal',right=''}=o||{};return `<header class="top"><div class="top-in">${menu?MENU:''}<div class="brand"><span class="logo">${HOUSE}</span><div><b>${HOA}</b><small>${sub}</small></div></div><div class="top-r">${right}</div></div></header>`}
+const NAV={
+  tr:['Dashboard','Approvals','Homeowners','Collections','Accounting','Requests & Complaints','Announcements','Settings'],
+  ad:['Dashboard','Homeowners','Requests & Complaints','Announcements','Settings'],
+  bd:['Dashboard','Collections','Accounting','Reports']
+};
+const WHO={tr:'Rosa Villanueva · Treasurer',ad:'Paolo Aquino · Admin office',bd:'Dante Lim · Board member'};
+function nav(role,cur,badges){badges=badges||{};return `<nav class="side" aria-label="Sections"><div class="navlbl">Administration</div>${NAV[role].map(i=>`<button type="button" ${i===cur?'aria-current="page"':''}><span>${i}</span>${badges[i]?`<span class="badge">${badges[i]}</span>`:''}</button>`).join('')}</nav>`}
+function staff(role,cur,main,extra,opts){opts=opts||{};return appBar({sub:'Administration',right:`<span class="who-admin">Signed in as <b>${WHO[role]}</b></span>${bell(opts.bell||0)}`})+`<div class="shell">${nav(role,cur,opts.badges)}<main>${main}</main></div>`+(extra||'')}
+function phoneStaff(role,main,extra){return appBar({menu:true,sub:'Administration',right:bell(0)})+`<div class="shell"><main>${main}</main></div>`+(extra||'')}
+function home(main,extra,b){return appBar({menu:true,sub:'Resident portal',right:bell(b||0)})+`<div class="shell"><main>${main}</main></div>`+(extra||'')}
+const ph=(t,s,r)=>`<div class="ph"><div><h1>${t}</h1>${s?`<p>${s}</p>`:''}</div>${r?`<div class="actions">${r}</div>`:''}</div>`;
+const pill=(k,t)=>`<span class="pill p-${k}">${t}</span>`;
+const NT={Reminder:'info','1st Notice':'warn','2nd Notice':'warn','Final Demand':'bad'};
+const np=t=>pill(NT[t],t);
+function modal(title,body,foot,wide){return `<div class="modal-wrap"><div class="modal ${wide?'wide':''}" role="dialog" aria-modal="true" aria-label="${title.replace(/<[^>]+>/g,'')}"><div class="modal-h"><h2>${title}</h2><button class="x" aria-label="Close" type="button">×</button></div><div class="modal-b">${body}</div>${foot?`<div class="modal-f">${foot}</div>`:''}</div></div>`}
+const alertBox=(k,b,t,role)=>`<div class="alert ${k}" role="${role||'status'}"><div class="grow">${b?`<b>${b}</b>`:''}${t||''}</div></div>`;
+const tabs=(items,cur)=>`<div class="tabs" role="tablist">${items.map(i=>`<button role="tab" type="button" aria-selected="${i===cur}">${i}</button>`).join('')}</div>`;
+const chips=(items,cur)=>`<div class="chips" role="group" aria-label="Filter">${items.map(i=>`<button class="chip" type="button" aria-pressed="${i.startsWith(cur)}">${i}</button>`).join('')}</div>`;
+const monthSel=m=>`<label class="fl" style="flex-direction:row;align-items:center;gap:8px" for="ms${m.replace(/ /g,'')}">Month<select id="ms${m.replace(/ /g,'')}" style="width:auto"><option>${m}</option></select></label>`;
+const search=(id,ph)=>`<label class="fl" for="${id}" style="min-width:220px">Search ${ph}<input id="${id}" type="search"></label>`;
+
+/* ---------- sample data (invented) ---------- */
+const DEL=[
+  {lot:'Blk 3 Lot 2',name:'Ana Cruz',m:3,od:'₱5,400.00',bal:'₱7,200.00',last:['2nd Notice','Nov 1, 2026'],next:'Send Final Demand',old:'September 2026'},
+  {lot:'Blk 8 Lot 4',name:'Ramon Dizon',m:3,od:'₱5,400.00',bal:'₱7,200.00',last:null,next:'Send Reminder',old:'September 2026'},
+  {lot:'Blk 6 Lot 9',name:'Bea Santos',m:2,od:'₱3,400.00',bal:'₱5,200.00',last:['Reminder','Nov 3, 2026'],next:'Send 1st Notice',old:'October 2026',pend:'₱1,800.00'},
+  {lot:'Blk 4 Lot 8',name:'Nina Flores',m:2,od:'₱3,600.00',bal:'₱5,400.00',last:['1st Notice','Nov 25, 2026'],next:null,wait:'2nd Notice after Dec 10',old:'October 2026'},
+  {lot:'Blk 1 Lot 3',name:'Joy Navarro',m:1,od:'₱1,800.00',bal:'₱3,600.00',last:null,next:'Send Reminder',old:'November 2026'},
+  {lot:'Blk 9 Lot 3',name:'Leo Ramos',m:1,od:'₱1,800.00',bal:'₱3,600.00',last:null,next:'Send Reminder',old:'November 2026',nobody:true}
+];
+function delRow(d,o){o=o||{};const ro=o.ro;const btn=d.next?`<button class="btn sm ${d.next.includes('Final')?'danger':''}" type="button">${d.next}</button>`:`<button class="btn sm" type="button" disabled>${d.wait}</button>`;
+  return `<tr>${ro?'':`<td><input type="checkbox" aria-label="Select ${d.lot}" ${o.sel&&d.next&&!d.next.includes('Final')&&!d.pend?'checked':''} ${d.next?'':'disabled'}></td>`}<td><b>${d.lot}</b><span class="sub">${d.name}</span></td><td class="num">${d.m}<span class="sub">Oldest overdue: ${d.old}</span></td><td class="money">${d.od}</td><td class="money">${d.bal}</td><td>${d.last?`${np(d.last[0])}<span class="sub">${d.last[1]}</span>`:'<span class="sub">None sent</span>'}</td><td><span class="sub" style="color:var(--warn);font-weight:600;min-height:1.2em">${d.pend?`Payment pending approval: ${d.pend} · <a href="#">Review payment</a>`:''}</span></td>${ro?'':`<td>${btn}</td>`}</tr>`}
+function delTable(o){o=o||{};return `<div class="tbl"><table><caption>Delinquent households, furthest behind first</caption><thead><tr>${o.ro?'':'<th><span class="sub" style="font-size:.7rem">Select</span></th>'}<th>Household</th><th>Months overdue</th><th class="money">Overdue</th><th class="money">Total balance</th><th>Last notice</th><th></th>${o.ro?'':'<th></th>'}</tr></thead><tbody>${DEL.map(d=>delRow(d,o)).join('')}</tbody></table></div>`}
+const DELCHIPS=['All (43)','1 month (30)','2–3 months (9)','4+ months (4)','Deactivated (1)'];
+
+function letterBody(type,o){
+  const T={Reminder:'Payment Reminder','1st Notice':'1st Notice of Unpaid Dues','2nd Notice':'2nd Notice of Unpaid Dues','Final Demand':'Final Demand Letter'}[type];
+  const B={
+    Reminder:`<p>This is a friendly reminder that your association dues account has an overdue amount of <b>${o.amt}</b> for the periods listed below. Please settle it on or before <b>${o.dl}</b> using the HOA QR code in the resident portal. If you have already paid, please submit your payment in the portal or tell the admin office, and disregard this reminder.</p>`,
+    '1st Notice':`<p>Our records show that your association dues account has an overdue amount of <b>${o.amt}</b> for the periods listed below. We request full settlement on or before <b>${o.dl}</b>. If you have already paid, please submit your payment in the portal or tell the admin office.</p>`,
+    '2nd Notice':`<p>Despite our previous notice dated ${o.prev||'Nov 3, 2026'}, your account still has an overdue amount of <b>${o.amt}</b>. Please settle the full amount on or before <b>${o.dl}</b>. If you can't pay in full, please visit the admin office before the deadline to discuss a payment arrangement.</p>`,
+    'Final Demand':`<p>This is our final demand for payment of your overdue association dues of <b>${o.amt}</b>. Previous notices have not been settled. Please pay the full amount on or before <b>${o.dl}</b>. Otherwise, the Board of Directors may pursue the remedies allowed under the Association By-Laws and Republic Act No. 9904, including referral of your account to legal counsel. If you have already paid, please contact the admin office right away.</p>`
+  }[type];
+  return `<div class="letter"><div class="lh"><div><b>${HOA}</b><small>Greenfield Ave., Sample City</small></div><small>Notice no. ${o.no} · ${o.date}</small></div><div>${o.name}<br>${o.lot}</div><h4 class="${type==='Final Demand'?'final':''}">${T}</h4><p>Dear ${o.name},</p>${B}<table><thead><tr><th>Period</th><th>Due date</th><th class="money">Unpaid</th></tr></thead><tbody>${o.rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td class="money">${r[2]}</td></tr>`).join('')}</tbody></table><p>Thank you for your cooperation.</p><p>Respectfully,<br><br><b>[Signatory: board to decide]</b><br>For the Board of Directors, ${HOA}</p></div>`}
+const L1={no:'N-0042',date:'Dec 3, 2026',name:'Ana Cruz',lot:'Blk 3 Lot 2',amt:'₱3,600.00',dl:'Dec 18, 2026',rows:[['October 2026','Oct 31, 2026','₱1,800.00'],['November 2026','Nov 30, 2026','₱1,800.00']]};
+const LFD={no:'N-0044',date:'Dec 3, 2026',name:'Ana Cruz',lot:'Blk 3 Lot 2',amt:'₱5,400.00',dl:'Dec 13, 2026',rows:[['September 2026','Sep 30, 2026','₱1,800.00'],['October 2026','Oct 31, 2026','₱1,800.00'],['November 2026','Nov 30, 2026','₱1,800.00']]};
+
+function mail(subject,body,btn,foot){return `<div class="mail"><div class="mh"><b>${subject}</b><span>From: ${HOA} &lt;noreply@greenfieldhomes.example&gt;</span><span>To: carlo@example.com</span></div><div class="mb"><div style="display:flex;gap:10px;align-items:center"><span class="logo" style="background:var(--accent)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></span><b style="font-family:var(--f-head)">${HOA}</b></div>${body}<a href="#" class="btn primary big" style="text-decoration:none">${btn}</a><p class="hint">If the button doesn't work, open portal.greenfieldhomes.example and sign in.</p></div><div class="mf">You're getting this because you're linked to Blk 5 Lot 1 in the ${HOA} portal.${foot?'<br>'+foot:''}</div></div>`}
+
+const EXP=[
+  ['Sep 26, 2026','Security','SafeWatch Agency','September guard services','₱18,000.00','r'],
+  ['Sep 18, 2026','Repairs & maintenance','AquaFix Pool Services','Pool pump repair','₱7,500.00','r'],
+  ['Sep 18, 2026','Repairs & maintenance','AquaFix Pool Services','Pool pump repair','₱7,500.00','v','Entered twice'],
+  ['Sep 12, 2026','Utilities','Sample Water District','Clubhouse water, August','₱1,940.00','r'],
+  ['Sep 5, 2026','Others','Hardware store','Padlocks for the pump room','₱1,160.00','n','Petty cash, vendor issued no OR']
+];
+function expTable(ro){return `<div class="tbl"><table><caption>Expenses, September 2026</caption><thead><tr><th>Date</th><th>Category</th><th>Vendor / description</th><th class="money">Amount</th><th>Receipt</th>${ro?'':'<th></th>'}</tr></thead><tbody>${EXP.map(e=>`<tr class="${e[5]==='v'?'void':''}"><td>${e[0]}</td><td>${e[1]}</td><td class="${e[5]==='v'?'strike':''}">${e[2]}<span class="sub">${e[3]}</span>${e[5]==='v'?`<span class="sub" style="text-decoration:none">${pill('muted','Void')} ${e[6]}</span>`:''}</td><td class="money ${e[5]==='v'?'strike':''}">${e[4]}</td><td>${e[5]==='n'?`<span class="sub">No receipt: ${e[6]}</span>`:'<button class="btn sm" type="button">Receipt</button>'}</td>${ro?'':`<td>${e[5]==='v'?'':'<div class="actions"><button class="btn sm" type="button">Edit</button><button class="btn sm danger" type="button">Void</button></div>'}</td>`}</tr>`).join('')}</tbody><tfoot><tr><td colspan="3">Total (voided expenses left out)</td><td class="money">₱28,600.00</td><td colspan="${ro?1:2}"></td></tr></tfoot></table></div>`}
+const ACCTABS=['Collections','Expenses','Fund summary'];
+
+const COLL=[
+  ['Dec 4, 2026','OR-00104','Blk 2 Lot 7','Dec 3, 2026','7731 204 118','₱1,800.00',''],
+  ['Dec 3, 2026','—','Void of OR-00093','','','−₱1,800.00','void','Payment reversed by the bank'],
+  ['Dec 2, 2026','OR-00101','Blk 4 Lot 12','Nov 30, 2026','5520 913 004','₱1,800.00','Paid in November'],
+  ['Dec 1, 2026','OR-00100','Blk 5 Lot 1','Dec 1, 2026','9001 337 652','₱3,600.00','']
+];
+function collTable(){return `<div class="tbl"><table><caption>Dues collected, December 2026</caption><thead><tr><th>Receipt date</th><th>OR no.</th><th>Household</th><th>Paid</th><th>Reference no.</th><th class="money">Amount</th></tr></thead><tbody>${COLL.map(c=>c[6]==='void'?`<tr class="void"><td>${c[0]}</td><td colspan="4"><b>${c[2]}</b><span class="sub">${pill('muted','Void')} ${c[7]}</span></td><td class="money">${c[5]}</td></tr>`:`<tr><td>${c[0]}</td><td class="num"><a href="#">${c[1]}</a></td><td>${c[2]}</td><td>${c[3]}</td><td class="num">${c[4]}</td><td class="money">${c[5]}<span class="sub" style="min-height:1.2em">${c[6]}</span></td></tr>`).join('')}</tbody><tfoot><tr><td colspan="5">Total</td><td class="money">₱5,400.00</td></tr></tfoot></table></div>`}
+
+function fundStrip(o){return `<dl class="fund"><div><dt>Opening</dt><dd>${o.op}</dd></div><div><dt>+ Dues</dt><dd>${o.du}</dd></div><div><dt>− Expenses</dt><dd>${o.ex}</dd></div><div><dt>Closing</dt><dd>${o.cl}</dd></div></dl>`}
+const CATS=[['Security','₱18,000',100],['Repairs & maintenance','₱7,500',42],['Utilities','₱3,100',17]];
+const cats=()=>`<section class="card"><h2>Where the money went</h2><div style="display:flex;flex-direction:column;gap:10px">${CATS.map(c=>`<div class="hbar"><span>${c[0]}</span><span class="track"><i style="width:${c[2]}%"></i></span><b class="num">${c[1]}</b></div>`).join('')}</div></section>`;
+
+function chart(empty){if(empty)return `<div class="empty" style="height:180px;justify-content:center">No collections recorded yet</div>`;
+  const M=[['Jun',72,61],['Jul',80,58],['Aug',66,70],['Sep',90,64],['Oct',84,78],['Nov',96,60]];
+  return `<div class="bars">${M.map(m=>`<div class="m"><div class="pair"><i style="height:${m[1]}%" title="Collections"></i><i class="e" style="height:${m[2]}%" title="Expenses"></i></div><span>${m[0]}</span></div>`).join('')}</div><div class="legend"><span><i style="background:var(--accent)"></i>Collections</span><span><i style="background:var(--chart-2);background-image:repeating-linear-gradient(45deg,transparent 0 3px,rgba(19,36,27,.25) 3px 5px)"></i>Expenses (striped)</span><button class="btn link" type="button">Show as table</button></div>`}
+function tilesTr(){return `<div class="tiles">
+  <div class="tile hero"><span class="tile-l">Collected · November 2026</span><span class="tile-v">₱30,600</span><span class="tile-s">55% of ₱56,070 billed</span><button class="btn sm" type="button" style="background:#fff;color:var(--accent-strong);border-color:transparent">Collections for November</button></div>
+  <div class="tile"><span class="tile-l">Receivables</span><span class="tile-v">₱213,400</span><span class="tile-s">₱135,000 overdue · 43 delinquent households</span><button class="btn sm" type="button">Delinquent accounts</button></div>
+  <div class="tile"><span class="tile-l">Expenses · November 2026</span><span class="tile-v">₱28,600</span><span class="tile-s">Fund balance ₱189,000</span><button class="btn sm" type="button">Accounting</button></div>
+  <div class="tile"><span class="tile-l">Pending approvals</span><span class="tile-v">3</span><span class="tile-s">3 payments</span><button class="btn sm primary" type="button">Review 3 payments</button></div></div>`}
+const attention=()=>`<section class="card"><div class="card-h"><h2>Needs attention</h2></div><div class="news">${['3 payments to review','12 households ready for their next notice','2 requests with no reply for 2 working days','November 2026 is ready to close'].map(t=>`<article><a href="#" style="font-weight:600">${t}</a></article>`).join('')}</div></section>`;
+const activity=()=>`<section class="card"><div class="card-h"><h2>Recent activity</h2></div><div class="news">${[['Dec 2','Payment from Blk 4 Lot 12 approved, OR-00101'],['Dec 2','1st Notice N-0041 sent to Blk 6 Lot 9'],['Dec 1','December 2026 billing run completed'],['Nov 30','Expense ₱18,000.00 recorded, Security']].map(a=>`<article><time>${a[0]}</time><p>${a[1]}</p></article>`).join('')}</div></section>`;
+
+const TIX=[
+  ['T-101','Nov 25','Blk 1 Lot 3','Maintenance','Streetlight flickering on Molave St.','—','Open','No reply yet · 3 days'],
+  ['T-103','Nov 27','Blk 5 Lot 6','Noise / Neighbor','Videoke past 10 PM on Blk 5','Security','In Progress','New comment'],
+  ['T-104','Nov 27','Blk 2 Lot 7','Garbage','Missed collection on Tuesday','Admin office','Open','Reopened'],
+  ['T-105','Nov 28','Blk 6 Lot 9','Maintenance','Clogged drainage on Acacia St.','—','Open',''],
+  ['T-102','Nov 20','Blk 8 Lot 4','Security','Gate barrier stuck open','Security','Resolved','']
+];
+const TP={Open:'warn','In Progress':'info',Resolved:'ok',Withdrawn:'muted'};
+function tixTable(){return `<div class="tbl"><table><caption>Requests, open first, oldest first</caption><thead><tr><th>#</th><th>Filed</th><th>Household</th><th>Category</th><th>Subject</th><th>Assigned</th><th>Status</th><th></th></tr></thead><tbody>${TIX.map(t=>`<tr><td class="num"><b>${t[0]}</b></td><td>${t[1]}</td><td>${t[2]}</td><td>${t[3]}</td><td>${t[4]}<span class="sub" style="color:var(--warn);font-weight:600;min-height:1.2em">${t[7]}</span></td><td>${t[5]}</td><td>${pill(TP[t[6]],t[6])}</td><td><button class="btn sm" type="button">Manage</button></td></tr>`).join('')}</tbody></table></div>`}
+const TIXCHIPS=['All (15)','Open (4)','In Progress (2)','Resolved (9)'];
+const tl=(items)=>`<div class="timeline">${items.map(i=>`<div class="${i[2]?'office':''}"><small>${i[0]}${i[2]?' · Office only':''}</small>${i[1]}</div>`).join('')}</div>`;
+const T103=[['Nov 27, 2026 · Bea Santos','Request submitted.'],['Nov 28, 2026 · Admin office','Guard will check on Saturday night · Assigned to Security · Status changed to In Progress'],['Nov 30, 2026 · Homeowner','It happened again last night']];
+
+/* ---------- screens ---------- */
+const S=[
+/* REQ-018 */
+{id:'18A',req:'REQ-018',dev:'desk',opt:'rec',title:'Delinquent accounts, furthest behind first',scn:'"Furthest behind first", "Overdue amount and total balance are shown separately", "A payment waiting for approval is flagged", "Filter by how far behind", "Summary line". Buttons come from REQ-020.',note:'Rows with the same oldest overdue period are in lot order. The pending-payment line keeps its space on every row so rows don\'t jump. The disabled button on Blk 4 Lot 8 is REQ-020 decision 3 (wait for the deadline).',
+ html:()=>staff('tr','Collections',ph('Delinquent accounts','43 delinquent households · ₱135,000.00 overdue',`<button class="btn" type="button">Send next notice to selected</button>`)+tabs(['Delinquent accounts','Notice history'],'Delinquent accounts')+`<section class="card"><div class="card-h">${chips(DELCHIPS,'All')}${search('s18a','name or lot')}</div>${delTable()}</section>`)},
+{id:'18B',req:'REQ-018',dev:'phone',opt:'rec',title:'Delinquent accounts on a phone',scn:'"Readable on a phone".',note:'Cards, lot and overdue amount first, the action at the bottom of each card within thumb reach. No sideways scroll.',
+ html:()=>phoneStaff('tr',ph('Delinquent accounts','43 households · ₱135,000.00 overdue')+chips(['All (43)','1 month (30)','2–3 (9)','4+ (4)'],'All')+`<div class="hocards">${DEL.slice(0,4).map(d=>`<div class="hocard"><div class="r"><b>${d.lot}</b><b class="num">${d.od}</b></div><div class="r"><span class="sub">${d.name} · ${d.m} months overdue · total ${d.bal}</span></div><div class="r"><span>${d.last?np(d.last[0])+` <span class="sub" style="display:inline">${d.last[1]}</span>`:'<span class="sub">None sent</span>'}</span></div><div class="flag">${d.pend?'Payment pending approval: '+d.pend:''}</div>${d.next?`<button class="btn big ${d.next.includes('Final')?'danger':''}" type="button">${d.next}</button>`:`<button class="btn big" type="button" disabled>${d.wait}</button>`}</div>`).join('')}</div>`)},
+{id:'18C',req:'REQ-018',dev:'desk',opt:'rec',title:'Empty, not yet overdue, and error states',scn:'"Nobody is delinquent", "Before the first bill is overdue", "The list can\'t load".',note:'Three states stacked for review; only one shows at a time.',
+ html:()=>staff('tr','Collections',ph('Delinquent accounts','')+`<section class="card"><div class="empty"><b>No delinquent accounts. Every household is in good standing.</b></div></section><section class="card"><div class="empty">No bills are overdue yet. Households appear here the day after a due date passes.</div></section>${alertBox('bad','Couldn\'t load delinquent accounts.','Check your connection and try again. <button class="btn sm" type="button" style="margin-left:8px">Try again</button>','alert')}`)},
+{id:'18D',req:'REQ-018',dev:'desk',opt:'alt',title:'Option B: a "Delinquent" filter on the Homeowners page',scn:'Option B only. Shown for comparison.',note:'Cheaper, but the directory\'s columns are contacts and link status, with no last notice, pending payment or notice action.',
+ html:()=>staff('tr','Homeowners',ph('Homeowners · 623 households','')+`<section class="card"><div class="card-h">${chips(['All (623)','Delinquent (43)','Good standing (580)'],'Delinquent')}</div><div class="tbl"><table><thead><tr><th>Lot</th><th>Owner</th><th>Portal</th><th>Standing</th><th class="money">Balance</th></tr></thead><tbody>${DEL.slice(0,4).map(d=>`<tr><td>${d.lot}</td><td>${d.name}</td><td>${pill('ok','Linked · 1 person')}</td><td>${pill('bad','Delinquent')}</td><td class="money">${d.bal}</td></tr>`).join('')}</tbody></table></div></section>`)},
+{id:'18E',req:'REQ-018',dev:'desk',opt:'rec',title:'Board member: read-only list',scn:'"A board member sees the list but can\'t act on it".',note:'No tick boxes and no send buttons. The send function refuses a board member too.',
+ html:()=>staff('bd','Collections',ph('Delinquent accounts','43 delinquent households · ₱135,000.00 overdue')+`<section class="card"><div class="card-h">${chips(DELCHIPS,'All')}</div>${delTable({ro:true})}</section>`)},
+/* REQ-019 */
+{id:'19A',req:'REQ-019',dev:'paper',opt:'rec',title:'Email: payment received',scn:'"Payment approved", "Subjects carry no names or amounts".',note:'Subject has the OR number only. The amount is in the body, not the subject, because subjects show on lock screens.',
+ html:()=>mail('Payment received: OR-00093','<p>We received your payment of <b>₱1,800.00</b> on Nov 10, 2026. Your official receipt is <b>OR-00093</b>.</p>','View your receipt')},
+{id:'19B',req:'REQ-019',dev:'paper',opt:'rec',title:'Email: a notice about your dues account',scn:'"Notice sent". Decision 5: link, no attachment.',note:'Neutral subject. The body gives what the homeowner needs to act: type, amount, deadline, and what to do if they already paid.',
+ html:()=>mail(`${HOA}: a notice about your dues account`,'<p>A <b>1st Notice</b> was issued for your household on Dec 3, 2026.</p><p>Overdue amount: <b>₱3,600.00</b><br>Please pay on or before <b>Dec 18, 2026</b>.</p><p>If you have already paid, submit your payment in the portal so we can match it.</p>','View the letter')},
+{id:'19C',req:'REQ-019',dev:'paper',opt:'rec',title:'Email: payment needs attention, and the monthly bill',scn:'"Payment rejected", "Monthly bill email (decision 3)".',note:'Two emails stacked. Only the bill email can be turned off, and its footer says how.',
+ html:()=>mail('Your payment needs attention','<p>We couldn\'t approve the payment you submitted on Dec 2, 2026 for ₱1,800.00.</p><p>Reason: <b>The reference number doesn\'t match our account</b></p><p>Please check it and submit it again, or contact the admin office.</p>','Submit again')+`<div style="height:12px;background:#EEF3F0"></div>`+mail('Your December 2026 bill is ready','<p>Your December 2026 dues of <b>₱1,800.00</b> are due on <b>Dec 31, 2026</b>.</p><p>Balance including earlier months: ₱1,800.00</p>','Pay now','Turn off bill emails in Profile, Notifications.')},
+{id:'19D',req:'REQ-019',dev:'desk',opt:'rec',title:'Staff: email status on a payment and on the household',scn:'"The provider refuses an email", "A bounced email is flagged", "Wording never claims delivery".',note:'Statuses are words: queued, sent, failed, bounced. Never "delivered".',
+ html:()=>staff('tr','Homeowners',ph('Blk 5 Lot 1','Owner on file: Carlo Mendoza')+`<div class="grid g2"><section class="card"><div class="card-h"><h2>People with portal access</h2></div><div><div class="membr"><div><b>Carlo Mendoza</b><span class="sub">carlo@example.com</span></div>${pill('bad','Email bounced')}</div><div class="membr"><div><b>Lia Mendoza</b><span class="sub">lia@example.com</span></div>${pill('ok','Email OK')}</div></div><p class="hint">Only the person can change their sign-in email. Ask them to update it in Profile.</p></section><section class="card"><div class="card-h"><h2>Payment · OR-00093</h2>${pill('ok','Approved')}</div><dl class="kv"><dt>Amount</dt><dd>₱1,800.00</dd><dt>Approved</dt><dd>Nov 10, 2026</dd><dt>Email</dt><dd>Sent to 1 of 2 people · 1 bounced</dd></dl></section></div>`)},
+{id:'19E',req:'REQ-019',dev:'phone',opt:'rec',title:'Homeowner: notification settings',scn:'"Homeowners can turn off bill emails but not account emails".',note:'One switch. Saving shows "Saving…"; on failure the switch goes back and says "Couldn\'t save. Try again."',
+ html:()=>home(ph('Notifications','')+`<section class="card"><label class="check" style="justify-content:space-between"><span><b>Bill emails</b><span class="sub">An email when each month\'s bill is ready</span></span><input type="checkbox" checked role="switch" aria-label="Bill emails"></label><div><b>Payment and notice emails</b><span class="sub">Always on. These are about your account.</span></div></section>`)},
+/* REQ-020 */
+{id:'20A',req:'REQ-020',dev:'desk',opt:'rec',title:'Preview a 1st Notice',scn:'"Preview before sending", "Sending records a fixed letter". Decision 4: overdue amount and periods only.',note:'December 2026 is billed but not yet due, so it is not on the letter. The Send button turns into "Sending…" and is disabled while it runs. The dialog does not close on a backdrop click.',
+ html:()=>staff('tr','Collections',ph('Delinquent accounts','')+`<section class="card" style="min-height:520px"></section>`,modal('1st Notice · Blk 3 Lot 2',letterBody('1st Notice',L1),`<button class="btn" type="button">Download PDF</button><button class="btn" type="button">Cancel</button><button class="btn primary" type="button">Send 1st Notice</button>`,true))},
+{id:'20B',req:'REQ-020',dev:'desk',opt:'rec',title:'Payment waiting for approval',scn:'"A payment is waiting for approval (decision 5)".',note:'The warning sits in a reserved area at the top of the preview. The main button becomes "Send anyway".',
+ html:()=>staff('tr','Collections',ph('Delinquent accounts','')+`<section class="card" style="min-height:520px"></section>`,modal('1st Notice · Blk 6 Lot 9',alertBox('warn','Blk 6 Lot 9 has a payment of ₱1,800.00 waiting for approval.','Review it before sending. <a href="#">Review payment</a>')+letterBody('1st Notice',{no:'N-0043',date:'Dec 3, 2026',name:'Bea Santos',lot:'Blk 6 Lot 9',amt:'₱3,400.00',dl:'Dec 18, 2026',rows:[['October 2026','Oct 31, 2026','₱1,600.00'],['November 2026','Nov 30, 2026','₱1,800.00']]}),`<button class="btn" type="button">Cancel</button><button class="btn" type="button">Send anyway</button>`,true))},
+{id:'20C',req:'REQ-020',dev:'desk',opt:'rec',title:'Final Demand: second confirmation',scn:'"Final Demand asks for one more confirmation".',note:'Marked by its title and the word "Final", not only red.',
+ html:()=>staff('tr','Collections',ph('Delinquent accounts','')+`<section class="card" style="min-height:420px">${letterBody('Final Demand',LFD)}</section>`,modal('Send a Final Demand to Blk 3 Lot 2?','<p>This letter says the board may refer the account to legal counsel.</p><dl class="kv"><dt>Overdue stated</dt><dd>₱5,400.00</dd><dt>Deadline</dt><dd>Dec 13, 2026</dd><dt>Notice no.</dt><dd>N-0044</dd></dl>',`<button class="btn" type="button">Cancel</button><button class="btn dangerfill" type="button">Send Final Demand</button>`))},
+{id:'20D',req:'REQ-020',dev:'desk',opt:'rec',title:'Sent, and Notice history',scn:'"Sending records a fixed letter", "Nobody in the household uses the portal", "Notice history", "Withdraw a notice sent in error".',note:'Toast after sending, then the history: delivery and email status per notice; a withdrawn notice stays listed with its reason.',
+ html:()=>staff('tr','Collections',ph('Notice history','')+tabs(['Delinquent accounts','Notice history'],'Notice history')+`<div class="toast" role="status">1st Notice N-0042 sent to Blk 3 Lot 2. Email queued to 2 people.</div><section class="card"><div class="tbl"><table><caption>Notices, newest first</caption><thead><tr><th>Date</th><th>Notice no.</th><th>Household</th><th>Notice</th><th class="money">Overdue stated</th><th>Delivery</th><th>Email</th><th></th></tr></thead><tbody>
+ <tr><td>Dec 3, 2026</td><td class="num">N-0043</td><td>Blk 9 Lot 3</td><td>${np('Reminder')}</td><td class="money">₱1,800.00</td><td>Print</td><td><span class="sub">No email: nobody in this household uses the portal</span></td><td><div class="actions"><button class="btn sm" type="button">Download PDF</button></div></td></tr>
+ <tr><td>Dec 3, 2026</td><td class="num">N-0042</td><td>Blk 3 Lot 2</td><td>${np('1st Notice')}</td><td class="money">₱3,600.00</td><td>Portal</td><td>Sent to 2 people</td><td><div class="actions"><button class="btn sm" type="button">View letter</button><button class="btn sm danger" type="button">Withdraw</button></div></td></tr>
+ <tr class="void"><td>Nov 28, 2026</td><td class="num">N-0039</td><td>Blk 5 Lot 1</td><td>${np('Reminder')} ${pill('muted','Withdrawn')}<span class="sub">Paid in cash at the office on Nov 27</span></td><td class="money">₱1,800.00</td><td>Portal</td><td>Sent to 2 people</td><td><button class="btn sm" type="button">View letter</button></td></tr>
+ </tbody></table></div></section>`)},
+{id:'20E',req:'REQ-020',dev:'desk',opt:'rec',title:'Withdraw a notice',scn:'"Withdraw a notice sent in error (decision 6)", "Withdrawing needs a reason".',note:'Shown with the empty-reason error. The dialog keeps what was typed and does not close on a backdrop click.',
+ html:()=>staff('tr','Collections',ph('Notice history','')+`<section class="card" style="min-height:360px"></section>`,modal('Withdraw notice N-0042?','<p>The letter stays on record as withdrawn and the household is told to disregard it.</p><label class="fl" for="wr">Reason<textarea id="wr" class="bad" aria-describedby="wre"></textarea></label><span class="ferr" id="wre" role="alert">Say why you\'re withdrawing this notice</span>',`<button class="btn" type="button">Cancel</button><button class="btn dangerfill" type="button">Withdraw notice</button>`))},
+{id:'20F',req:'REQ-020',dev:'phone',opt:'rec',title:'Homeowner: bell and Notices received',scn:'"The homeowner sees the notice", "The letter never changes after sending".',note:'Cards instead of the mock-up\'s table. The letter opens as the stored PDF.',
+ html:()=>home(ph('Dues & Payments','Blk 3 Lot 2')+`<section class="card"><div class="card-h"><h2>Notices received</h2></div><div class="hocards"><div class="hocard"><div class="r">${np('1st Notice')}<span class="sub">Dec 3, 2026</span></div><div class="r"><span>Overdue stated <b>₱3,600.00</b></span><span class="sub">Pay by Dec 18, 2026</span></div><button class="btn big" type="button">View letter</button></div></div></section>`,`<div class="bellpanel" role="region" aria-label="Notifications"><header><b>Notifications</b><button class="btn link" type="button">Mark all read</button></header><div class="notif unread">You received a 1st Notice for an overdue amount of ₱3,600.00. Please pay by Dec 18, 2026.<small>Dec 3, 2026</small></div></div>`,1)},
+{id:'20G',req:'REQ-020',dev:'desk',opt:'rec',title:'Waiting for a deadline, stale preview and failures',scn:'"The next step waits for the deadline", "The household paid after the preview opened", "The overdue amount changed after the preview opened", "Sending fails".',note:'Messages stacked for review; each appears in the preview where it applies.',
+ html:()=>staff('tr','Collections',ph('Delinquent accounts','')+`<section class="card"><div class="card-h"><div><b>Blk 3 Lot 2</b><span class="sub">1st Notice sent Dec 1, 2026 · deadline Dec 16, 2026</span></div><button class="btn sm" type="button" disabled>2nd Notice after Dec 16</button></div></section>${alertBox('info','Blk 3 Lot 2 is no longer delinquent.','No notice was sent.')}${alertBox('warn','The overdue amount changed to ₱1,800.00.','Check the updated letter, then send.')}${alertBox('bad','Couldn\'t send.','Nothing was recorded. Try again.','alert')}`)},
+/* REQ-021 */
+{id:'21A',req:'REQ-021',dev:'desk',opt:'rec',title:'Select all ready',scn:'"Select all ready", "A household that can\'t take a notice yet can\'t be ticked".',note:'Ticked: households whose next notice can go now. Not ticked: the Final Demand (one at a time), the pending payment, and the one waiting for a deadline (disabled). The selection bar is always there, so the list doesn\'t jump.',
+ html:()=>staff('tr','Collections',ph('Delinquent accounts','43 delinquent households · ₱135,000.00 overdue',`<button class="btn" type="button">Select all ready</button><button class="btn" type="button">Clear selection</button>`)+`<section class="card"><div class="card-h">${chips(DELCHIPS,'All')}</div>${delTable({sel:true})}<div class="selbar" role="region" aria-label="Selection"><span><b>3 selected on this page.</b> Send these, then go to the next page.</span><button class="btn primary" type="button">Send next notice to selected</button></div></section>`)},
+{id:'21B',req:'REQ-021',dev:'desk',opt:'rec',title:'Batch summary with skips',scn:'"Send to the selected households", "Final Demands are not sent in a batch", "Households with a pending payment are skipped by default".',note:'Skips are listed before sending, not discovered afterwards.',
+ html:()=>staff('tr','Collections',ph('Delinquent accounts','')+`<section class="card" style="min-height:460px"></section>`,modal('Send 8 notices?','<p><b>5 Reminders · 2 1st Notices · 1 2nd Notice</b></p><div class="actions"><button class="btn sm" type="button">View sample Reminder</button><button class="btn sm" type="button">View sample 1st Notice</button><button class="btn sm" type="button">View sample 2nd Notice</button></div><div class="alert warn"><div class="grow"><b>2 skipped: Final Demands are sent one at a time</b>Blk 3 Lot 2, Blk 7 Lot 5</div></div><div class="alert warn"><div class="grow"><b>1 skipped: payment waiting for approval</b>Blk 6 Lot 9</div></div><label class="check"><input type="checkbox"> Include households with a payment waiting for approval</label>',`<button class="btn" type="button">Cancel</button><button class="btn primary" type="button">Send 8 notices</button>`))},
+{id:'21C',req:'REQ-021',dev:'desk',opt:'rec',title:'Sending, then the result',scn:'"Send to the selected households", "A household paid while the batch was sending", "Some sends fail", "Leaving the page mid-batch".',note:'Progress is announced politely to screen readers. The server finishes the batch even if the tab is closed.',
+ html:()=>staff('tr','Collections',ph('Delinquent accounts','')+`<section class="card" style="min-height:460px"></section>`,modal('Sending notices','<div role="status" aria-live="polite"><button class="btn primary big" type="button" disabled>Sending… 7 of 12</button></div><hr style="border:0;border-top:1px solid var(--line);width:100%"><p class="hint">When it finishes:</p>'+alertBox('ok','9 notices sent. Email queued to 14 people. 2 households need printed letters.','<button class="btn sm" type="button" style="margin-top:6px">Download 2 letters</button>')+alertBox('warn','2 couldn\'t be sent: Blk 1 Lot 3, Blk 4 Lot 8.','Nothing was recorded for them. <button class="btn sm" type="button">Try these 2 again</button>')+alertBox('info','','1 skipped: Blk 6 Lot 9 is no longer delinquent.'),`<button class="btn" type="button">Close</button>`))},
+{id:'21D',req:'REQ-021',dev:'phone',opt:'rec',title:'Bulk selection on a phone',scn:'"Nothing selected", and the selection bar on a phone.',note:'The bar sticks to the bottom of the screen within thumb reach.',
+ html:()=>phoneStaff('tr',ph('Delinquent accounts','43 households')+`<button class="btn" type="button">Select all ready</button><div class="hocards">${DEL.slice(0,3).map(d=>`<div class="hocard"><label class="check"><input type="checkbox" aria-label="Select ${d.lot}"><b>${d.lot}</b></label><span class="sub">${d.name} · ${d.m} months · ${d.od}</span></div>`).join('')}</div>${alertBox('warn','','Select at least one account first.','alert')}<div class="selbar"><span>Select households to send notices</span><button class="btn primary" type="button">Send</button></div>`)},
+/* REQ-022 */
+{id:'22A',req:'REQ-022',dev:'phone',opt:'rec',title:'Record an expense on a phone',scn:'"Record an expense", "A required field is missing", "Take the receipt photo on a phone".',note:'Shown with the vendor error; everything else typed is kept. The amount keypad is decimal. The save button shows the amount.',
+ html:()=>home(ph('Record an expense','')+`<form class="f card" onsubmit="return false"><div class="row2"><label class="fl" for="ed">Date<input id="ed" type="date" value="2026-09-18"></label><label class="fl" for="ec">Category<select id="ec"><option>Repairs &amp; maintenance</option></select></label></div><label class="fl" for="ev">Vendor<input id="ev" type="text" class="bad" aria-describedby="eve"></label><span class="ferr" id="eve" role="alert">Enter who was paid</span><label class="fl" for="eds">Description<input id="eds" type="text" value="Pool pump repair"></label><label class="fl" for="ea">Amount (₱)<input id="ea" type="text" inputmode="decimal" value="7,500.00"></label><div><span class="fl">Receipt</span><div class="thumbs" style="margin-top:6px"><span class="thumb">Receipt photo</span></div><button class="btn sm" type="button" style="margin-top:8px">Change photo</button></div><label class="check"><input type="checkbox"> No receipt</label><div style="min-height:20px"></div><button class="btn primary big" type="button">Save ₱7,500.00 expense</button></form>`).replace('Resident portal','Administration')},
+{id:'22B',req:'REQ-022',dev:'desk',opt:'rec',title:'Expenses for a month, with a void and a no-receipt line',scn:'"Void instead of delete", "No receipt", "There is no delete", "Edit an expense in an open month".',note:'Void stays listed, crossed out, with the word "Void" and the reason. No Delete button anywhere.',
+ html:()=>staff('tr','Accounting',ph('Accounting','Collections, expenses and the association fund.',monthSel('September 2026'))+tabs(ACCTABS,'Expenses')+`<section class="card"><div class="card-h"><h2>Expenses · September 2026 · ₱28,600.00</h2><button class="btn primary" type="button">Record an expense</button></div>${expTable()}</section>`)},
+{id:'22C',req:'REQ-022',dev:'desk',opt:'rec',title:'Void an expense',scn:'"Void instead of delete", "Voiding needs a reason".',note:'Same reason-dialog shape as payment voids (REQ-014).',
+ html:()=>staff('tr','Accounting',ph('Accounting','')+`<section class="card" style="min-height:340px"></section>`,modal('Void this expense?','<p>It stays on record, crossed out, and is left out of every total.</p><dl class="kv"><dt>Vendor</dt><dd>AquaFix Pool Services</dd><dt>Amount</dt><dd>₱7,500.00</dd><dt>Date</dt><dd>Sep 18, 2026</dd></dl><label class="fl" for="vr">Reason<textarea id="vr">Entered twice</textarea></label>',`<button class="btn" type="button">Cancel</button><button class="btn dangerfill" type="button">Void expense</button>`))},
+{id:'22D',req:'REQ-022',dev:'desk',opt:'rec',title:'Likely duplicate',scn:'"A likely duplicate (decision 5)".',note:'Nothing is saved until "Save anyway".',
+ html:()=>staff('tr','Accounting',ph('Accounting','')+`<section class="card" style="min-height:300px"></section>`,modal('Already recorded?','<p>An expense of <b>₱7,500.00</b> to <b>AquaFix Pool Services</b> on <b>Sep 18, 2026</b> is already recorded. Save this one too?</p>',`<button class="btn" type="button">Cancel</button><button class="btn primary" type="button">Save anyway</button>`))},
+{id:'22E',req:'REQ-022',dev:'desk',opt:'rec',title:'Closed month and upload failure',scn:'"A closed month can\'t be changed", "Upload fails", "An empty month".',note:'Three messages stacked for review.',
+ html:()=>staff('tr','Accounting',ph('Accounting','',monthSel('December 2026'))+tabs(ACCTABS,'Expenses')+alertBox('bad','October 2026 is closed.','Date this in an open month, or reopen October first.','alert')+alertBox('bad','The receipt didn\'t upload.','Check your connection and try again. Your typing and the photo are kept.','alert')+`<section class="card"><div class="empty">No expenses recorded for December 2026.<button class="btn primary" type="button">Record an expense</button></div></section>`)},
+/* REQ-023 */
+{id:'23A',req:'REQ-023',dev:'desk',opt:'rec',title:'Collections for a month',scn:'"The month\'s total matches its receipts", "A payment made in one month and approved in the next", "A receipt voided in a later month", "Download the month as CSV".',note:'Counted by receipt date. The "Paid" column is for matching the bank. The void of a November receipt is a minus line in December, so closed November doesn\'t change.',
+ html:()=>staff('tr','Accounting',ph('Accounting','Collections, expenses and the association fund.',monthSel('December 2026')+`<button class="btn" type="button">Download CSV</button>`)+tabs(ACCTABS,'Collections')+`<p class="hint">Contains household payment details. Keep it private.</p><section class="card"><div class="card-h"><h2>Dues collected · December 2026 · 3 receipts</h2></div>${collTable()}</section>`)},
+{id:'23B',req:'REQ-023',dev:'phone',opt:'rec',title:'Collections on a phone',scn:'"Readable on a phone".',note:'Month total stays above the list.',
+ html:()=>phoneStaff('tr',ph('Collections','December 2026 · ₱5,400.00')+`<div class="hocards">${COLL.map(c=>c[6]==='void'?`<div class="hocard"><div class="r"><b>${c[2]}</b><b class="num">${c[5]}</b></div><span class="sub">${pill('muted','Void')} ${c[0]} · ${c[7]}</span></div>`:`<div class="hocard"><div class="r"><b><a href="#">${c[1]}</a> · ${c[2]}</b><b class="num">${c[5]}</b></div><span class="sub">Receipt ${c[0]} · paid ${c[3]}</span><span class="sub" style="min-height:1.2em">${c[6]}</span></div>`).join('')}</div>`)},
+{id:'23C',req:'REQ-023',dev:'desk',opt:'rec',title:'A month with no collections',scn:'"A month with no collections", "The list can\'t load".',note:'CSV is disabled when there is nothing to download.',
+ html:()=>staff('tr','Accounting',ph('Accounting','',monthSel('January 2027')+`<button class="btn" type="button" disabled>Download CSV</button>`)+tabs(ACCTABS,'Collections')+`<section class="card"><div class="empty">No collections recorded for January 2027.</div></section>`+alertBox('bad','Couldn\'t load collections.','Check your connection and try again. <button class="btn sm" type="button">Try again</button>','alert'))},
+/* REQ-024 */
+{id:'24A',req:'REQ-024',dev:'desk',opt:'rec',title:'Fund summary, ready to close',scn:'"Closing balance", "Figures agree with their pages", "Where the money went", "Collection rate".',note:'Amenity fees join the strip once bookings exist (R3). The figures are a labelled definition list.',
+ html:()=>staff('tr','Accounting',ph('Accounting','',monthSel('October 2026'))+tabs(ACCTABS,'Fund summary')+`<section class="card"><div class="card-h"><div><h2>Fund summary · October 2026</h2><p>Collection rate 55% of ₱56,070.00 billed · Includes payments for earlier months.</p></div><div class="actions">${pill('warn','Open')}<button class="btn primary" type="button">Close October 2026</button></div></div>${fundStrip({op:'₱185,000.00',du:'₱30,600.00',ex:'₱28,600.00',cl:'₱187,000.00'})}</section>`+cats())},
+{id:'24B',req:'REQ-024',dev:'desk',opt:'rec',title:'Close a month with a bank difference',scn:'"The bank balance doesn\'t match (decision 4)", "Close a month with a matching bank balance".',note:'The difference updates as the balance is typed; a note is required when it isn\'t ₱0.00. The dialog does not close on a backdrop click.',
+ html:()=>staff('tr','Accounting',ph('Accounting','')+`<section class="card" style="min-height:420px"></section>`,modal('Close October 2026?','<p>Nothing dated in October can be recorded, edited or voided after this.</p><dl class="kv"><dt>Closing fund balance</dt><dd>₱187,000.00</dd></dl><label class="fl" for="bb">Bank balance on Oct 31, 2026 (optional)<input id="bb" type="text" inputmode="decimal" value="186,200.00"></label><p style="min-height:1.4em;color:var(--warn);font-weight:600" role="status">Difference: ₱800.00 less in the bank than the portal shows.</p><label class="fl" for="bn">Explain the difference<textarea id="bn">Bank charges and one cheque not yet cleared</textarea></label>',`<button class="btn" type="button">Cancel</button><button class="btn primary" type="button">Close October</button>`))},
+{id:'24C',req:'REQ-024',dev:'desk',opt:'rec',title:'Closed month, and reopening',scn:'"Reopen a closed month (decision 3)", "A month that hasn\'t ended can\'t be closed", "Months close in order".',note:'Behind the dialog: the closed summary. The board is told about every reopen, with the reason.',
+ html:()=>staff('tr','Accounting',ph('Accounting','',monthSel('October 2026'))+tabs(ACCTABS,'Fund summary')+`<section class="card"><div class="card-h"><div><h2>Fund summary · October 2026</h2><p>Closed by Rosa Villanueva on Nov 5, 2026 · Bank balance ₱186,200.00, difference ₱800.00: Bank charges and one cheque not yet cleared</p></div><div class="actions">${pill('muted','Closed')}<button class="btn" type="button">Reopen October 2026</button></div></div>${fundStrip({op:'₱185,000.00',du:'₱30,600.00',ex:'₱28,600.00',cl:'₱187,000.00'})}</section><p class="hint">Other months: "You can close November 2026 from Dec 1." · "Close September 2026 first."</p>`,modal('Reopen October 2026?','<p>Board members will be told, with your reason.</p><label class="fl" for="ro">Reason<textarea id="ro">Expense receipt from the electrician arrived late</textarea></label>',`<button class="btn" type="button">Cancel</button><button class="btn primary" type="button">Reopen October</button>`))},
+{id:'24D',req:'REQ-024',dev:'desk',opt:'rec',title:'Settings: opening fund balance',scn:'"Set the opening fund balance (decision 2)", "The opening balance is fixed after the first close", "No opening balance yet".',note:'Editable only until the first month is closed.',
+ html:()=>staff('tr','Settings',ph('Settings','')+`<div class="grid g2"><section class="card"><h2>Fund</h2><form class="f" onsubmit="return false"><label class="fl" for="ob">Opening fund balance (₱)<input id="ob" type="text" inputmode="decimal" value="185,000.00"></label><div class="row2"><label class="fl" for="oa">As of<input id="oa" type="date" value="2026-10-01"></label><label class="fl" for="obd">Approved by the board on<input id="obd" type="date" value="2026-09-25"></label></div><button class="btn primary" type="button">Save opening balance</button></form></section><section class="card"><h2>After the first close</h2><dl class="kv"><dt>Opening fund balance</dt><dd>₱185,000.00 as of Oct 1, 2026</dd></dl><p class="hint">Fixed after the first month was closed.</p>${alertBox('info','Before it\'s set, the Fund summary reads:','Set the opening fund balance before the first fund summary. <a href="#">Go to Settings</a>')}</section></div>`)},
+{id:'24E',req:'REQ-024',dev:'phone',opt:'rec',title:'Fund summary on a phone',scn:'"Readable on a phone", "A board member reads but can\'t close or reopen".',note:'Board view: figures and status, no Close or Reopen.',
+ html:()=>phoneStaff('bd',ph('Fund summary','October 2026 · Closed Nov 5, 2026')+fundStrip({op:'₱185,000.00',du:'₱30,600.00',ex:'₱28,600.00',cl:'₱187,000.00'})+`<p class="hint">Bank balance ₱186,200.00, difference ₱800.00: Bank charges and one cheque not yet cleared</p>`+cats())},
+/* REQ-025 */
+{id:'25A',req:'REQ-025',dev:'desk',opt:'rec',title:'Treasurer dashboard',scn:'"Tiles match the pages they summarise", "Collection rate on the tile", "Pending approvals in R2", "Needs attention", "Collections vs expenses chart".',note:'Every figure links to the page it comes from. Receivables shows the overdue part separately (decision 3). Expenses in the chart are striped as well as lighter, so colour is not the only signal.',
+ html:()=>staff('tr','Dashboard',ph('Dashboard','As of 10:42 AM',`<button class="btn" type="button">Refresh</button>`)+tilesTr()+`<div class="grid g-73"><section class="card"><div class="card-h"><h2>Collections vs expenses</h2><p>Last 6 months</p></div>${chart()}</section>${attention()}</div>`+activity(),{badges:{Approvals:3}})},
+{id:'25B',req:'REQ-025',dev:'phone',opt:'rec',title:'Treasurer dashboard on a phone',scn:'"Readable on a phone".',note:'"Needs attention" first: that\'s why the treasurer opens it on a phone.',
+ html:()=>phoneStaff('tr',ph('Dashboard','As of 10:42 AM')+attention()+tilesTr())},
+{id:'25C',req:'REQ-025',dev:'desk',opt:'rec',title:'Admin office dashboard',scn:'"An admin office staff member\'s dashboard (decision 2)".',note:'No money tiles: the office doesn\'t see payments (REQ-002 decision 3). Bookings and vehicles join from R3.',
+ html:()=>staff('ad','Dashboard',ph('Dashboard','As of 10:42 AM',`<button class="btn" type="button">Refresh</button>`)+`<div class="grid g-73"><section class="card"><div class="card-h"><h2>Needs attention</h2></div><div class="news"><article><a href="#" style="font-weight:600">4 open requests</a></article><article><a href="#" style="font-weight:600">2 requests with no reply for 2 working days</a></article><article><a href="#" style="font-weight:600">1 request with a new comment</a></article></div></section><section class="card"><h2>Households</h2><dl class="kv"><dt>Linked</dt><dd>412</dd><dt>Not invited</dt><dd>140</dd><dt>Email problems</dt><dd>9</dd></dl></section></div>`,{badges:{'Requests & Complaints':4}})},
+{id:'25D',req:'REQ-025',dev:'desk',opt:'rec',title:'A new portal, and a panel that fails',scn:'"A new portal", "Nothing needs attention", "Part of the page can\'t load".',note:'Zeros, a chart message instead of empty bars, and a failure that stays inside its panel.',
+ html:()=>staff('tr','Dashboard',ph('Dashboard','As of 10:42 AM')+`<div class="tiles"><div class="tile hero"><span class="tile-l">Collected · November 2026</span><span class="tile-v">₱0</span><span class="tile-s">0% of ₱0 billed</span></div><div class="tile"><span class="tile-l">Receivables</span><span class="tile-v">₱0</span><span class="tile-s">₱0 overdue · 0 delinquent households</span></div><div class="tile"><span class="tile-l">Expenses · November 2026</span><span class="tile-v">₱0</span><span class="tile-s">Fund balance ₱185,000</span></div><div class="tile"><span class="tile-l">Pending approvals</span><span class="tile-v">0</span><span class="tile-s">0 payments</span></div></div><div class="grid g-73"><section class="card"><h2>Collections vs expenses</h2>${chart(true)}</section><section class="card"><h2>Needs attention</h2><p>You're up to date.</p></section></div><section class="card"><h2>Recent activity</h2>${alertBox('bad','','Couldn\'t load recent activity. Try again.','alert')}</section>`)},
+/* REQ-026 */
+{id:'26A',req:'REQ-026',dev:'phone',opt:'rec',title:'New request',scn:'"Submit a request", "Details are required", "The emergency line (decision 6)", "Up to 3 photos".',note:'Shown with the details error; the subject and photo are kept. Large category buttons. The emergency message area is reserved, so the form doesn\'t jump.',
+ html:()=>home(ph('Report a problem','')+alertBox('warn','For emergencies, call the guardhouse at 0917 000 0000.','Requests are read during office hours.')+`<form class="f card" onsubmit="return false"><fieldset style="border:0;padding:0;margin:0"><legend class="fl" style="margin-bottom:6px">Category</legend><div class="radios">${['Maintenance','Security','Noise / Neighbor','Garbage','Billing','Others'].map((c,i)=>`<label class="${i===0?'on':''}"><input type="radio" name="cat" ${i===0?'checked':''}>${c}</label>`).join('')}</div></fieldset><label class="fl" for="rs">Subject<input id="rs" type="text" value="Clogged drainage on Acacia St."></label><label class="fl" for="rd">Details<span class="hint">Where, what, and since when</span><textarea id="rd" class="bad" aria-describedby="rde"></textarea></label><span class="ferr" id="rde" role="alert">Describe what happened, where, and since when</span><div><span class="fl">Photos (optional)</span><div class="thumbs" style="margin-top:6px"><span class="thumb">Photo 1 of 1<button class="x" aria-label="Remove photo 1" type="button" style="position:absolute;top:-6px;right:-6px;background:#fff;border-radius:50%;font-size:1rem">×</button></span></div><button class="btn sm" type="button" style="margin-top:8px">Add photo</button><p class="hint" style="margin-top:6px">Up to 3 photos. Photos are seen only by your household and the admin office.</p></div><button class="btn primary big" type="button">Submit request</button></form>`)},
+{id:'26B',req:'REQ-026',dev:'phone',opt:'rec',title:'Submitted, and My requests',scn:'"Submit a request", "Everyone in the household sees its requests".',note:'The number shows straight away (BA note to Sol Arch: a callable that takes the number).',
+ html:()=>home(`<div class="toast" role="status">Request T-105 submitted. The admin office will reply here.</div>`+ph('My requests','1 open',`<button class="btn primary" type="button">New request</button>`)+`<details class="tk" open><summary><span><b>T-105</b> Clogged drainage on Acacia St.<span class="sub">Maintenance · Nov 28, 2026</span></span>${pill('warn','Open')}</summary><div class="tk-body"><div class="thumbs"><span class="thumb">Photo</span></div>${tl([['Nov 28, 2026 · Bea Santos','Request submitted.']])}<div class="actions"><button class="btn sm" type="button">Add a comment</button><button class="btn sm danger" type="button">Withdraw</button></div></div></details>`)},
+{id:'26C',req:'REQ-026',dev:'phone',opt:'rec',title:'Withdraw an open request',scn:'"Withdraw an open request (decision 5)", "A request already in progress can\'t be withdrawn".',note:'Only while Open. Once In Progress there is "Add a comment" instead.',
+ html:()=>home(ph('My requests','')+`<section class="card" style="min-height:300px"></section>`,modal('Withdraw T-105?','<p>The admin office will see that you withdrew it.</p><label class="fl" for="wrr">Reason (optional)<textarea id="wrr">Fixed by the city crew</textarea></label>',`<button class="btn" type="button">Cancel</button><button class="btn dangerfill" type="button">Withdraw request</button>`))},
+{id:'26D',req:'REQ-026',dev:'desk',opt:'rec',title:'Office logs a request for a household',scn:'"The office logs a request on behalf of a household (decision 1)".',note:'The household then sees it under My requests, labelled as logged by the office.',
+ html:()=>staff('ad','Requests & Complaints',ph('Requests & Complaints','')+`<section class="card" style="min-height:460px"></section>`,modal('Log a request for a household','<form class="f" onsubmit="return false"><label class="fl" for="lh">Household<input id="lh" type="search" value="Blk 2 Lot 7 · Ana Reyes"></label><div class="row2"><label class="fl" for="lc">Category<select id="lc"><option>Maintenance</option></select></label><label class="fl" for="lw">How it was reported<select id="lw"><option>Phone</option><option>Walk-in</option></select></label></div><label class="fl" for="lsu">Subject<input id="lsu" type="text" value="Streetlight out on Narra St."></label><label class="fl" for="lde">Details<textarea id="lde">Reported by phone. Light at the corner of Narra and Molave has been out for 3 nights.</textarea></label></form>',`<button class="btn" type="button">Cancel</button><button class="btn primary" type="button">Log request</button>`),{badges:{'Requests & Complaints':4}})},
+{id:'26E',req:'REQ-026',dev:'phone',opt:'rec',title:'Empty list, upload failure and daily limit',scn:'"No requests yet", "The upload fails", "Too many requests in a day", "A file that isn\'t a photo".',note:'Messages stacked for review. Nothing typed is lost.',
+ html:()=>home(ph('My requests','')+`<section class="card"><div class="empty">No requests yet. Report a problem and follow its progress here.<button class="btn primary" type="button">New request</button></div></section>`+alertBox('bad','Your request wasn\'t sent.','Check your connection and try again.','alert')+alertBox('warn','','Your household has sent 10 requests today. Please call the admin office if this can\'t wait.','alert')+alertBox('bad','','Attach a photo (JPG or PNG).','alert'))},
+{id:'26F',req:'REQ-026',dev:'desk',opt:'alt',title:'Option B: a shared HOA email inbox',scn:'Option B only. Shown for comparison.',note:'No status the homeowner can see, no counts, and a shared inbox full of residents\' photos and neighbour complaints.',
+ html:()=>`<div class="mail"><div class="mh"><b>Inbox · requests@greenfieldhomes.example</b><span>23 unread</span></div><div class="mb">${['Re: Re: drainage AGAIN','videoke blk 5 (pls dont say it was me)','Fwd: streetlight','garbage not collected tues'].map(s=>`<div style="border-bottom:1px solid #eee;padding:8px 0"><b>${s}</b><span class="sub">No status · not assigned</span></div>`).join('')}</div></div>`},
+/* REQ-027 */
+{id:'27A',req:'REQ-027',dev:'desk',opt:'rec',title:'Requests & Complaints list',scn:'"Filter by status", "Requests waiting for a first reply", "Find a request by number", "The homeowner adds a comment", "The homeowner reopens".',note:'Flags (no reply, new comment, reopened) are words in a reserved line under the subject.',
+ html:()=>staff('ad','Requests & Complaints',ph('Requests & Complaints','Assign, update and resolve homeowner requests.',`<button class="btn" type="button">Log a request for a household</button>`)+`<section class="card"><div class="card-h">${chips(TIXCHIPS,'All')}${search('s27','number or subject')}</div>${tixTable()}</section>`,{badges:{'Requests & Complaints':4}})},
+{id:'27B',req:'REQ-027',dev:'desk',opt:'rec',title:'Manage a request',scn:'"Assign and update", "Office-only note (decision 2)".',note:'Office-only entries carry the words "Office only". The hint under the reply box warns against naming other households.',
+ html:()=>staff('ad','Requests & Complaints',ph('Requests & Complaints','')+`<section class="card" style="min-height:640px"></section>`,modal('T-103 · Videoke past 10 PM on Blk 5',`<dl class="kv"><dt>From</dt><dd>Blk 5 Lot 6</dd><dt>Category</dt><dd>Noise / Neighbor</dd><dt>Filed</dt><dd>Nov 27, 2026</dd></dl><p>Loud videoke every Friday and Saturday until past midnight, from a house further down Blk 5.</p>${tl(T103.concat([['Nov 30, 2026 · Paolo Aquino','Spoke to the owner of Blk 5 Lot 3 at the gate',true]]))}<form class="f" onsubmit="return false"><div class="row2"><label class="fl" for="ms">Status<select id="ms"><option>In Progress</option><option>Open</option><option>Resolved</option></select></label><label class="fl" for="ma">Assign to<select id="ma"><option>Security</option><option>Unassigned</option><option>Admin office</option><option>Maintenance team</option><option>Board of Directors</option></select></label></div><label class="fl" for="mr">Reply to homeowner<textarea id="mr">Guard will check on Saturday night</textarea></label><span class="hint">The homeowner will see this. Don't name other households here; use an office-only note.</span><label class="check"><input type="checkbox"> Office only</label></form>`,`<button class="btn" type="button">Cancel</button><button class="btn primary" type="button">Save update</button>`,true))},
+{id:'27C',req:'REQ-027',dev:'desk',opt:'rec',title:'Resolve without a note, stale save, nothing to save',scn:'"Resolving needs a note", "Two staff update the same request", "Nothing changed".',note:'Shown with the resolve error. The typed reply is kept in every case.',
+ html:()=>staff('ad','Requests & Complaints',ph('Requests & Complaints','')+`<section class="card" style="min-height:520px"></section>`,modal('T-103 · Videoke past 10 PM on Blk 5',alertBox('warn','Someone else updated T-103.','Reload to see the latest, then make your change again.')+alertBox('info','','Nothing to save. Change the status, assign it, or write a reply.')+`<form class="f" onsubmit="return false"><label class="fl" for="cs">Status<select id="cs"><option>Resolved</option></select></label><label class="fl" for="cr">Reply to homeowner<textarea id="cr" class="bad" aria-describedby="cre"></textarea></label><span class="ferr" id="cre" role="alert">Say how it was resolved</span></form>`,`<button class="btn" type="button">Cancel</button><button class="btn primary" type="button">Save update</button>`))},
+{id:'27D',req:'REQ-027',dev:'phone',opt:'rec',title:'Homeowner: timeline, comment and reopen',scn:'"Assign and update" (homeowner side), "Office-only note" (not shown), "The homeowner reopens within 14 days".',note:'The office-only note from 27B is absent here. The office appears as "Admin office", not a person\'s name.',
+ html:()=>home(ph('My requests','')+`<details class="tk" open><summary><span><b>T-103</b> Videoke past 10 PM on Blk 5<span class="sub">Noise / Neighbor · Security</span></span>${pill('ok','Resolved')}</summary><div class="tk-body">${tl(T103.concat([['Dec 1, 2026 · Admin office','Spoke to the household; music ends by 10 PM from now on · Status changed to Resolved']]))}<button class="btn big" type="button">This isn't fixed</button><label class="fl" for="rc">Tell the office what's still wrong<textarea id="rc">Still loud after 11 PM on Friday</textarea></label><button class="btn primary big" type="button">Reopen request</button></div></details>`,`<div class="bellpanel" role="region" aria-label="Notifications"><header><b>Notifications</b></header><div class="notif unread">T-103 update: Spoke to the household; music ends by 10 PM from now on<small>Dec 1, 2026</small></div></div>`,1)},
+{id:'27E',req:'REQ-027',dev:'desk',opt:'rec',title:'A typed reply isn\'t lost',scn:'"A typed reply isn\'t lost".',note:'Clicking outside the dialog or pressing Escape asks first (BACKLOG finding 5).',
+ html:()=>staff('ad','Requests & Complaints',ph('Requests & Complaints','')+`<section class="card" style="min-height:300px"></section>`,modal('Discard your reply?','<p>You typed a reply to T-103 that hasn\'t been saved.</p>',`<button class="btn" type="button">Discard</button><button class="btn primary" type="button">Keep editing</button>`))},
+{id:'27F',req:'REQ-027',dev:'phone',opt:'rec',title:'Too late to reopen; withdrawn request',scn:'"Too late to reopen", "Withdrawn requests".',note:'After 14 days the homeowner files a new request instead.',
+ html:()=>home(ph('My requests','')+`<details class="tk" open><summary><span><b>T-103</b> Videoke past 10 PM on Blk 5</span>${pill('ok','Resolved')}</summary><div class="tk-body"><p class="hint">Resolved Dec 1, 2026. Still a problem? <a href="#">File a new request.</a></p></div></details><details class="tk"><summary><span><b>T-105</b> Clogged drainage on Acacia St.</span>${pill('muted','Withdrawn')}</summary></details>`)},
+/* Copy of record */
+{id:'CR',req:'Copy',dev:'desk',opt:'rec',title:'Copy of record: key wording across REQ-018 to REQ-027',scn:'The exact wording used on these screens. Full tables are in each REQ\'s "Copy of record".',note:'Comment here on any wording.',
+ html:()=>`<div style="padding:20px"><div class="tbl"><table class="crt"><thead><tr><th>REQ · where</th><th>Text</th></tr></thead><tbody>${[
+  ['018 · summary','{n} delinquent households · {amount} overdue'],['018 · pending flag','Payment pending approval: {amount} · Review payment'],['018 · empty','No delinquent accounts. Every household is in good standing.'],['018 · not yet','No bills are overdue yet. Households appear here the day after a due date passes.'],
+  ['019 · subjects','Payment received: {OR no.} · Your payment needs attention · {HOA name}: a notice about your dues account · Your {period} bill is ready · Your requested record is ready'],['019 · staff status','Email: queued · Email: sent to {n} people · Email: sent to {n} of {m} people · {k} failed · Email bounced · No email: nobody in this household uses the portal'],['019 · settings','Bill emails · Payment and notice emails: Always on. These are about your account.'],
+  ['020 · row buttons','Send Reminder · Send 1st Notice · Send 2nd Notice · Send Final Demand · Resend Final Demand · {next type} after {deadline}'],['020 · sent','{notice type} {N-0042} sent to {lot}. Email queued to {n} people.'],['020 · print','{notice type} {N-0042} recorded. Nobody in {lot} uses the portal. Print the letter and deliver it.'],['020 · Final Demand confirm','Send a Final Demand to {lot}? This letter says the board may refer the account to legal counsel.'],['020 · withdrawn bell','Notice {N-0042} was withdrawn. Please disregard it.'],
+  ['021 · summary','Send {n} notices? · {n} skipped: Final Demands are sent one at a time · {n} skipped: payment waiting for approval'],['021 · nothing selected','Select at least one account first.'],
+  ['022 · save','Save {amount} expense (Saving…) · Expense saved.'],['022 · errors','Enter who was paid · Add a photo of the receipt, or tick No receipt and say why · The date can\'t be after today'],['022 · closed','{Month YYYY} is closed. Date this in an open month, or reopen {Month} first.'],
+  ['023 · markers','Paid in {Month} · Voided {date} · Void of {OR no.} · −{amount}'],['023 · CSV note','Contains household payment details. Keep it private.'],
+  ['024 · close dialog','Close {Month YYYY}? Nothing dated in {Month} can be recorded, edited or voided after this.'],['024 · difference','Difference: {amount} less in the bank than the portal shows. · Explain the difference'],['024 · board bell','{Month YYYY} was reopened by the treasurer: {reason}'],
+  ['025 · needs attention','{n} payments to review · {n} households ready for their next notice · {n} requests with no reply for 2 working days · {Month YYYY} is ready to close · You\'re up to date.'],
+  ['026 · emergency','For emergencies, call the guardhouse at {number}. Requests are read during office hours.'],['026 · submitted','Request {T-105} submitted. The admin office will reply here.'],['026 · details error','Describe what happened, where, and since when'],
+  ['027 · reply hint','The homeowner will see this. Don\'t name other households here; use an office-only note.'],['027 · resolve error','Say how it was resolved'],['027 · stale','Someone else updated {T-103}. Reload to see the latest, then make your change again.'],['027 · too late','Resolved {date}. Still a problem? File a new request.']
+ ].map(r=>`<tr><td>${r[0]}</td><td>${r[1].replace(/</g,'&lt;')}</td></tr>`).join('')}</tbody></table></div></div>`}
+];
+
+const REQS=[['REQ-018','Delinquent'],['REQ-019','Email'],['REQ-020','Next notice'],['REQ-021','Bulk notices'],['REQ-022','Expense'],['REQ-023','Collections'],['REQ-024','Fund and close'],['REQ-025','Dashboard'],['REQ-026','Log request'],['REQ-027','Manage requests'],['Copy','Copy of record']];
+let cur=0;
+function draw(){
+  const s=S[cur];
+  document.getElementById('mkreq').innerHTML=REQS.map(([r,l])=>`<button type="button" data-req="${r}" aria-pressed="${s.req===r}">${r==='Copy'?l:r+' · '+l}</button>`).join('');
+  document.getElementById('mksel').innerHTML=S.map((x,i)=>`<option value="${i}" ${i===cur?'selected':''}>${x.id} · ${x.title}</option>`).join('');
+  document.getElementById('mkinfo').innerHTML=`<span class="k">${s.req} · Screen ${s.id}</span><h2>${s.title}</h2><div><span class="mkopt ${s.opt}">${s.opt==='rec'?'Recommended option':'Alternative option, for comparison'}</span></div><p><b>Shows:</b> ${s.scn}</p><p class="mknote">${s.note}</p>`;
+  document.getElementById('mkstage').innerHTML=`<div class="frame ${s.dev}">${s.html()}</div>`;
+  document.getElementById('mkprev').disabled=cur===0;document.getElementById('mknext').disabled=cur===S.length-1;
+  try{history.replaceState(null,'','#s'+s.id)}catch(e){}
+}
+document.addEventListener('click',e=>{
+  const r=e.target.closest('[data-req]');if(r){cur=S.findIndex(x=>x.req===r.dataset.req);draw();return}
+  if(e.target.id==='mkprev'&&cur>0){cur--;draw()}
+  if(e.target.id==='mknext'&&cur<S.length-1){cur++;draw()}
+});
+document.getElementById('mksel').addEventListener('change',e=>{cur=+e.target.value;draw()});
+const hs=(location.hash||'').replace('#s','');const hi=S.findIndex(x=>x.id===hs);if(hi>=0)cur=hi;
+draw();
+})();
+</script>
+</html>
