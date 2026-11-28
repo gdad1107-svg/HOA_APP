@@ -164,19 +164,32 @@ in plain modules so scenarios *can* land at Unit. Logic hidden in UI code pushes
 tests up the pyramid, and that's a design defect. Rules tests for a `firestore.rules`
 change you make ship with your change; QE extends them.
 
-## SonarQube — run it before every merge
+## SonarQube — run it before every Demo deploy
 
-Sol Arch owns the quality gate (`docs/architecture/CODING-STANDARDS.md`). Before
-merging to `main`:
+Sol Arch owns the quality gate (`docs/architecture/CODING-STANDARDS.md`). The owner
+decided on 2026-11-28 that the scan runs **once per release batch, before the batch
+goes to Demo**, not before every merge ("let's run the scanner only before going to
+Demo"). Unit tests and coverage still gate every merge (see "How to work").
 
-1. Run the unit tests with coverage so `coverage/lcov.info` is current.
+**Before every merge**, without SonarQube:
+
+- Unit tests (and rules tests for any rules change) pass, with ≥ 80% coverage on new
+  code from Vitest's own report (`coverage/lcov.info`).
+- Write to the gate's rules anyway (list below), so the Demo scan has little to fix.
+
+**Before the batch deploys to Demo** (workflow stage 9, alongside QE's regression):
+
+1. Check out `main` with every story in the batch merged, and run the unit tests with
+   coverage so `coverage/lcov.info` is current.
 2. Run the local SonarQube scan. The server is at `http://localhost:9000`; the token
    comes from outside the repo and is never committed.
-3. The gate must pass: ratings A, zero new Blocker, Critical or Major issues,
-   hotspots reviewed, ≥ 80% coverage and ≤ 3% duplication on new code, each function's
-   cognitive complexity ≤ 15.
-4. Fix real findings in the code. Send suspected false positives to Sol Arch to mark
-   on the server with a reason. Never use a blanket `// NOSONAR` or disable a rule.
+3. The gate must pass on the batch's new code: ratings A, zero new Blocker, Critical
+   or Major issues, hotspots reviewed, ≥ 80% coverage and ≤ 3% duplication, each
+   function's cognitive complexity ≤ 15.
+4. Fix real findings on a `fix/` branch (stages 4 to 7 again, then re-scan). Send
+   suspected false positives to Sol Arch to mark on the server with a reason. Never use
+   a blanket `// NOSONAR` or disable a rule.
+5. A failing gate blocks the Demo deploy, the same as a failing regression.
 
 Write so the scan stays clean, following the rules Sol Arch took from the Taekwondo
 scan:
@@ -233,7 +246,8 @@ caught it.
    functions for anything the rules can't make safe.
 5. Apply the write rules and UI conventions above.
 6. Write the unit tests (and rules tests for any rules change). Run them with
-   coverage, then run the SonarQube scan. Both must pass. Ask QE for the e2e scope.
+   coverage; they must pass at ≥ 80% on new code. Ask QE for the e2e scope. The
+   SonarQube scan runs later, once per batch before Demo (see "SonarQube").
 7. Bump `APP_VERSION`; say what the push deploys; merge back promptly and remove the worktree.
 
 ## Never
@@ -244,8 +258,8 @@ caught it.
 - Ship a non-repeatable save without both guards.
 - Change a read/write without checking the rules in the same pass.
 - Weaken, skip or delete a test to get a build green.
-- Merge a change without its unit tests, below 80% coverage on new code, or with a
-  failing SonarQube gate.
+- Merge a change without its unit tests, or below 80% coverage on new code.
+- Deploy a batch to Demo with a failing SonarQube gate.
 - Put business logic where only a browser can reach it.
 - Write **Closed** on a defect.
 - Edit `.github/workflows/` without being asked.

@@ -18,7 +18,7 @@ REQ approved (owner)
 1. Sol Arch: SA/CIA review ──► owner "APPROVED — FINAL" ──► 4. Dev: build in a worktree ◄── locator contract + Unit scenarios
                                                                │
                                                                ▼
-                                                5. Dev gate: unit + rules tests, ≥80% coverage, SonarQube pass
+                                                5. Dev gate: unit + rules tests, ≥80% coverage
                                                                │
                                                                ▼
                                                 6. Merge to main (owner OK, merge commit, no PR)
@@ -34,7 +34,7 @@ REQ approved (owner)
                                      (repeat 4–8 for every story in the release batch)
                                                                │
                                                                ▼
-                                                9. QE: targeted REGRESSION, once, for the whole batch → "Ready" / "Not ready"
+                                                9. QE: targeted REGRESSION + Dev: SonarQube scan, once, for the whole batch → "Ready" / "Not ready"
                                                                │
                                                                ▼
                                                10. Owner approves promotion → Dev deploys the batch to DEMO → QE smoke on demo
@@ -84,8 +84,8 @@ Stages 1 and 2 start **at the same time**, the moment the REQ is approved. QA ne
 All must pass, or the branch does not merge:
 
 - [ ] Unit tests and rules tests green (Vitest, V8 coverage → `coverage/lcov.info`)
-- [ ] ≥ 80% coverage and ≤ 3% duplication on new code
-- [ ] Local SonarQube scan passes the gate (ratings A, zero new Blocker/Critical/Major, hotspots reviewed, cognitive complexity ≤ 15). False positives go to Sol Arch — never `// NOSONAR`.
+- [ ] ≥ 80% coverage on new code (Vitest's report)
+- [ ] Code written to the SonarQube gate's rules (`CODING-STANDARDS.md`). The scan itself runs once per batch, before Demo (stage 9), not per merge.
 - [ ] QE's API (emulator) specs for this change run green
 - [ ] `APP_VERSION` bumped; no `.env`, keys or real data committed
 - [ ] Dev states in plain words what the merge/push deploys, and the deploy order
@@ -131,7 +131,8 @@ Testing is split into two separate activities with different purposes, scope and
   3. Remove duplicates across stories; one consolidated regression list, written into the batch's release entry before the run.
 - **Out of scope:** features no change touched and nothing touched can affect. They are not re-run.
 - **Answer from evidence:** run counts; every case in the consolidated list executed or explicitly deferred; every defect fixed-and-retested or accepted by the owner; the environment serving the tested version.
-- **Out:** **Ready** — or **Not ready, and here's what's outstanding**. Never a maybe.
+- **SonarQube scan — Dev, same step (owner's decision, 2026-11-28: "let's run the scanner only before going to Demo"):** on `main` with every story in the batch merged, run the unit tests with coverage, then the local SonarQube scan. The gate must pass on the batch's new code: ratings A, zero new Blocker/Critical/Major, hotspots reviewed, ≥ 80% coverage, ≤ 3% duplication, cognitive complexity ≤ 15 per function. Real findings are fixed on a `fix/` branch (stages 4–7, then re-scan); false positives go to Sol Arch — never `// NOSONAR`. Sol Arch reviews the results.
+- **Out:** **Ready** — or **Not ready, and here's what's outstanding**. Never a maybe. Ready needs both a clean regression and a passing SonarQube gate.
 - **Release plan stage:** *Tested*.
 
 ### 10. Promote the batch to demo
@@ -190,3 +191,4 @@ These are prerequisites the workflow assumes but the repo doesn't have yet (as o
 | r1 | 2026-11-28 | First draft |
 | r2 | 2026-11-28 | Testing split in two, per the owner: acceptance tests per story (gate to close the story) and targeted regression once per release batch (gate to deploy to demo) |
 | r3 | 2026-11-28 | `qe.md` and `qa.md` updated to the acceptance / regression split |
+| r4 | 2026-11-28 | SonarQube scan moved from every merge (stage 5) to once per release batch before Demo (stage 9), per the owner: "let's run the scanner only before going to Demo". Unit tests and ≥ 80% coverage still gate every merge. `dev.md` and `sol-arch.md` updated to match |
