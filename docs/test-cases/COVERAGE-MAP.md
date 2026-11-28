@@ -48,17 +48,17 @@ collections and notices, accounting, settings and Reset demo data.
 
 ## TC-01 Sign in (REQ-001): planned for the real app
 
-Triaged by QE 2026-11-28 from [TC-01 v1.1](TC-01-sign-in-v1.md) (owner-approved). Unlike the rows above, these target the **real app** (Firebase Auth + Firestore on the Emulator Suite), which doesn't exist yet, so nothing is automated and every row is **Planned** or **Blocked** on the gap it names. Reasons, locator contract and automation order are in TC-01's **QE triage** section. Unit files are Dev's, under `web/src/` (paths anticipated from SA-001); API specs live in `tests/specs/api/`, staging specs in `tests/specs/staging/`, UI specs in `tests/specs/ui/`. *(staging)* rows run on `hoa-portal-staging`; *(console)* rows are console reads, and on production only the owner does them.
+Triaged by QE 2026-11-28 from [TC-01 v1.1](TC-01-sign-in-v1.md) (owner-approved), and re-triaged the same day for **v1.2** (aligned to REQ-001 r4, owner-approved): 71 new rows, F12 and Q6 moved from Unit to UI, 15 rows unblocked, scenario titles refreshed to v1.2's wording. Development is on hold until the owner closes the client deal; triage wrote no test code. Unlike the rows above, these target the **real app** (Firebase Auth + Firestore on the Emulator Suite), which doesn't exist yet, so nothing is automated and every row is **Planned** or **Blocked** on the gap it names. Reasons, locator contract and automation order are in TC-01's **QE triage** section. Unit files are Dev's, under `web/src/` (paths anticipated from SA-001); API specs live in `tests/specs/api/`, staging specs in `tests/specs/staging/`, UI specs in `tests/specs/ui/`. *(staging)* rows run on `hoa-portal-staging`; *(console)* rows are console reads, and on production only the owner does them.
 
 | Layer | Cases | Share of automated | Blocked |
 |---|---|---|---|
-| Unit | 21 | 13% | 5 |
-| API | 44 (3 on staging) | 28% | 4 |
-| UI | 94 | 59% | 5 |
-| Manual | 22 (11 staging, 5 console) | — | 2 |
-| **Total** | **181** | | **16** |
+| Unit | 47 | 21% | 0 |
+| API | 55 (4 on staging) | 24% | 2 (F20, J22) |
+| UI | 123 | 55% | 0 |
+| Manual | 27 (15 staging, 6 console) | — | 0 |
+| **Total** | **252** | | **2** |
 
-**Gaps:** none. Every case has a layer and a named test or manual run. **Overlaps:** none; where a case's message is the same copy another layer proves (C1's message is C6's mapping), the UI row asserts only what the browser adds. **Shape:** UI is well above the 10% target; raised with Sol Arch in TC-01's QE triage, with the cases that could move down.
+**Gaps:** none. Every case has a layer and a named test or manual run. **Overlaps:** none; where a case's message is the same copy another layer proves (C1's message is C6's mapping), the UI row asserts only what the browser adds. J26 is one API row: its rules test fixes how the page counts 80 characters, and G15's unit test reuses that string (not a second row). **Shape:** UI is well above the 10% target; raised with Sol Arch in TC-01's QE triage, with the cases that could move down.
 
 **Effect on the rows above:** when the real app's sign-in gate lands, SMK-\* start from signed-in fixtures, NAV-02 retires, NAV-01 and NAV-04 are re-baselined (NAV-04's meaning moves to TC-01-L2), and VEH-J1 signs both people in. Those rows are left as they are until then.
 
@@ -68,8 +68,11 @@ Triaged by QE 2026-11-28 from [TC-01 v1.1](TC-01-sign-in-v1.md) (owner-approved)
 | TC-01-A2 | After Google sign-in, the header shows the linked lot | happy | UI | sign-in.spec.js::TC-01-A2 | Planned |
 | TC-01-A3 | The greeting uses the first word of the stored name | boundary | Unit | greeting.test.js::TC-01-A3 | Planned |
 | TC-01-A4 | Google sign-in uses the popup flow, not a redirect | security | Manual *(staging)* | Manual: staging Google session::TC-01-A4 | Planned |
+| TC-01-A5 | A one-word name is greeted in full | boundary | Unit | greeting.test.js::TC-01-A5 | Planned |
+| TC-01-A6 | A homeowner with no stored name is greeted without a name | boundary | Unit | greeting.test.js::TC-01-A6 | Planned |
+| TC-01-A7 | A name starting with an abbreviation greets with it (accepted limitation) | boundary | Unit | greeting.test.js::TC-01-A7 | Planned |
 | TC-01-B1 | A linked homeowner signing in with email and password lands on his dashboard | happy | UI | sign-in.spec.js::TC-01-B1 | Planned |
-| TC-01-C1 | A wrong password shows the shared message | negative | UI | sign-in.spec.js::TC-01-C1 | Planned |
+| TC-01-C1 | A wrong password shows the shared message above the form | negative | UI | sign-in.spec.js::TC-01-C1 | Planned |
 | TC-01-C2 | After a wrong password the email stays in the field | usability | UI | sign-in.spec.js::TC-01-C2 | Planned |
 | TC-01-C3 | An email with no account shows the same message as a wrong password | security | UI | sign-in.spec.js::TC-01-C3 | Planned |
 | TC-01-C4 | After an unknown email, the email stays in the field | usability | UI | sign-in.spec.js::TC-01-C4 | Planned |
@@ -77,23 +80,38 @@ Triaged by QE 2026-11-28 from [TC-01 v1.1](TC-01-sign-in-v1.md) (owner-approved)
 | TC-01-C6 | The page shows the shared message for every credential error code | security | Unit | auth-messages.test.js::TC-01-C6 | Planned |
 | TC-01-C7 | An empty email is refused before any request | negative | Unit | auth-controller.test.js::TC-01-C7 | Planned |
 | TC-01-C8 | An empty password is refused before any request | negative | Unit | auth-controller.test.js::TC-01-C8 | Planned |
-| TC-01-C9 | A malformed email is refused with a field error | negative | Unit | auth-controller.test.js::TC-01-C9 | Planned |
+| TC-01-C9 | A malformed email is flagged when the person leaves the field | negative | Unit | auth-controller.test.js::TC-01-C9 | Planned |
 | TC-01-C10 | An email typed with capitals still signs in | boundary | API | auth-credentials.spec.js::TC-01-C10 | Planned |
-| TC-01-C11 | An email typed with a trailing space still signs in | boundary | Unit | validate.test.js::TC-01-C11 | Blocked on G-4 |
+| TC-01-C11 | An email typed with spaces around it still signs in | boundary | Unit | validate.test.js::TC-01-C11 | Planned |
 | TC-01-C12 | A Google-only account using the email form gets the shared message | negative | API | auth-credentials.spec.js::TC-01-C12 | Planned |
 | TC-01-C13 | No page decides what to show by asking Firebase which sign-in methods an email has | security | Unit | source-checks.test.js::TC-01-C13 | Planned |
+| TC-01-C14 | The wrong-password alert's second line points to Google, in the same alert | usability | UI | sign-in.spec.js::TC-01-C14 | Planned |
+| TC-01-C15 | A password ending in a space signs in only with the space | boundary | Unit | auth-controller.test.js::TC-01-C15 | Planned |
+| TC-01-C16 | An email with a space inside it is refused as malformed | negative | Unit | validate.test.js::TC-01-C16 | Planned |
 | TC-01-D1 | "Too many attempts" shows its message | negative | Unit | auth-messages.test.js::TC-01-D1 | Planned |
 | TC-01-D2 | After "Too many attempts" the email stays in the field | usability | UI | sign-in.spec.js::TC-01-D2 | Planned |
 | TC-01-D3 | "Forgot password?" opens the reset page from the error state | navigation | UI | sign-in.spec.js::TC-01-D3 | Planned |
 | TC-01-D4 | Signing in while offline shows the offline message | negative | UI | sign-in.spec.js::TC-01-D4 | Planned |
 | TC-01-D5 | "Continue with Google" while offline shows the offline message | negative | UI | sign-in.spec.js::TC-01-D5 | Planned |
 | TC-01-D6 | After the offline message, the button is ready again and typing is kept | usability | UI | sign-in.spec.js::TC-01-D6 | Planned |
-| TC-01-D7 | Creating an account while offline shows an offline message | negative | UI | create-account.spec.js::TC-01-D7 | Blocked on G-15 |
-| TC-01-D8 | Asking for a reset link while offline shows an offline message | negative | UI | password-reset.spec.js::TC-01-D8 | Blocked on G-15 |
-| TC-01-D9 | Closing the Google popup returns to a usable sign-in page | negative | UI | sign-in.spec.js::TC-01-D9 | Planned |
-| TC-01-D10 | A blocked Google popup tells the person how to continue | negative | UI | sign-in.spec.js::TC-01-D10 | Blocked on G-8 |
-| TC-01-D11 | A disabled account is refused at sign-in and sees no household data | negative | API | auth-credentials.spec.js::TC-01-D11 | Planned |
-| TC-01-D12 | A homeowner disabled while signed in is signed out once the token refreshes | stale reference | UI | sign-in.spec.js::TC-01-D12 | Planned |
+| TC-01-D7 | Creating an account while offline shows the create-account offline message | negative | UI | create-account.spec.js::TC-01-D7 | Planned |
+| TC-01-D8 | Asking for a reset link while offline shows the reset offline message | negative | UI | password-reset.spec.js::TC-01-D8 | Planned |
+| TC-01-D9 | Closing the Google window returns to a usable sign-in page within 10 seconds, with no message | negative | UI | sign-in.spec.js::TC-01-D9 | Planned |
+| TC-01-D10 | A blocked Google window tells the person how to continue | negative | UI | sign-in.spec.js::TC-01-D10 | Planned |
+| TC-01-D11 | A turned-off account is refused at sign-in and sees no household data | negative | API | auth-credentials.spec.js::TC-01-D11 | Planned |
+| TC-01-D12 | A homeowner turned off while signed in is signed out on the next open or reload | stale reference | UI | sign-in.spec.js::TC-01-D12 | Planned |
+| TC-01-D13 | Google sign-in on a turned-off account is refused with no household data | negative | API | google-account.spec.js::TC-01-D13 | Planned |
+| TC-01-D14 | With the portal left open, a turned-off account is signed out within an hour | security | Manual *(staging)* | Manual: staging go-live checks::TC-01-D14 | Planned |
+| TC-01-D15 | While the Google window is open, its button reads "Opening Google…" and is disabled | usability | UI | sign-in.spec.js::TC-01-D15 | Planned |
+| TC-01-D16 | While the Google window is open, the email form's button is disabled too | concurrency | UI | sign-in.spec.js::TC-01-D16 | Planned |
+| TC-01-D17 | Any other Google sign-in failure shows the generic Google message | negative | Unit | auth-messages.test.js::TC-01-D17 | Planned |
+| TC-01-D18 | "Continue with Google" while offline on the create-account page shows the create-account offline message | negative | UI | create-account.spec.js::TC-01-D18 | Planned |
+| TC-01-D19 | In an app's built-in browser, a notice sits above the Google button | usability | UI | in-app-browser.spec.js::TC-01-D19 | Planned |
+| TC-01-D20 | In an app's built-in browser, the Google button stays and email sign-in works | usability | UI | in-app-browser.spec.js::TC-01-D20 | Planned |
+| TC-01-D21 | "Copy link" copies the full page address, including an invite code | integration | UI | in-app-browser.spec.js::TC-01-D21 | Planned |
+| TC-01-D22 | "Link copied" shows only once the copy has worked | usability | Unit | in-app-browser.test.js::TC-01-D22 | Planned |
+| TC-01-D23 | When copying is blocked, the address shows selected with "Press and hold to copy" | usability | UI | in-app-browser.spec.js::TC-01-D23 | Planned |
+| TC-01-D24 | In a normal browser, no in-app notice shows | negative | Unit | in-app-browser.test.js::TC-01-D24 | Planned |
 | TC-01-E1 | Asking for a reset for an existing email shows the reset message | happy | UI | password-reset.spec.js::TC-01-E1 | Planned |
 | TC-01-E2 | Asking for a reset for an existing email creates exactly one reset link | happy | UI | password-reset.spec.js::TC-01-E2 | Planned |
 | TC-01-E3 | Asking for a reset for an unknown email shows the same message | security | UI | password-reset.spec.js::TC-01-E3 | Planned |
@@ -103,48 +121,81 @@ Triaged by QE 2026-11-28 from [TC-01 v1.1](TC-01-sign-in-v1.md) (owner-approved)
 | TC-01-E7 | A password reset ends the account's other signed-in sessions | security | API | auth-reset.spec.js::TC-01-E7 | Planned |
 | TC-01-E8 | The reset page refuses a new password under 8 characters | boundary | API *(staging)* | auth-policy.staging.spec.js::TC-01-E8 | Planned |
 | TC-01-E9 | "Back to sign in" on the reset page returns to the sign-in page | navigation | UI | password-reset.spec.js::TC-01-E9 | Planned |
-| TC-01-E10 | A Google-only account asking for a password reset | negative | API | auth-reset.spec.js::TC-01-E10 | Blocked on G-17 |
+| TC-01-E10 | A Google-only account asking for a reset sees the usual message and gets a reset link | negative | API | auth-reset.spec.js::TC-01-E10 | Planned |
+| TC-01-E11 | After a reset adds a password to a Google-only account, the password signs in to the same account | security | Manual *(staging)* | Manual: staging Google session::TC-01-E11 | Planned |
+| TC-01-E12 | After that reset, Google sign-in still works | security | Manual *(staging)* | Manual: staging Google session::TC-01-E12 | Planned |
+| TC-01-E13 | A reset asked with spaces around the email names the email without them | boundary | Unit | auth-controller.test.js::TC-01-E13 | Planned |
+| TC-01-E14 | Sending a reset with an empty email is refused under the field | negative | Unit | validate.test.js::TC-01-E14 | Planned |
+| TC-01-E15 | Sending a reset with a malformed email is refused under the field | negative | Unit | validate.test.js::TC-01-E15 | Planned |
+| TC-01-E16 | While the reset link is being sent, the button reads "Sending…" and is disabled | usability | UI | password-reset.spec.js::TC-01-E16 | Planned |
 | TC-01-F1 | Creating an account sends a verification email | happy | UI | create-account.spec.js::TC-01-F1 | Planned |
 | TC-01-F2 | A new account lands on "Enter your invite code" | happy | UI | create-account.spec.js::TC-01-F2 | Planned |
 | TC-01-F3 | A new account sees no household data on its landing screen | security | UI | create-account.spec.js::TC-01-F3 | Planned |
-| TC-01-F4 | An unverified account sees the verification banner with "Send again" | usability | UI | create-account.spec.js::TC-01-F4 | Planned |
+| TC-01-F4 | An unverified account sees the verification banner under the top bar | usability | UI | create-account.spec.js::TC-01-F4 | Planned |
 | TC-01-F5 | "Send again" creates a new verification email | happy | UI | create-account.spec.js::TC-01-F5 | Planned |
 | TC-01-F6 | The banner is gone once the email is verified | happy | UI | create-account.spec.js::TC-01-F6 | Planned |
 | TC-01-F7 | Creating an account creates no membership for the new account | data integrity | API | account-creation.spec.js::TC-01-F7 | Planned |
-| TC-01-F8 | The new person record holds the typed name and the account email, and only allowed fields | data integrity | API | account-creation.spec.js::TC-01-F8 | Planned |
+| TC-01-F8 | The new person record holds the trimmed typed name, the account email and the creation time, nothing else | data integrity | API | account-creation.spec.js::TC-01-F8 | Planned |
 | TC-01-F9 | Signing up with capitals in the email stores the account's email, and the write succeeds | data integrity | API | account-creation.spec.js::TC-01-F9 | Planned |
-| TC-01-F10 | Signing up with a trailing space in the email stores the account's email | boundary | API | account-creation.spec.js::TC-01-F10 | Blocked on G-4 |
-| TC-01-F11 | If the person record can't be written after the account is created, the next sign-in repairs it | data integrity | API | account-creation.spec.js::TC-01-F11 | Planned |
-| TC-01-F12 | A Google account with no display name gets a sensible greeting | boundary | Unit | greeting.test.js::TC-01-F12 | Blocked on G-2 (partial) |
+| TC-01-F10 | Signing up with spaces around the email stores the account's email without them | boundary | API | account-creation.spec.js::TC-01-F10 | Planned |
+| TC-01-F11 | If the person record didn't save, "Continue" offline shows the save message within 15 seconds and keeps the code | data integrity | API | account-creation.spec.js::TC-01-F11 | Planned |
+| TC-01-F12 | A Google account with no profile name is asked "What's your name?" | boundary | UI | name-page.spec.js::TC-01-F12 | Planned |
 | TC-01-F13 | "Continue with Google" on the create-account page lands a new person on invite-code entry | happy | UI | create-account.spec.js::TC-01-F13 | Planned |
 | TC-01-F14 | A new Google account arrives verified and shows no verification banner | usability | Manual *(staging)* | Manual: staging Google session::TC-01-F14 | Planned |
+| TC-01-F15 | The verification banner never shows on signed-out pages | usability | Unit | shell-state.test.js::TC-01-F15 | Planned |
+| TC-01-F16 | The verification banner can't be dismissed | usability | UI | verify-banner.spec.js::TC-01-F16 | Planned |
+| TC-01-F17 | "Send again" reads "Sending…", then the banner reads "Sent. Check your inbox." in place | usability | UI | verify-banner.spec.js::TC-01-F17 | Planned |
+| TC-01-F18 | When Firebase refuses another verification email, the banner says to wait | negative | Unit | auth-messages.test.js::TC-01-F18 | Planned |
+| TC-01-F19 | The banner shows on every signed-in page for an unverified account | usability | UI | verify-banner.spec.js::TC-01-F19 | Planned |
+| TC-01-F20 | A missing person record stops the invite code being used up | data integrity | API | account-creation.spec.js::TC-01-F20 | Blocked on REQ-004 (the r4 follow-up is not in REQ-004 r5) |
+| TC-01-F21 | Pressing "Continue" again once online creates the record, then checks the code | data integrity | API | account-creation.spec.js::TC-01-F21 | Planned |
+| TC-01-F22 | If the portal was closed before the record saved, the next open asks "What's your name?" first | data integrity | Unit | landing.test.js::TC-01-F22 | Planned |
+| TC-01-F23 | A Google sign-up whose record is missing is not asked for a name | data integrity | API | google-account.spec.js::TC-01-F23 | Planned |
+| TC-01-F24 | Entering a name on "What's your name?" saves it and opens "Enter your invite code" | happy | UI | name-page.spec.js::TC-01-F24 | Planned |
+| TC-01-F25 | While saving the name, "Continue" reads "Saving…" and is disabled | usability | UI | name-page.spec.js::TC-01-F25 | Planned |
+| TC-01-F26 | If the name doesn't save within 15 seconds, the save message shows and "Continue" works again | negative | Unit | auth-controller.test.js::TC-01-F26 | Planned |
+| TC-01-F27 | The name page applies the same name checks as create-account | negative | Unit | validate.test.js::TC-01-F27 | Planned |
+| TC-01-F28 | Signing up with Google takes the name from the Google profile | happy | API | google-account.spec.js::TC-01-F28 | Planned |
+| TC-01-F29 | A later Google profile name change doesn't overwrite the stored name | data integrity | API | google-account.spec.js::TC-01-F29 | Planned |
+| TC-01-F30 | A Google profile name longer than 80 characters is cut to 80, then trimmed | boundary | Unit | person-name.test.js::TC-01-F30 | Planned |
+| TC-01-F31 | A Google profile name of only spaces counts as no name | boundary | Unit | person-name.test.js::TC-01-F31 | Planned |
+| TC-01-F32 | A name typed with spaces around it is stored without them | boundary | Unit | person-name.test.js::TC-01-F32 | Planned |
+| TC-01-F33 | While creating the account, the button reads "Creating account…" and is disabled | usability | UI | create-account.spec.js::TC-01-F33 | Planned |
 | TC-01-G1 | Signing up with an email that already has an account shows the message | negative | UI | create-account.spec.js::TC-01-G1 | Planned |
 | TC-01-G2 | After the duplicate-email message, name and email are kept | usability | UI | create-account.spec.js::TC-01-G2 | Planned |
 | TC-01-G3 | The duplicate sign-up creates no second account | data integrity | API | auth-credentials.spec.js::TC-01-G3 | Planned |
-| TC-01-G4 | "Sign in" from the duplicate-email message opens the sign-in page | navigation | UI | create-account.spec.js::TC-01-G4 | Planned |
-| TC-01-G5 | "Reset your password" from the duplicate-email message opens the reset page | navigation | UI | create-account.spec.js::TC-01-G5 | Planned |
+| TC-01-G4 | "Sign in" in the duplicate-email message opens sign-in with the email filled in | navigation | UI | create-account.spec.js::TC-01-G4 | Planned |
+| TC-01-G5 | "Reset your password" in the duplicate-email message opens reset with the email filled in | navigation | UI | create-account.spec.js::TC-01-G5 | Planned |
 | TC-01-G6 | A 7-character password shows "Use at least 8 characters" | boundary | Unit | validate.test.js::TC-01-G6 | Planned |
 | TC-01-G7 | After a short password, name and email are kept | usability | UI | create-account.spec.js::TC-01-G7 | Planned |
 | TC-01-G8 | A short password in the page creates no account | negative | Unit | auth-controller.test.js::TC-01-G8 | Planned |
 | TC-01-G9 | Firebase refuses a 7-character password when the page check is skipped | security | API *(staging)* | auth-policy.staging.spec.js::TC-01-G9 | Planned |
 | TC-01-G10 | An 8-character password is accepted | boundary | Unit | validate.test.js::TC-01-G10 | Planned |
 | TC-01-G11 | A long passphrase with spaces and non-ASCII characters signs up and signs in | boundary | API | auth-credentials.spec.js::TC-01-G11 | Planned |
-| TC-01-G12 | Creating an account with no name is refused with a field error | negative | Unit | validate.test.js::TC-01-G12 | Blocked on G-1 |
+| TC-01-G12 | Creating an account with no name shows "Enter your name" | negative | Unit | validate.test.js::TC-01-G12 | Planned |
 | TC-01-G13 | Signing up with an existing email in capitals shows the duplicate message | boundary | API | auth-credentials.spec.js::TC-01-G13 | Planned |
-| TC-01-G14 | Signing up with an existing email plus a trailing space shows the duplicate message | boundary | API | auth-credentials.spec.js::TC-01-G14 | Blocked on G-4 |
-| TC-01-G15 | A one-character name and a very long name are handled | boundary | Unit | validate.test.js::TC-01-G15 | Blocked on G-1 |
+| TC-01-G14 | Signing up with an existing email plus spaces around it shows the duplicate message | boundary | API | auth-credentials.spec.js::TC-01-G14 | Planned |
+| TC-01-G15 | A name of 80 characters is accepted; 81 shows "Use 80 characters or fewer" | boundary | Unit | validate.test.js::TC-01-G15 | Planned |
 | TC-01-G16 | A name containing markup shows as plain text in the greeting | security | UI | create-account.spec.js::TC-01-G16 | Planned |
+| TC-01-G17 | An 80-character name doesn't break the greeting or header at 375 px | responsive | UI | auth-phone.spec.js::TC-01-G17 | Planned |
+| TC-01-G18 | A malformed email on the create-account page is flagged when the person leaves the field | negative | Unit | validate.test.js::TC-01-G18 | Planned |
+| TC-01-G19 | A name of only spaces shows "Enter your name" | boundary | Unit | validate.test.js::TC-01-G19 | Planned |
+| TC-01-G20 | Creating an account with no password shows "Use at least 8 characters" | negative | Unit | validate.test.js::TC-01-G20 | Planned |
+| TC-01-G21 | A one-character name is accepted | boundary | Unit | validate.test.js::TC-01-G21 | Planned |
 | TC-01-H1 | Google sign-in on an unverified Gmail password account signs in with Google | security | Manual *(staging)* | Manual: staging Google session::TC-01-H1 | Planned |
 | TC-01-H2 | After the Google takeover, the old password no longer signs in | security | Manual *(staging)* | Manual: staging Google session::TC-01-H2 | Planned |
 | TC-01-H3 | After the Google takeover, the account keeps its household | security | Manual *(staging)* | Manual: staging Google session::TC-01-H3 | Planned |
 | TC-01-H4 | After the Google takeover, the uid is the same | data integrity | Manual *(staging)* | Manual: staging Google session::TC-01-H4 | Planned |
-| TC-01-H5 | A verified Gmail password account signing in with Google stays one account | security | Manual *(staging)* | Manual: staging Google session::TC-01-H5 | Planned |
-| TC-01-H6 | Google sign-in on a non-Gmail address that has a password account doesn't sign into it silently | security | Manual *(staging)* | Manual: staging Google session::TC-01-H6 | Blocked on G-16 |
-| TC-01-I1 | A signed-in person with no household and no role sees the not-linked message | happy | UI | not-linked.spec.js::TC-01-I1 | Planned |
-| TC-01-I2 | The not-linked person sees only invite-code entry and "Sign out" | navigation | UI | not-linked.spec.js::TC-01-I2 | Planned |
-| TC-01-I3 | The not-linked screen stays after a reload | navigation | UI | not-linked.spec.js::TC-01-I3 | Planned |
-| TC-01-I4 | The not-linked screen shows which account is signed in | usability | UI | not-linked.spec.js::TC-01-I4 | Planned |
-| TC-01-I5 | A not-linked person opening a household page address sees no household data | security | UI | not-linked.spec.js::TC-01-I5 | Planned |
+| TC-01-H5 | A verified Gmail password account signing in with Google lands on its own household as one account | security | Manual *(staging)* | Manual: staging Google session::TC-01-H5 | Planned |
+| TC-01-H6 | Google sign-in on a non-Gmail address that has a password account doesn't sign in or create a second account | security | Manual *(staging)* | Manual: staging Google session::TC-01-H6 | Planned |
+| TC-01-H7 | That refusal says the email has a password and fills it in on the sign-in form | usability | Unit | auth-messages.test.js::TC-01-H7 | Planned |
+| TC-01-H8 | If Firebase refuses without saying why, the generic Google message shows and still no second account | negative | Unit | auth-messages.test.js::TC-01-H8 | Planned |
+| TC-01-I1 | A signed-in person with no household and no role lands on "Enter your invite code" with the not-linked line | happy | UI | not-linked.spec.js::TC-01-I1 | Planned |
+| TC-01-I2 | The not-linked person sees only the code field, "Continue" and "Sign out" | navigation | UI | not-linked.spec.js::TC-01-I2 | Planned |
+| TC-01-I3 | "Enter your invite code" stays after a reload | navigation | UI | not-linked.spec.js::TC-01-I3 | Planned |
+| TC-01-I4 | The invite-code page shows "Signed in as {email}" under the form | usability | UI | not-linked.spec.js::TC-01-I4 | Planned |
+| TC-01-I5 | A not-linked person opening a household page address lands on "Enter your invite code" and sees no household data | security | UI | not-linked.spec.js::TC-01-I5 | Planned |
+| TC-01-I6 | The next day, a not-linked person still lands on "Enter your invite code" | navigation | UI | not-linked.spec.js::TC-01-I6 | Planned |
 | TC-01-J1 | A homeowner opening another household's page sees "You don't have access to this page" | security | UI | auth-routing.spec.js::TC-01-J1 | Planned |
 | TC-01-J2 | While on another household's page, no Household B document is read | security | API | rules-access.spec.js::TC-01-J2 | Planned |
 | TC-01-J3 | "Go to my dashboard" on the no-access page returns to her own household | navigation | UI | auth-routing.spec.js::TC-01-J3 | Planned |
@@ -161,13 +212,17 @@ Triaged by QE 2026-11-28 from [TC-01 v1.1](TC-01-sign-in-v1.md) (owner-approved)
 | TC-01-J14 | Setting a different email than the account's is refused | security | API | rules-users.spec.js::TC-01-J14 | Planned |
 | TC-01-J15 | A `createdAt` that isn't the server time is refused | security | API | rules-users.spec.js::TC-01-J15 | Planned |
 | TC-01-J16 | A person can read their own person record | security | API | rules-users.spec.js::TC-01-J16 | Planned |
-| TC-01-J17 | A person can update their own name and phone | security | API | rules-users.spec.js::TC-01-J17 | Planned |
+| TC-01-J17 | A person cannot update their own person record in R1 | security | API | rules-users.spec.js::TC-01-J17 | Planned |
 | TC-01-J18 | A person cannot delete their own person record | security | API | rules-users.spec.js::TC-01-J18 | Planned |
 | TC-01-J19 | Nobody signed in as a homeowner can list the people collection | security | API | rules-users.spec.js::TC-01-J19 | Planned |
 | TC-01-J20 | A homeowner cannot read another household's person's record | security | API | rules-users.spec.js::TC-01-J20 | Planned |
 | TC-01-J21 | A homeowner cannot write another person's record | security | API | rules-users.spec.js::TC-01-J21 | Planned |
 | TC-01-J22 | A member of the same household reading your person record | security | API | rules-users.spec.js::TC-01-J22 | Blocked on Sol Arch (SA-001 §8.2) |
 | TC-01-J23 | A guard or board account cannot read any person record | security | API | rules-users.spec.js::TC-01-J23 | Planned |
+| TC-01-J24 | The rules refuse a name with spaces around it | security | API | rules-users.spec.js::TC-01-J24 | Planned |
+| TC-01-J25 | The rules accept a name of 1 to 80 characters and refuse empty or 81 | boundary | API | rules-users.spec.js::TC-01-J25 | Planned |
+| TC-01-J26 | The page and the rules count "ñ" and an emoji the same way at the 80 limit | boundary | API | rules-users.spec.js::TC-01-J26 | Planned |
+| TC-01-J27 | A guard-only account cannot read household data or anyone else's staff record | security | API | rules-access.spec.js::TC-01-J27 | Planned |
 | TC-01-K1 | "Sign out" lands on the sign-in page | happy | UI | sign-out.spec.js::TC-01-K1 | Planned |
 | TC-01-K2 | Pressing Back after signing out shows the sign-in page | navigation | UI | sign-out.spec.js::TC-01-K2 | Planned |
 | TC-01-K3 | On a phone browser, Back after signing out never shows household data, even briefly | security | UI | sign-out.spec.js::TC-01-K3 | Planned |
@@ -180,7 +235,7 @@ Triaged by QE 2026-11-28 from [TC-01 v1.1](TC-01-sign-in-v1.md) (owner-approved)
 | TC-01-L2 | Reloading any screen keeps the session and the screen | navigation | UI | auth-routing.spec.js::TC-01-L2 | Planned |
 | TC-01-M1 | A signed-out person opening any portal address sees the sign-in page and no data | navigation | UI | auth-routing.spec.js::TC-01-M1 | Planned |
 | TC-01-M2 | The sign-in heading shows the HOA's name while signed out | usability | UI | auth-routing.spec.js::TC-01-M2 | Planned |
-| TC-01-M3 | After signing in from a deep link, the person reaches the page they asked for | navigation | UI | auth-routing.spec.js::TC-01-M3 | Blocked on G-11 |
+| TC-01-M3 | After signing in from a deep link, the person lands on the page they asked for | navigation | UI | auth-routing.spec.js::TC-01-M3 | Planned |
 | TC-01-M4 | Sign-in and create-account link to each other | navigation | UI | auth-routing.spec.js::TC-01-M4 | Planned |
 | TC-01-M5 | Sign-in and the reset page link to each other | navigation | UI | auth-routing.spec.js::TC-01-M5 | Planned |
 | TC-01-M6 | The browser's Back button moves back through sign-in, create-account and reset | navigation | UI | auth-routing.spec.js::TC-01-M6 | Planned |
@@ -189,12 +244,21 @@ Triaged by QE 2026-11-28 from [TC-01 v1.1](TC-01-sign-in-v1.md) (owner-approved)
 | TC-01-M9 | Reloading the sign-in, create-account and reset pages keeps the person there | navigation | UI | auth-routing.spec.js::TC-01-M9 | Planned |
 | TC-01-M10 | "Sign out" can be reached at 375 px | navigation | UI | sign-out.spec.js::TC-01-M10 | Planned |
 | TC-01-M11 | While the role loads, no staff menu appears and then disappears | usability | UI | auth-routing.spec.js::TC-01-M11 | Planned |
+| TC-01-M12 | Signing in from a link to another household's page shows "You don't have access to this page" | security | UI | auth-routing.spec.js::TC-01-M12 | Planned |
+| TC-01-M13 | A return address added to the sign-in address is ignored | security | UI | auth-routing.spec.js::TC-01-M13 | Planned |
+| TC-01-M14 | The portal never puts a return address in the page address | security | UI | auth-routing.spec.js::TC-01-M14 | Planned |
+| TC-01-M15 | A not-linked person who signs in from a dashboard link lands on "Enter your invite code" | navigation | UI | not-linked.spec.js::TC-01-M15 | Planned |
+| TC-01-M16 | The typed email goes from sign-in to the reset page, where it can be edited | navigation | UI | auth-routing.spec.js::TC-01-M16 | Planned |
+| TC-01-M17 | "Back to sign in" carries the email now on the reset page | navigation | UI | auth-routing.spec.js::TC-01-M17 | Planned |
+| TC-01-M18 | The password is never carried between pages | security | UI | auth-routing.spec.js::TC-01-M18 | Planned |
+| TC-01-M19 | A carried email never appears in the address bar or saved storage | security | UI | auth-routing.spec.js::TC-01-M19 | Planned |
+| TC-01-M20 | The asked-for page survives "Continue with Google" | navigation | UI | auth-routing.spec.js::TC-01-M20 | Planned |
 | TC-01-N1 | Every field has a visible label | usability | UI | auth-a11y.spec.js::TC-01-N1 | Planned |
-| TC-01-N2 | "Show password" reveals the password and hides it again | usability | UI | auth-a11y.spec.js::TC-01-N2 | Planned |
+| TC-01-N2 | "Show password" reveals the password and reads "Hide password" while it shows | usability | UI | auth-a11y.spec.js::TC-01-N2 | Planned |
 | TC-01-N3 | The password toggle is labelled in text and announces its state | usability | UI | auth-a11y.spec.js::TC-01-N3 | Planned |
 | TC-01-N4 | Errors are announced | usability | UI | auth-a11y.spec.js::TC-01-N4 | Planned |
-| TC-01-N5 | Field errors sit under their field | usability | UI | auth-a11y.spec.js::TC-01-N5 | Planned |
-| TC-01-N6 | Errors that concern two fields are placed where the BA decides | usability | UI | auth-a11y.spec.js::TC-01-N6 | Blocked on G-12 |
+| TC-01-N5 | Field errors sit under their field, which is marked invalid and linked to the message | usability | UI | auth-a11y.spec.js::TC-01-N5 | Planned |
+| TC-01-N6 | Errors about the whole form sit above it, inside the card, and focus stays put | usability | UI | auth-a11y.spec.js::TC-01-N6 | Planned |
 | TC-01-N7 | The password stays typed after a wrong-password error | usability | UI | auth-a11y.spec.js::TC-01-N7 | Planned |
 | TC-01-N8 | Every tap target is at least 44 × 44 px | usability | UI | auth-a11y.spec.js::TC-01-N8 | Planned |
 | TC-01-N9 | The Google button meets 4.5:1 contrast and says "Continue with Google" in text | usability | UI | auth-a11y.spec.js::TC-01-N9 | Planned |
@@ -208,6 +272,8 @@ Triaged by QE 2026-11-28 from [TC-01 v1.1](TC-01-sign-in-v1.md) (owner-approved)
 | TC-01-N17 | The sign-in page reflows at 320 px and at 200 % zoom | usability | UI | auth-a11y.spec.js::TC-01-N17 | Planned |
 | TC-01-N18 | After an error or a page change, focus moves to the error or the new heading | usability | UI | auth-a11y.spec.js::TC-01-N18 | Planned |
 | TC-01-N19 | Every static string in the copy of record appears as written | usability | UI | auth-a11y.spec.js::TC-01-N19 | Planned |
+| TC-01-N20 | After a failed submit, focus goes to the first field with an error | usability | UI | auth-a11y.spec.js::TC-01-N20 | Planned |
+| TC-01-N21 | Tabbing past an empty field shows no error until submit | usability | Unit | validate.test.js::TC-01-N21 | Planned |
 | TC-01-O1 | On a real phone profile, the sign-in page uses the phone layout | usability | UI | auth-phone.spec.js::TC-01-O1 | Planned |
 | TC-01-O2 | No horizontal scroll at 375 px | usability | UI | auth-phone.spec.js::TC-01-O2 | Planned |
 | TC-01-O3 | With the keyboard open, the primary button can be reached | usability | Manual | Manual: look-and-feel / real phone::TC-01-O3 | Planned |
@@ -219,19 +285,21 @@ Triaged by QE 2026-11-28 from [TC-01 v1.1](TC-01-sign-in-v1.md) (owner-approved)
 | TC-01-P4 | Double-tapping "Continue with Google" opens one popup | concurrency | UI | sign-in.spec.js::TC-01-P4 | Planned |
 | TC-01-P5 | Double-tapping "Send reset link" sends one request | concurrency | Unit | auth-controller.test.js::TC-01-P5 | Planned |
 | TC-01-P6 | Double-tapping "Send again" sends one verification request | concurrency | Unit | auth-controller.test.js::TC-01-P6 | Planned |
+| TC-01-P7 | Double-tapping "Continue" on "What's your name?" saves once | concurrency | Unit | auth-controller.test.js::TC-01-P7 | Planned |
 | TC-01-Q1 | The important-announcement pop-up does not appear on the sign-in page | integration | UI | auth-integration.spec.js::TC-01-Q1 | Planned |
 | TC-01-Q2 | After sign-in the pop-up shows once on the dashboard and doesn't block "Sign out" | integration | UI | auth-integration.spec.js::TC-01-Q2 | Planned |
 | TC-01-Q3 | A not-linked person never sees the announcement pop-up | integration | UI | not-linked.spec.js::TC-01-Q3 | Planned |
 | TC-01-Q4 | Each staff sub-role lands on the staff view, not the not-linked screen | integration | Unit | landing.test.js::TC-01-Q4 | Planned |
 | TC-01-Q5 | A treasurer who is also a homeowner gets the view switch | integration | Unit | landing.test.js::TC-01-Q5 | Planned |
-| TC-01-Q6 | A guard account's landing in R1 | integration | Unit | landing.test.js::TC-01-Q6 | Blocked on G-19 |
+| TC-01-Q6 | A guard-only account in R1 lands on the guard holding page | integration | UI | auth-routing.spec.js::TC-01-Q6 | Planned |
 | TC-01-Q7 | An invite link's code survives Google sign-in | integration | UI | auth-integration.spec.js::TC-01-Q7 | Planned |
 | TC-01-Q8 | An invite link's code survives creating an account by email | integration | UI | auth-integration.spec.js::TC-01-Q8 | Planned |
 | TC-01-Q9 | The name typed at sign-up is the one the admin office sees | integration | UI | auth-integration.spec.js::TC-01-Q9 | Planned |
 | TC-01-Q10 | A name containing markup shows as plain text to the admin office | security | UI | auth-integration.spec.js::TC-01-Q10 | Planned |
 | TC-01-Q11 | A homeowner whose membership is removed while signed in loses the household on the next read *(provisional: ADR-004 `exists(members/...)`)* | stale reference | UI | auth-integration.spec.js::TC-01-Q11 | Planned |
+| TC-01-Q13 | A guard who is also linked to a household lands on that household's dashboard with no gate menu | integration | Unit | landing.test.js::TC-01-Q13 | Planned |
 | TC-01-R1 | Email enumeration protection is on | security | Manual *(console)* | Manual: console checklist (owner read-only on production)::TC-01-R1 | Planned |
-| TC-01-R2 | The password policy is Require with a minimum of 8 | security | Manual *(console)* | Manual: console checklist (owner read-only on production)::TC-01-R2 | Planned |
+| TC-01-R2 | The password policy is Require, with force upgrade on sign-in, minimum 8 | security | Manual *(console)* | Manual: console checklist (owner read-only on production)::TC-01-R2 | Planned |
 | TC-01-R3 | Authorised domains list only that project's own domains | security | Manual *(console)* | Manual: console checklist (owner read-only on production)::TC-01-R3 | Planned |
 | TC-01-R4 | The Google provider is enabled | security | Manual *(console)* | Manual: console checklist (owner read-only on production)::TC-01-R4 | Planned |
 | TC-01-R5 | "One account per email address" is set | security | Manual *(console)* | Manual: console checklist (owner read-only on production)::TC-01-R5 | Planned |
@@ -239,8 +307,11 @@ Triaged by QE 2026-11-28 from [TC-01 v1.1](TC-01-sign-in-v1.md) (owner-approved)
 | TC-01-R7 | With App Check enforced, a request with no App Check token is refused | security | API *(staging)* | app-check.staging.spec.js::TC-01-R7 | Planned |
 | TC-01-R8 | Reset and verification emails arrive in a test inbox on staging | integration | Manual *(staging)* | Manual: staging go-live checks::TC-01-R8 | Planned |
 | TC-01-R9 | The emulator seed turns email enumeration protection on | security | API | auth-emulator-seed.spec.js::TC-01-R9 | Planned |
+| TC-01-R10 | The guard role is turned off on production until the gate release | security | Manual *(console)* | Manual: console checklist (owner read-only on production)::TC-01-R10 | Planned |
 | TC-01-S1 | A role left in browser storage by the mock-up does not choose the role in the real app | back-compat | UI | auth-routing.spec.js::TC-01-S1 | Planned |
-| TC-01-S2 | An account whose password predates the 8-character policy | back-compat | Manual *(staging)* | Manual: staging go-live checks::TC-01-S2 | Blocked on G-13 |
+| TC-01-S2 | A password set before the 8-character policy is refused with the reset message | back-compat | Manual *(staging)* | Manual: staging go-live checks::TC-01-S2 | Planned |
+| TC-01-S3 | "Reset your password" in that message opens the reset page with the email filled in | navigation | Manual *(staging)* | Manual: staging go-live checks::TC-01-S3 | Planned |
+| TC-01-S4 | On the same project, a wrong password of 8 or more characters still gets the shared message | negative | API *(staging)* | auth-policy.staging.spec.js::TC-01-S4 | Planned |
 | TC-01-T1 | 20 minutes: signing in from links opened inside phone apps | exploratory | Manual | Manual: exploratory charter::TC-01-T1 | Planned |
 | TC-01-T2 | 15 minutes: one shared family phone, two homeowners | exploratory | Manual | Manual: exploratory charter::TC-01-T2 | Planned |
 | TC-01-T3 | 15 minutes: slow and flaky network | exploratory | Manual | Manual: exploratory charter::TC-01-T3 | Planned |
