@@ -10,7 +10,7 @@
 | Architecture | SA-001 §4.2 (`households`, `lots`) and R-8 (onboarding), Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-002 |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch's corrections applied; CSV only in R1; contacts moved to a staff-only record; concurrency and stale-edit cases added · r3, 2026-11-28: owner approval recorded; recommendations accepted · r4, 2026-11-28: answers to the 21 TC-03 (QA) gaps applied, owner-approved ("Approve, apply r4"); decision 2 pick recorded; decision 3 added (Block/Lot editable) · r5, 2026-11-28: S1 follow-ups from approved REQ-008 and REQ-006 (answers TC-08 gaps G-2, G-17 and TC-06 G-10): new households get `billedThrough: ""` and `activeSince`; reactivation sets `activeSince`; the board may read `lots`. Add to TC-03 |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch's corrections applied; CSV only in R1; contacts moved to a staff-only record; concurrency and stale-edit cases added · r3, 2026-11-28: owner approval recorded; recommendations accepted · r4, 2026-11-28: answers to the 21 TC-03 (QA) gaps applied, owner-approved ("Approve, apply r4"); decision 2 pick recorded; decision 3 added (Block/Lot editable) · r5, 2026-11-28: S1 follow-ups from approved REQ-008 and REQ-006 (answers TC-08 gaps G-2, G-17 and TC-06 G-10): new households get `billedThrough: ""` and `activeSince`; reactivation sets `activeSince`; the board may read `lots`. Add to TC-03 · 2026-11-28: size re-done with mock-up reuse (REVIEW-sizing-reuse.md, owner approved) |
 
 ## Owner decisions
 
@@ -455,3 +455,10 @@ Option A, CSV only: **5–7 person-days with Claude Code**. That covers the prev
 #### Sources (fetched 2026-11-28)
 
 [Firestore transactions and batched writes (limits, retries)](https://firebase.google.com/docs/firestore/manage-data/transactions). Free daily read and write allowances as quoted in SA-001 §7 from [Firebase pricing](https://firebase.google.com/pricing) (fetched 2026-11-27 by SA-001).
+
+#### Size with mock-up reuse (2026-11-28, replaces the size above)
+
+**4.5–6.25 person-days with Claude Code** (was 5–7). Re-sized under the owner's rule to reuse what is already in the repo (L-006), in [REVIEW-sizing-reuse.md](../architecture/REVIEW-sizing-reuse.md), approved by the owner on 2026-11-28 ("APPROVED — FINAL: sizing reuse review, merge it").
+
+- **Parts** (port UI · extend UI · new UI · back end · tests): 0.25 · 0.5 · 1–1.25 · 2.25–3.25 · 0.5–1
+- **Reuses:** Port: `aHo()` 758 (list, search, status pills) and the `hoDetail` dialog 1383. Extend: paging and server search for 623+ households, phone cards (drawn at 547), link status. New: import preview (548) and the add/edit form (554). The mock-up has no add or edit

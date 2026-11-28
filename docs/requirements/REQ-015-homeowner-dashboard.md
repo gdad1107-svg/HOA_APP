@@ -10,7 +10,7 @@
 | Architecture | SA-001 §4.2 (`households` totals), §4.4 item 1, §7 (reads per screen), R-11, R-16; CODING-STANDARDS rule 11. Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-009 (statement and balance rules; the statement must show the **stored** balance, not one recalculated in the browser, for the two to agree), REQ-010 (pending payments), REQ-011 (bell), REQ-013 (receipt button), REQ-016 (announcements). Landing page already named by REQ-001 and REQ-004 |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (overdue and due date from a server-kept `openBills` summary and a shared aging helper, stored balance in REQ-009, credit as a negative balance, phone-clock note, sale rule by submission time, `config/features`) · r4, 2026-11-28: owner approval recorded; recommendations accepted · r5, 2026-11-28: answers TC-15 gaps G-1 to G-9 (and TC-12 G-2, TC-14 G-12): `openBills` recalculated from bills and the household's paid total, no per-bill paid amounts; first-name fallback; which due date shows; fully paid, credit and awaiting-approval combinations; "Pay with QR" always shown; overdue alert counts overdue bills only; payment-row statuses and reasons; per-card error copy; `config/features` not read by people with no household |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (overdue and due date from a server-kept `openBills` summary and a shared aging helper, stored balance in REQ-009, credit as a negative balance, phone-clock note, sale rule by submission time, `config/features`) · r4, 2026-11-28: owner approval recorded; recommendations accepted · r5, 2026-11-28: answers TC-15 gaps G-1 to G-9 (and TC-12 G-2, TC-14 G-12): `openBills` recalculated from bills and the household's paid total, no per-bill paid amounts; first-name fallback; which due date shows; fully paid, credit and awaiting-approval combinations; "Pay with QR" always shown; overdue alert counts overdue bills only; payment-row statuses and reasons; per-card error copy; `config/features` not read by people with no household · 2026-11-28: size re-done with mock-up reuse (REVIEW-sizing-reuse.md, owner approved) |
 
 ## Owner decisions
 
@@ -295,3 +295,10 @@ Reads per open: about 9–13; **under 10 holds only if** the announcement data i
 | Scale and cost | As above |
 | Dependencies | None |
 | Observability | Reconciliation |
+
+#### Size with mock-up reuse (2026-11-28, replaces the size above)
+
+**0.75–1 person-days with Claude Code** (was 1–1.5). Re-sized under the owner's rule to reuse what is already in the repo (L-006), in [REVIEW-sizing-reuse.md](../architecture/REVIEW-sizing-reuse.md), approved by the owner on 2026-11-28 ("APPROVED — FINAL: sizing reuse review, merge it").
+
+- **Parts** (port UI · extend UI · new UI · back end · tests): 0.25 · 0.25 · 0 · 0–0.25 · 0.25
+- **Reuses:** Port: `oDash()` 584–603 (overdue alert 592, tiles 593–598, announcements and recent payments 599–602). R1 shows the dues tiles only. Extend: credit, nothing yet, loading (588–591). The `openBills` summary is written by 008/012/014

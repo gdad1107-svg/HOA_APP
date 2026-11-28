@@ -9,7 +9,7 @@
 | Mockup | Screens 1A–1M of the [access and households mockup](https://claude.ai/artifact/KaNMpY53cLTtrk8HARZgUr) (comment there). r4 changes 1G and adds 1H–1M; the published copy needs republishing. Repo copy: [req-001-004-access-mockup.html](../mockups/req-001-004-access-mockup.html) |
 | Architecture | SA-001 §4.2, §8.1, §8.4 and ADR-004, all Draft on branch `docs/sa-001-architecture` (links work once that branch is merged) |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch's corrections applied to the criteria, copy and data; owner decisions listed · r3, 2026-11-28: owner approval recorded; recommendations accepted · **r4, 2026-11-28: QA's requirement gaps from TC-01 v1.1 answered (G-1 to G-8, G-11 to G-21); see [r4 change log](#r4-change-log); Sol Arch's r4 changes applied; owner approval recorded** · r5, 2026-11-28: S1 follow-up from approved REQ-005 (answers TC-05 gaps G-1, G-10, G-16): `users` gains a `privacyAck`-only update clause and a treasurer read; page order and banner on the notice page stated. See [Follow-up from REQ-005](#follow-up-from-req-005-r5) |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch's corrections applied to the criteria, copy and data; owner decisions listed · r3, 2026-11-28: owner approval recorded; recommendations accepted · **r4, 2026-11-28: QA's requirement gaps from TC-01 v1.1 answered (G-1 to G-8, G-11 to G-21); see [r4 change log](#r4-change-log); Sol Arch's r4 changes applied; owner approval recorded** · r5, 2026-11-28: S1 follow-up from approved REQ-005 (answers TC-05 gaps G-1, G-10, G-16): `users` gains a `privacyAck`-only update clause and a treasurer read; page order and banner on the notice page stated. See [Follow-up from REQ-005](#follow-up-from-req-005-r5) · 2026-11-28: size re-done with mock-up reuse (REVIEW-sizing-reuse.md, owner approved) |
 
 **Reading r4:** new scenarios carry the tag `@r4-new` and changed ones `@r4-changed`. New or changed rows and lines elsewhere end with **(r4)**. Untagged text is unchanged from approved r3.
 
@@ -860,6 +860,13 @@ The r4 additions add about **1–1.5 person-days with Claude Code** to the r1 es
 #### Sources (fetched 2026-11-28)
 
 [Email enumeration protection](https://docs.cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) · [Password policy (Identity Platform)](https://docs.cloud.google.com/identity-platform/docs/password-policy) · [Password auth, web](https://firebase.google.com/docs/auth/web/password-auth) · [Google sign-in, web](https://firebase.google.com/docs/auth/web/google-signin) · [Users and trusted providers](https://firebase.google.com/docs/auth/users) · [Auth emulator](https://firebase.google.com/docs/emulator-suite/connect_auth) · [Rules String reference](https://firebase.google.com/docs/reference/rules/rules.String) · [Offline data](https://firebase.google.com/docs/firestore/manage-data/enable-offline) ("Write operations are queued until network access is re-enabled") · [HttpsCallableOptions](https://firebase.google.com/docs/reference/js/functions.httpscallableoptions) (timeout "Default is 70000" ms) · SDK source: [email_and_password.ts](https://github.com/firebase/firebase-js-sdk/blob/main/packages/auth/src/core/strategies/email_and_password.ts), [invalidation.ts](https://github.com/firebase/firebase-js-sdk/blob/main/packages/auth/src/core/user/invalidation.ts) · Emulator source: [firebase-tools PR #6702](https://github.com/firebase/firebase-tools/pull/6702) (emulator only, hence Uncertain for production)
+
+#### Size with mock-up reuse (2026-11-28, replaces the size above)
+
+**3–4.5 person-days with Claude Code** (was 3–4.5 (2–3 r1 + 1–1.5 r4; staff 2-step +1–1.5 not counted)). Re-sized under the owner's rule to reuse what is already in the repo (L-006), in [REVIEW-sizing-reuse.md](../architecture/REVIEW-sizing-reuse.md), approved by the owner on 2026-11-28 ("APPROVED — FINAL: sizing reuse review, merge it").
+
+- **Parts** (port UI · extend UI · new UI · back end · tests): 0 · 0 · 1–1.5 · 1–1.5 · 1–1.5
+- **Reuses:** Nothing in `index.html`: the mock-up has no sign-in, only the demo role switch at 554. The form CSS `.f`/`.fl` and `.alert` come with the shell (REQ-002). Screens drawn in `req-001-004-access-mockup.html` 497–532. New: everything
 
 ## Sol Arch review
 

@@ -10,7 +10,7 @@
 | Architecture | SA-001 §3, §4.2 (`config/settings`, Storage `config/payment-qr.png`), §8.3 (settings changes audited); Draft on branch `docs/sa-001-architecture`. **Departs from SA-001 §3:** dues and QR settings are written by callables into `config/payment`, not by a client write (Sol Arch review) |
 | Depends on | REQ-002 (roles), REQ-006 (activity log), REQ-011 (notifications, for the QR-change alert) |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (`config/payment` written only by callables `saveDuesSettings` / `replacePaymentQr`, audit and alert in the same transaction, self-alert and no-officer warning, "QR code updated {date}" for homeowners, advisory read-back wording, stale billing preview, ₱100,000.00 dues cap) · r4, 2026-11-28: owner approval recorded; recommendations accepted · **r5, 2026-11-28: answers TC-07 gaps G-1 to G-20** (see [r5 gap answers](#r5-gap-answers-tc-07)): first QR upload alerts like a replacement, toast before the first run, homeowner header shows the billed rate and the next one, one log entry per field, no-change save, 25% rule both ways, shared peso parser, field limits and copy, 2 MB = 2,097,152 bytes, typed REPLACE case-insensitive, file signature checked, `config/settings` closed list, unsaved-changes prompt, board alert opens the Activity log, Escape rule. No new owner decision. New scenarios tagged `@r5-new` |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (`config/payment` written only by callables `saveDuesSettings` / `replacePaymentQr`, audit and alert in the same transaction, self-alert and no-officer warning, "QR code updated {date}" for homeowners, advisory read-back wording, stale billing preview, ₱100,000.00 dues cap) · r4, 2026-11-28: owner approval recorded; recommendations accepted · **r5, 2026-11-28: answers TC-07 gaps G-1 to G-20** (see [r5 gap answers](#r5-gap-answers-tc-07)): first QR upload alerts like a replacement, toast before the first run, homeowner header shows the billed rate and the next one, one log entry per field, no-change save, 25% rule both ways, shared peso parser, field limits and copy, 2 MB = 2,097,152 bytes, typed REPLACE case-insensitive, file signature checked, `config/settings` closed list, unsaved-changes prompt, board alert opens the Activity log, Escape rule. No new owner decision. New scenarios tagged `@r5-new` · 2026-11-28: size re-done with mock-up reuse (REVIEW-sizing-reuse.md, owner approved) |
 
 ## Owner decisions
 
@@ -504,3 +504,10 @@ Questions for Sol Arch (from the BA, r1):
 #### Size
 
 **2–2.5 person-days with Claude Code, plus 0.5 for the QR read-back (BA: 1.5–2 + 0.5).** The extra covers the two callables, Storage rules with the cross-service check, and the officer alerts with the no-officer case.
+
+#### Size with mock-up reuse (2026-11-28, replaces the size above)
+
+**2.25–2.75 person-days with Claude Code** (was 2.5–3). Re-sized under the owner's rule to reuse what is already in the repo (L-006), in [REVIEW-sizing-reuse.md](../architecture/REVIEW-sizing-reuse.md), approved by the owner on 2026-11-28 ("APPROVED — FINAL: sizing reuse review, merge it").
+
+- **Parts** (port UI · extend UI · new UI · back end · tests): 0.25 · 0.25 · 0 · 1.25–1.5 · 0.5–0.75
+- **Reuses:** Port: `aSet()` 865, "Dues & billing" form 869–875, "Payment QR code" card 876–877, `qrBlock()` 605. Extend: confirm a large change, replace the QR, read-only for the admin office, stale edit (drawn 595–599)

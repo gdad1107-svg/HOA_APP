@@ -31,3 +31,9 @@ Owner: Sol Arch. Read before every review; cite by `L-NNN`.
 - **Why it happened:** hashing makes a leaked database useless for joining a household. The cost is that the plain code exists only in the call that creates it, the email hand-off and the printed slip.
 - **The rule now:** Printing always makes new codes, and the old unused code stops working; the screen says so. The code is removed from the `mail` document after hand-off. Email links carry it after `#`, which keeps it out of server logs. The printed PDF says "Delete this file after printing". This lives in SA-001 §4.2 and §8.1.
 - **Applies to:** invites, and any future one-time code or token.
+
+### L-006 — Size requirements against what the repo already has, starting with the mock-up's screens (2026-11-28)
+- **What happened:** The owner asked that build estimates reuse what is already on the repo, "the index html given that UI are mostly built already there". The REQ-001 to REQ-004 sizes listed UI items, such as the role router and menus and the household list with search, as work without saying which already exist in `index.html` (for example `NAV` at line 546 and `aHo()` at line 758).
+- **Why it happened:** L-002 ("port the screens, never the data handling") was applied to design but not to sizing, so porting a screen and building it new were sized alike.
+- **The rule now:** Every Size section splits the work into port UI, extend UI, new UI, back end and tests, and names the mock-up function and line it reuses. Shared pieces (shell, ui kit, router, data layer, mail function) are counted once. The back end is always full size, because the mock-up's handlers are not reusable. This lives in the Sol Arch agent ("Sizing: reuse what is already in the repo").
+- **Applies to:** every requirement review, change-impact analysis, roadmap and release-plan check.

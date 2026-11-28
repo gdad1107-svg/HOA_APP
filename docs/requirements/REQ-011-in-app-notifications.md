@@ -10,7 +10,7 @@
 | Architecture | SA-001 §4.1 (`notifs` → `notifications`), §3 and §4.4 item 8 (no fan-out for announcements), ADR-002 (email is separate); Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-002 (roles), REQ-004 (members) |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (bounded live listener for the count, deterministic ids, route codes not URLs, no contact details in parameters, removal clean-up by a retried trigger within a minute, removed staff, catalogue additions for the QR self-alert and bill corrections) · r4, 2026-11-28: owner approval recorded; recommendations accepted · **r5, 2026-11-28: answers TC-11 gaps G-1 to G-7** (see [r5 gap answers](#r5-gap-answers-tc-11)) and the S3 BA's requests: catalogue stays the copy of record for approved and rejected (REQ-012 r7 now matches it); rows added for "made before you joined" approvals and voids, member and board voids; who gets "Receipt ready" and rejections; screen-reader count above 9; limit note only when more exist; unknown event codes; one bell across views; 12-month boundary. No new owner decision. New scenarios tagged `@r5-new` · r6, 2026-11-28: catalogue row for the staff alert of a new announcement (approved REQ-016 decision 7), wording from REQ-016 |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (bounded live listener for the count, deterministic ids, route codes not URLs, no contact details in parameters, removal clean-up by a retried trigger within a minute, removed staff, catalogue additions for the QR self-alert and bill corrections) · r4, 2026-11-28: owner approval recorded; recommendations accepted · **r5, 2026-11-28: answers TC-11 gaps G-1 to G-7** (see [r5 gap answers](#r5-gap-answers-tc-11)) and the S3 BA's requests: catalogue stays the copy of record for approved and rejected (REQ-012 r7 now matches it); rows added for "made before you joined" approvals and voids, member and board voids; who gets "Receipt ready" and rejections; screen-reader count above 9; limit note only when more exist; unknown event codes; one bell across views; 12-month boundary. No new owner decision. New scenarios tagged `@r5-new` · r6, 2026-11-28: catalogue row for the staff alert of a new announcement (approved REQ-016 decision 7), wording from REQ-016 · 2026-11-28: size re-done with mock-up reuse (REVIEW-sizing-reuse.md, owner approved) |
 
 ## Owner decisions
 
@@ -405,3 +405,10 @@ Questions for Sol Arch (from the BA, r1):
 #### Size
 
 **S, 2 person-days with Claude Code (BA: 1.5–2).** It includes the `onDocumentDeleted` trigger and the `notify()` helper with deterministic ids and the route allow-list.
+
+#### Size with mock-up reuse (2026-11-28, replaces the size above)
+
+**1.75 person-days with Claude Code** (was 2). Re-sized under the owner's rule to reuse what is already in the repo (L-006), in [REVIEW-sizing-reuse.md](../architecture/REVIEW-sizing-reuse.md), approved by the owner on 2026-11-28 ("APPROVED — FINAL: sizing reuse review, merge it").
+
+- **Parts** (port UI · extend UI · new UI · back end · tests): 0.25 · 0.25 · 0 · 1 · 0.25
+- **Reuses:** Port: bell and panel in `headerHTML()` 557–559, `readAll` 1339. Extend: empty and error (623). BE: `notify()` helper, delete trigger, route allow-list

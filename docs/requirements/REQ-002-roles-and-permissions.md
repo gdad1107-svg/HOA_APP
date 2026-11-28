@@ -258,3 +258,10 @@ Option B: **3–4 person-days with Claude Code**. That covers `setRole` plus the
 #### Sources (fetched 2026-11-28)
 
 [Manage sessions / revoke tokens](https://firebase.google.com/docs/auth/admin/manage-sessions) · [Custom claims](https://firebase.google.com/docs/auth/admin/custom-claims) · [Rules conditions (get/exists limits, billing)](https://firebase.google.com/docs/firestore/security/rules-conditions) · [Rules Request reference](https://firebase.google.com/docs/reference/rules/rules.firestore.Request)
+
+#### Size with mock-up reuse (2026-11-28, replaces the size above)
+
+**2.75–3.75 person-days with Claude Code** (was 3–4). Re-sized under the owner's rule to reuse what is already in the repo (L-006), in [REVIEW-sizing-reuse.md](../architecture/REVIEW-sizing-reuse.md), approved by the owner on 2026-11-28 ("APPROVED — FINAL: sizing reuse review, merge it").
+
+- **Parts** (port UI · extend UI · new UI · back end · tests): 0.5 · 0.25 · 0.25–0.5 · 1.5–2 · 0.25–0.5
+- **Reuses:** Port: `NAV` 546, `navHTML()` 561, `VIEWS` 968, `render()` 971, `headerHTML()` 548, role switch 554 (now for a treasurer who is also a homeowner), plus the shell and UI kit (§4). Extend: nav badges from real counts 563, the no-access page. New: Settings → Staff list (drawn at 539)

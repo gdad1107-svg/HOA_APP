@@ -10,7 +10,7 @@
 | Architecture | SA-001 §3 ("Audit log: function / trigger only"), §4.4 item 9, §8.2 (no personal data in free text), §8.3; Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-002 (roles). Entries are already written by REQ-002, REQ-003 and REQ-004; this REQ adds the screen and the common format |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (shared audit helper with allow-list, homeowner actor null, no personal values in before/after, `targetType` and `count`, functions only, Person filter, unknown-code fallback, billing skip / late bill / bill adjusted entries) · r4, 2026-11-28: owner approval recorded; recommendations accepted · **r5, 2026-11-28: answers TC-06 gaps G-1 to G-16** (see [r5 gap answers](#r5-gap-answers-tc-06)): full sentence and type catalogue for every R1 code, one invitation entry per household, payee values kept and instructions as field only, Person filter from an actor list, three more indexes, board lot suggestions from `lots`, date and empty-state copy, filters in memory, no live updates, helper built in S1; plus the S3 BA's request, an "Announcements" type with three sentences (TC-16 G-7). No new owner decision. New scenarios tagged `@r5-new` |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (shared audit helper with allow-list, homeowner actor null, no personal values in before/after, `targetType` and `count`, functions only, Person filter, unknown-code fallback, billing skip / late bill / bill adjusted entries) · r4, 2026-11-28: owner approval recorded; recommendations accepted · **r5, 2026-11-28: answers TC-06 gaps G-1 to G-16** (see [r5 gap answers](#r5-gap-answers-tc-06)): full sentence and type catalogue for every R1 code, one invitation entry per household, payee values kept and instructions as field only, Person filter from an actor list, three more indexes, board lot suggestions from `lots`, date and empty-state copy, filters in memory, no live updates, helper built in S1; plus the S3 BA's request, an "Announcements" type with three sentences (TC-16 G-7). No new owner decision. New scenarios tagged `@r5-new` · 2026-11-28: size re-done with mock-up reuse (REVIEW-sizing-reuse.md, owner approved) |
 
 ## Owner decisions
 
@@ -460,3 +460,10 @@ Questions for Sol Arch (from the BA, r1):
 #### Size
 
 **2–2.5 person-days with Claude Code (BA: 1.5–2).** The extra 0.5 is the shared helper with its allow-list, fitted to the REQ-002 to REQ-004 functions, with unit tests.
+
+#### Size with mock-up reuse (2026-11-28, replaces the size above)
+
+**1.75–2.25 person-days with Claude Code** (was 2–2.5). Re-sized under the owner's rule to reuse what is already in the repo (L-006), in [REVIEW-sizing-reuse.md](../architecture/REVIEW-sizing-reuse.md), approved by the owner on 2026-11-28 ("APPROVED — FINAL: sizing reuse review, merge it").
+
+- **Parts** (port UI · extend UI · new UI · back end · tests): 0.25 · 0 · 0–0.25 · 1.25 · 0.25–0.5
+- **Reuses:** Port: the "Recent activity" list in `aDashOps()` 734 and the `.tbl` table. New: filters (drawn 590–592). BE: the log helper and its allow-list

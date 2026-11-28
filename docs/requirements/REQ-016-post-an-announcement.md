@@ -10,7 +10,7 @@
 | Architecture | SA-001 §3 (announcements: client write, no fan-out), §4.2 (`announcements`, `announcements/{id}/reads/{uid}`), §4.4 items 8, 11 and 12, §8.2; CODING-STANDARDS rules 10, 15. Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-002 (roles), REQ-006 (activity log) |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (reads limited to staff and household members via `memberOf/{uid}`, actor fields, retry-safe double-post check, offline "not posted yet" wording, rendering rule, banner date range); editing after "Got it" and the payment-account footer added as open decisions 6 and 7 · r4, 2026-11-28: owner approval recorded; recommendations accepted · r5, 2026-11-28: answers TC-16 gaps G-1 to G-14 (and TC-17 G-1, G-2): banner end date in the staff list; "Edited" in the list only; trimmed text checked by rules; form clears after posting and warns before losing a draft; where the banner shows; staff list hides deleted ones; activity-log entries; board menu; banner and pop-up selection rule (query for Sol Arch to confirm); edit range for the banner date; edit-after-delete copy and last save wins; `memberOf` backfill at release; "Show more" and load-failure copy; important announcements appear as the pop-up, not the banner. Banner refresh for people already signed in is open decision 8 · r6, 2026-11-28: decisions 6 (a), 7 (footer plus in-app alert to the other staff) and 8 (b) approved (owner: "Approve all"); edit-block, footer, staff-alert and live-banner scenarios, rules and copy made unconditional |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (reads limited to staff and household members via `memberOf/{uid}`, actor fields, retry-safe double-post check, offline "not posted yet" wording, rendering rule, banner date range); editing after "Got it" and the payment-account footer added as open decisions 6 and 7 · r4, 2026-11-28: owner approval recorded; recommendations accepted · r5, 2026-11-28: answers TC-16 gaps G-1 to G-14 (and TC-17 G-1, G-2): banner end date in the staff list; "Edited" in the list only; trimmed text checked by rules; form clears after posting and warns before losing a draft; where the banner shows; staff list hides deleted ones; activity-log entries; board menu; banner and pop-up selection rule (query for Sol Arch to confirm); edit range for the banner date; edit-after-delete copy and last save wins; `memberOf` backfill at release; "Show more" and load-failure copy; important announcements appear as the pop-up, not the banner. Banner refresh for people already signed in is open decision 8 · r6, 2026-11-28: decisions 6 (a), 7 (footer plus in-app alert to the other staff) and 8 (b) approved (owner: "Approve all"); edit-block, footer, staff-alert and live-banner scenarios, rules and copy made unconditional · 2026-11-28: size re-done with mock-up reuse (REVIEW-sizing-reuse.md, owner approved) |
 
 ## Owner decisions
 
@@ -423,3 +423,10 @@ Feature: Announcements
 | Scale and cost | No fan-out |
 | Dependencies | None |
 | Observability | Audit trigger failures alert (REQ-006) |
+
+#### Size with mock-up reuse (2026-11-28, replaces the size above)
+
+**0.75–1 person-days with Claude Code** (was 1–1.5). Re-sized under the owner's rule to reuse what is already in the repo (L-006), in [REVIEW-sizing-reuse.md](../architecture/REVIEW-sizing-reuse.md), approved by the owner on 2026-11-28 ("APPROVED — FINAL: sizing reuse review, merge it").
+
+- **Parts** (port UI · extend UI · new UI · back end · tests): 0.25 · 0–0.25 · 0 · 0.25 · 0.25
+- **Reuses:** Port: `aNews()` 860–863, `oNews()` 710, `newsItem()` 604, `bannerHTML()` 566, `delNews` confirm 1408. Extend: "Show banner until", counters, failed post (595)

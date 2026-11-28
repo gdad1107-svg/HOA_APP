@@ -10,7 +10,7 @@
 | Architecture | SA-001 §4.2 (`announcements.important`, `announcements/{id}/reads/{uid}`), §4.4 item 8; CODING-STANDARDS rule 11. Draft on branch `docs/sa-001-architecture` |
 | Depends on | REQ-016 (announcements), REQ-001 (sign-in), REQ-004 (linked households, for the count) |
 | Author / date | Business Analyst, 2026-11-28 |
-| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (`reads` rules, `householdReads` functions-only, counting trigger keyed on `memberOf`, linked total by count queries, unlinked-household note, "Got it" queued not failed); editing after "Got it" points to REQ-016 decision 6 (open) · r4, 2026-11-28: owner approval recorded; recommendations accepted · r5, 2026-11-28: answers TC-17 gaps G-1 to G-9: an important announcement shows as the pop-up, never as the banner; selection rule shared with REQ-016 r5 so none is dropped past 10; linked and total counts are active households only; count-failure copy; aggregate count readable by members accepted; `reads` limited to household members and staff; order of blocking screens; the pop-up shows on whichever homeowner page opens first and stays there; an edit under REQ-016 decision 6 (b) doesn't pop up again · r6, 2026-11-28: privacy notice (REQ-005) stated as always shown before the pop-up, in UX/UI notes as well as the scenario and Data changes · r7, 2026-11-28: REQ-016 decisions 6 (a) and 8 (b) approved (owner: "Approve all"): text can't be edited once anyone pressed "Got it", and the pop-up results stay live while the portal is open |
+| Revision | r1, 2026-11-28: first draft · r2, 2026-11-28: Sol Arch review recorded · r3, 2026-11-28: Sol Arch's changes applied (`reads` rules, `householdReads` functions-only, counting trigger keyed on `memberOf`, linked total by count queries, unlinked-household note, "Got it" queued not failed); editing after "Got it" points to REQ-016 decision 6 (open) · r4, 2026-11-28: owner approval recorded; recommendations accepted · r5, 2026-11-28: answers TC-17 gaps G-1 to G-9: an important announcement shows as the pop-up, never as the banner; selection rule shared with REQ-016 r5 so none is dropped past 10; linked and total counts are active households only; count-failure copy; aggregate count readable by members accepted; `reads` limited to household members and staff; order of blocking screens; the pop-up shows on whichever homeowner page opens first and stays there; an edit under REQ-016 decision 6 (b) doesn't pop up again · r6, 2026-11-28: privacy notice (REQ-005) stated as always shown before the pop-up, in UX/UI notes as well as the scenario and Data changes · r7, 2026-11-28: REQ-016 decisions 6 (a) and 8 (b) approved (owner: "Approve all"): text can't be edited once anyone pressed "Got it", and the pop-up results stay live while the portal is open · 2026-11-28: size re-done with mock-up reuse (REVIEW-sizing-reuse.md, owner approved) |
 
 ## Owner decisions
 
@@ -311,3 +311,10 @@ Feature: Important announcement pop-up
 | Scale and cost | One small write per person, one trigger run per acknowledgement |
 | Dependencies | None |
 | Observability | Trigger error alert |
+
+#### Size with mock-up reuse (2026-11-28, replaces the size above)
+
+**0.5–1 person-days with Claude Code** (was 1–1.5). Re-sized under the owner's rule to reuse what is already in the repo (L-006), in [REVIEW-sizing-reuse.md](../architecture/REVIEW-sizing-reuse.md), approved by the owner on 2026-11-28 ("APPROVED — FINAL: sizing reuse review, merge it").
+
+- **Parts** (port UI · extend UI · new UI · back end · tests): 0.25 · 0–0.25 · 0 · 0–0.25 · 0.25
+- **Reuses:** Port: `signInPopup()` 572–580, `ackNews` 1365, the "Seen by n of m" line 862. Extend: several at once, Option B (602–605)

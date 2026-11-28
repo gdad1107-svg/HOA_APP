@@ -21,19 +21,19 @@ Sprints are numbered straight through all releases. Each sprint is one requireme
 
 ## Releases and sprints
 
-Size in build days with Claude Code: S = 0.5–1, M = 2–3, L = 4–6 (from the backlog; Sol Arch has not confirmed them).
+Size in build days with Claude Code. Each size reuses the mock-up's screens (L-006, `docs/architecture/REVIEW-sizing-reuse.md`). S1–S3 and REQ-046 are Sol Arch's. S4–S7 are the BA's estimates with reuse applied. Sol Arch has not reviewed those yet.
 
 | Sprint | Release | REQs | Stories | Size (days) | Stage now | Blocked by |
 |---|---|---|---|---|---|---|
-| S1 | R1 Pay dues online | 001–004 | Sign in, roles, household directory, invitations | **16–23** (Sol Arch, SA-001 r2) + 2–3 app shell | Owner approved, Sol Arch reviewed. **QA test plans in progress** (TC-01 to TC-04 are stubs) | — |
-| S2 | R1 | 005–011, 046 | Privacy notice, activity log, dues and QR settings, billing run, statement, submit payment, notifications, adjust or cancel a bill (046) | **23–27.5** (Sol Arch, incl. REQ-046) | 005–011 **owner approved** 2026-11-28 ("Approve all as shown"), Sol Arch's changes applied. Next: QA test plans. REQ-046 is a draft | REQ-046 approval and Sol Arch review; treasurer: do e-wallet reference numbers repeat (before build); DPO confirms P1 and the notice text |
-| S3 | R1 | 012–017 | Approve or reject payment, official receipt, void, homeowner dashboard, announcements, sign-in pop-up | **12.5–16.5** (Sol Arch) | **Owner approved** 2026-11-28 ("Approve all as shown"; REQ-013 #3 as Sol Arch proposed), Sol Arch's changes applied. Next: QA test plans | 6 new owner questions (REQ-012 #7, 014 #7–8, 016 #6–7, 90-day banner limit); board names the 2nd treasurer; D5 before go-live |
-| S4 | R2 Collect and account | 018–027 | Delinquent list, email, notices, bulk notices, expenses, collections, fund summary and close, admin dashboard, requests | 11–18 | Drafted, awaiting owner review | D2, email provider (SA-001 Q7), board-approved letter texts |
-| S5 | R3 Community services | 028–034 | Vehicles, stickers, amenities, booking, approval, cancel, pause for overdue | 8.5–14 (BA: 11–15) | Drafted, awaiting owner review | D7 |
-| S6 | R3 Records and reports | 035–039 | Reports and CSV, record requests, fulfil, good standing certificate, board financial report | 7–11 | Drafted, awaiting owner review | D6 |
-| S7 | R4 Gate add-on | 040–045 | Guest passes, cancel, guard verifies, check in/out, logs, ID photo deletion | 9.5–15 (BA: 7–11 plus staff page) | Drafted. **Whole release blocked** | D9, DPO on ID photos |
+| S1 | R1 Pay dues online | 001–004 | Sign in, roles, household directory, invitations | **16–22.25** (Sol Arch, with reuse) | Owner approved, Sol Arch reviewed, TC-01 to TC-04 approved; QE triage done for TC-02 and TC-04. Ready to build, **on hold until the client deal closes** | Development hold; TC-03 needs cases for `billedThrough` and `activeSince` |
+| S2 | R1 | 005–011, 046 | Privacy notice, activity log, dues and QR settings, billing run, statement, submit payment, notifications, adjust or cancel a bill (046) | **20.5–25.5** (Sol Arch, with reuse, incl. REQ-046) | 005–011 **owner approved** 2026-11-28 ("Approve all as shown"), Sol Arch's changes applied. Next: QA test plans. REQ-046 is a draft | REQ-046 approval and Sol Arch review; treasurer: do e-wallet reference numbers repeat (before build); DPO confirms P1 and the notice text |
+| S3 | R1 | 012–017 | Approve or reject payment, official receipt, void, homeowner dashboard, announcements, sign-in pop-up | **10.5–13.75** (Sol Arch, with reuse) | **Owner approved** 2026-11-28 ("Approve all as shown"; REQ-013 #3 as Sol Arch proposed), Sol Arch's changes applied. Next: QA test plans | 6 new owner questions (REQ-012 #7, 014 #7–8, 016 #6–7, 90-day banner limit); board names the 2nd treasurer; D5 before go-live |
+| S4 | R2 Collect and account | 018–027 | Delinquent list, email, notices, bulk notices, expenses, collections, fund summary and close, admin dashboard, requests | **12.5–18** (BA, with reuse) | Drafted, awaiting owner review | D2, email provider (SA-001 Q7), board-approved letter texts |
+| S5 | R3 Community services | 028–034 | Vehicles, stickers, amenities, booking, approval, cancel, pause for overdue | **9–12.25** (BA, with reuse) | Drafted, awaiting owner review | D7 |
+| S6 | R3 Records and reports | 035–039 | Reports and CSV, record requests, fulfil, good standing certificate, board financial report | **9–10.75** (BA, with reuse) | Drafted, awaiting owner review | D6 |
+| S7 | R4 Gate add-on | 040–045 | Guest passes, cancel, guard verifies, check in/out, logs, ID photo deletion | **6.25–8.5** (BA, with reuse; plus staff page) | Drafted. **Whole release blocked** | D9, DPO on ID photos |
 
-Total: 45 requirements, about 60–96 build days. S4 is the largest sprint. If it runs long, split it into S4a (018–021, collections) and S4b (022–027, accounting and requests).
+Total: 46 requirements, about **84–111 build days** (R1 47–61.5). This counts the mock-up's screens as existing UI. S4–S7 may go up when Sol Arch reviews them. S2 is the largest sprint, then S1. S4 can still be split into S4a (018–021) and S4b (022–027) if needed.
 
 ## Conflicts between drafts
 
@@ -78,6 +78,8 @@ Follow-ups: the 012–017 and 018–027 mockups still show the old void and mont
 - 2026-11-28: owner approved TC-05 to TC-17 ("Approve, send gaps"); the BA is answering the 181 gaps. All Dev builds on hold until the client deal closes (owner, 2026-11-28).
 
 - 2026-11-28: QA drafted TC-05 to TC-17 for S2 and S3 (1,540 cases; 181 requirement gaps for the BA) on branch docs/qa-s2-s3, awaiting owner review. S1: TC-01 to TC-04 approved; QE triage done for TC-02 and TC-04.
+
+- 2026-11-28: Sol Arch re-sized REQ-001 to REQ-046 to reuse the mock-up (L-006): 96–127 → 84–111 days. The old headline "60–96" was stale. S1 now uses Sol Arch's reviewed sizes instead of the backlog's. Owner: "APPROVED — FINAL: sizing reuse review, merge it".
 
 - 2026-11-28: owner decided "Received from" on receipts: "Sol Arch: at submission" (REQ-013 #6; REQ-010 r7, REQ-012 r5, REQ-013 r5). Rejected reference numbers are deleted on reject, never on void, now consistent across REQ-010, 012 and 014.
 
