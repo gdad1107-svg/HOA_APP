@@ -1,6 +1,7 @@
 # Coding standards — HOA portal
 
-Owner: Sol Arch. Status: **Draft** (adopted with SA-001). Stack: Vite + plain JS ES
+Owner: Sol Arch. Status: **Draft** (adopted with SA-001). Revised 2026-11-28: SonarQube runs
+before each Demo deploy, not before each merge (owner decision). Stack: Vite + plain JS ES
 modules + `lit-html` (web), Node.js Cloud Functions (2nd gen), Firestore, Cloud
 Storage, Firebase Auth. Cite rules by number in reviews ("CS-5").
 
@@ -50,12 +51,22 @@ Storage, Firebase Auth. Cite rules by number in reviews ("CS-5").
 15. **Deletes.** Every delete names what still points at it; prefer soft delete for anything
     a total, number sequence or audit entry references. Firestore does not cascade.
 
-## SonarQube quality gate (merge requirement from the first commit)
+## SonarQube quality gate (before every Demo deploy)
 
 Self-hosted SonarQube Community Build (`http://localhost:9000`), project key `hoa-portal`,
 `sonar-project.properties` in the repo excluding `node_modules`, build output and the HTML
-mock-ups (`index.html`, `gentri-heights/`). Dev scans before every merge to `main`.
+mock-ups (`index.html`, `gentri-heights/`).
+
+**When it runs** (owner, 2026-11-28: "let's run the scanner only before going to Demo"):
+once per release batch, on `main` with every story in the batch merged, before the batch
+deploys to Demo (WORKFLOW-REQ-TO-DEMO stage 9, beside QE's regression run). It is not run
+before each merge. **A failing gate blocks the Demo deploy**, and the fixes go in before the
+batch is scanned again. Every merge to `main` still needs Vitest unit tests at ≥ 80% coverage
+on new code (CS-8). Dev should keep the rules below while writing code, so the batch scan
+finds little (L-007).
+
 Confirm these thresholds on the server's Quality Gates page before quoting them as defaults.
+"New code" for the batch scan means everything changed since the last Demo deploy.
 
 | Condition (new code) | Threshold |
 |---|---|

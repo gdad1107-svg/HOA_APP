@@ -37,3 +37,9 @@ Owner: Sol Arch. Read before every review; cite by `L-NNN`.
 - **Why it happened:** L-002 ("port the screens, never the data handling") was applied to design but not to sizing, so porting a screen and building it new were sized alike.
 - **The rule now:** Every Size section splits the work into port UI, extend UI, new UI, back end and tests, and names the mock-up function and line it reuses. Shared pieces (shell, ui kit, router, data layer, mail function) are counted once. The back end is always full size, because the mock-up's handlers are not reusable. This lives in the Sol Arch agent ("Sizing: reuse what is already in the repo").
 - **Applies to:** every requirement review, change-impact analysis, roadmap and release-plan check.
+
+### L-007 — With one SonarQube scan per release batch, findings pile up until the Demo deploy (2026-11-28)
+- **What happened:** The owner moved the SonarQube scan from before every merge to once per release batch, before the Demo deploy ("let's run the scanner only before going to Demo"). Merges are no longer stopped by the gate.
+- **Why it matters:** issues from many stories now surface together, late, on `main`, and a failing gate blocks the whole batch's Demo deploy. A cognitive-complexity or duplication finding in a shared helper may touch several stories at once, and each fix needs its own retest.
+- **The rule now:** Dev follows the CODING-STANDARDS rules and the adopted Sonar rule table while writing code, and keeps unit coverage at ≥ 80% on every merge (Vitest), so the batch scan finds little. Leave time in the batch plan for fixing scan findings before Demo. Re-run the scan after the fixes and before the deploy. A finding is never waived to make a Demo date; that needs an ADR and the owner's approval (CODING-STANDARDS). Lives in CODING-STANDARDS ("SonarQube quality gate") and SA-001 §10.
+- **Applies to:** every release batch, and Dev's and QE's Demo readiness checks.
